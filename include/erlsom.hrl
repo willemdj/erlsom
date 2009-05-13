@@ -23,5 +23,15 @@
 %%% ====================================================================
 
 %% prefix=the prefix that will be used in the result
+
+-ifndef(_ERLSOM_HRL_).
+-define(_ERLSOM_HRL_, true).
+
+
 -record(ns, {uri, prefix}).
 -record(qname, {uri, localPart, prefix, mappedPrefix}).
+
+-endif.
+
+
+
