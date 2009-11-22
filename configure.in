@@ -1,0 +1,71 @@
+DNA define([AC_CACHE_LOAD], )dnl
+dnl define([AC_CACHE_SAVE], )dnl
+
+AC_INIT(Makefile)
+
+
+dnl work out who the cpu, vendor and OS are
+AC_CANONICAL_SYSTEM
+AC_DEFINE_UNQUOTED(CPU_VENDOR_OS, "$target")
+
+AC_PATH_PROG(ERL, erl)
+AC_PATH_PROG(ERLC, erlc)
+ERLBINDIR=`dirname $ERL` ; ERLBINDIR=`dirname $ERLBINDIR`/lib/erlang/bin
+
+AC_SUBST(ERL)
+AC_SUBST(ERLC)
+
+AC_SUBST(ERLBINDIR)
+
+
+dnl ----------------------------------------------------------------------
+dnl
+dnl BT_ERL_LIB_VSN figures out version of an erlang application
+dnl and substitutes it as "APPNAME"_VSN
+dnl
+
+AC_DEFUN(BT_ERL_LIB_VSN,
+[
+    AC_MSG_CHECKING([$1 version])
+    AC_CACHE_VAL(bt_cv_$1_vsn,
+    [bt_cv_$1_vsn="`ls ${ERLDIR} ${ERLDIR}/lib | \
+                   awk -F- '/^$1-/ { if ([$]2 > v) v=[$]2; }
+                            END    { print v; }'`"
+     case "$bt_cv_$1_vsn" in
+         "")
+             AC_MSG_ERROR("Could not figure out version Erlang library: $1")
+             ;;
+         *)
+             ;;
+     esac])
+    translit($1, [a-z], [A-Z])_VSN=$bt_cv_$1_vsn
+    AC_SUBST(translit($1, [a-z], [A-Z])_VSN)dnl
+    AC_MSG_RESULT($bt_cv_$1_vsn)
+])dnl
+
+
+dnl 
+dnl I keep the cugwin dll code in case I later learn how to
+dnl compile a linked in driver on windows using gcc
+dnl
+
+case "$target_os" in
+	*cygwin*)
+           ERLDIR=`echo "${ERL}" | sed 's/\/bin\/*erl.*//'`
+	;;
+	*)	
+    	  ERLDIR=`awk -F= '/ROOTDIR=/ { print [$]2; exit; }' $ERL`;;
+    esac
+
+if test ! -d "$ERLDIR" ; then
+	AC_MSG_ERROR([Broken Erlang installation, $ERLDIR does not exist!])
+fi
+AC_SUBST(ERLDIR)
+AC_SUBST(ERL_DLL_LIB)
+
+AC_PROG_INSTALL
+
+
+
+AC_OUTPUT(include.mk)
+

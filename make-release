@@ -1,0 +1,36 @@
+#!/bin/sh
+
+set -x
+. ./vsn.mk
+
+echo tagging and packing release ${ERLSOM_VSN} 
+
+CVS_RSH=ssh
+Y=`echo ${ERLSOM_VSN} | sed 's/\./-/g'`
+
+if [ ! -f ./make-release ]; then
+    echo "need to be in top dir"; exit 1;
+fi
+
+cd ..
+rm -rf downloads 2> /dev/null
+rm -rf erlsom-0.0.1 2> /dev/null
+
+cvs tag -F erlsom-${Y}
+
+rm -rf tmp 
+mkdir tmp
+
+cvs export -d tmp -r erlsom-$Y .
+cd tmp
+rm -rf erlsom/CVSROOT
+rm erlsom/make-release
+rm erlsom/make-upload
+mv erlsom erlsom-${ERLSOM_VSN}
+tar cfz  erlsom-${ERLSOM_VSN}.tar.gz   erlsom-${ERLSOM_VSN}
+
+
+echo new release resides in `pwd`/erlsom-${ERLSOM_VSN}.tar.gz 
+
+
+

@@ -1,0 +1,7 @@
+{application,erlsom,
+ [{description,"erlsom XSD parser"},
+  {vsn,"%VSN%"},
+  {modules,[%MODULES%]},
+  {registered, []},
+  {env, []},
+  {applications,[kernel,stdlib]}]}.
