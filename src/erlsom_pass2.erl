@@ -314,9 +314,11 @@ translateAttributes([Attribute | Tail], {Acc, AnyAttr}, SeqNr, Info, Count) ->
   %% 'Attribute' can also be a reference to an attribute group - which may include 'anyAttribute'
   {TranslatedAttributes, AnyAttr2} = translateAttribute(Attribute, SeqNr, Info, Count),
   AnyAttr3 = if AnyAttr2 == undefined -> AnyAttr; true -> AnyAttr2 end,
-  translateAttributes(Tail, {TranslatedAttributes ++ Acc, AnyAttr3}, SeqNr + length(TranslatedAttributes), Info, Count);
+  %% 20100131: changed the order of the ++ term, to solve issue with attribute groups. See also below
+  translateAttributes(Tail, {Acc ++ TranslatedAttributes, AnyAttr3}, SeqNr + length(TranslatedAttributes), Info, Count);
 translateAttributes([], {Acc, AnyAttr}, _SeqNr, _Info, _Count) ->
-  {lists:reverse(Acc), AnyAttr}.
+  %% 20100131: removed the list:reverse, because the ++ above already puts them in the right order
+  {Acc, AnyAttr}.
 
 translateElements(undefined, _Acc, _SeqNr, _Types) ->
   [];

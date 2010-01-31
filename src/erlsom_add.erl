@@ -56,7 +56,8 @@ add(Xsd, Options, Model1) ->
 add_xsd_model(Model1) ->
   add_model(Model1, erlsom_parseXsd:xsdModel()).
 
-add_model(Model1 = #model{tps = Tps, nss = Nss, tns = Tns}, _Model2 = #model{tps = NewTps, nss = NewNss}) ->
+add_model(Model1 = #model{tps = Tps, nss = Nss, tns = Tns, th = Th}, 
+          _Model2 = #model{tps = NewTps, nss = NewNss, th = NewTh}) ->
   [Document | OtherTypes] = Tps,
   #type{nm = '_document', els = [Element]} = Document,
   #el{alts = Alts} = Element,
@@ -70,10 +71,11 @@ add_model(Model1 = #model{tps = Tps, nss = Nss, tns = Tns}, _Model2 = #model{tps
   CombinedDocument = Document#type{els = [CombinedElement]},
   CombinedTypes = [CombinedDocument | lists:umerge(lists:usort(OtherTypes), lists:usort(OtherNewTypes))],
   CombinedNss = lists:umerge(lists:usort(Nss), lists:usort(NewNss)),
+  CombinedTh = lists:umerge(lists:usort(Th), lists:usort(NewTh)),
 
   Info = #schemaInfo{namespaces = CombinedNss, targetNamespace = Tns},
 
   UpdatedTypes = erlsom_pass2:pass5(CombinedTypes, Info),
 
-  Model1#model{tps = UpdatedTypes, nss = CombinedNss}.
+  Model1#model{tps = UpdatedTypes, nss = CombinedNss, th = CombinedTh}.
 

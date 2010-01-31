@@ -209,7 +209,7 @@ scan(Xml, Model, Options) ->
 
 scan2(Xml, State, Options) ->
   case catch erlsom_sax:parseDocument(Xml, State,
-                                      {erlsom_parse, xml2StructCallback},
+                                      fun erlsom_parse:xml2StructCallback/2,
                                       Options) of
     {error, Message} -> {error, Message};
     {'EXIT', Message} -> throw({'EXIT', Message});

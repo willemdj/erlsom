@@ -29,9 +29,6 @@
 -export([writeHrl/1]).
 -export([writeHrlFile/3]).
 -export([writeXsdHrlFile/2]).
-%% internal exports
--export([writeType/2]).
--export([writeAttribute/2]).
 
 -include("erlsom_parse.hrl").
 -include("erlsom.hrl").
@@ -74,7 +71,7 @@ header() ->
 "%% only be used when *writing* an xml document.\n\n".
 
 writeTypes(Types, Acc) ->
-  Acc ++ lists:foldl({erlsom_writeHrl, writeType}, [], Types).
+  Acc ++ lists:foldl(fun writeType/2, [], Types).
 
 writeType(#type{nm = '_document'}, Acc) ->
   Acc;
@@ -126,7 +123,7 @@ writeAlternatives([#alt{} | _Tail], CountChoices) ->
       
 
 writeAttributes(Attributes) ->
-  lists:foldl({erlsom_writeHrl, writeAttribute}, [], Attributes).
+  lists:foldl(fun writeAttribute/2, [], Attributes).
 
 writeAttribute(#att{nm = Name}, []) -> "'" ++ atom_to_list(Name) ++ "'";
 writeAttribute(#att{nm = Name}, Acc) -> Acc  ++ ", '" ++ atom_to_list(Name) ++ "'".

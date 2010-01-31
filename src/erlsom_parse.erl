@@ -294,7 +294,17 @@ xml2StructCallback(Event, State) ->
          stateMachine(Event, State);
       {characters, _Characters} ->
          stateMachine(Event, State);
-      {ignorableWhitespace, _Characters} -> State;
+      {ignorableWhitespace, Characters} -> 
+        case State of
+          #state{currentState = #anyState{}} ->
+            stateMachine({characters, Characters}, State);
+          #state{currentState = {'#PCDATA', _, _}} ->
+            stateMachine({characters, Characters}, State);
+          #state{currentState = {'#text', _, _}} ->
+            stateMachine({characters, Characters}, State);
+          _ -> 
+            State
+        end;
       {processingInstruction, _Target, _Data} ->  State;
       {startPrefixMapping, Prefix, URI} -> 
          Namespaces = State#state.namespaces,

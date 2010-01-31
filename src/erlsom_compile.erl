@@ -18,6 +18,11 @@
 %%%
 %%% Author contact: w.a.de.jong@gmail.com
 
+
+%%% Version history:
+%%% 22-04-2009: fixed bug in processing of import inside include - see
+%%%             comment marked 20090422.
+
 %%% ===================================================================
 %%% Translates the XSD into the model used by erlsom_parse.
 %%% ===================================================================
@@ -287,6 +292,8 @@ processImports([Impt = #includeType{} | Tail], Acc = #p1acc{includeDirs = Dirs,
                    nsp = Prefix,
                    seqCnt = Acc3#p1acc.seqCnt,
                    attGrps = Acc3#p1acc.attGrps,
+                   nss = Acc3#p1acc.nss, %% 20090422: added this line to make
+                                         %% namespaces known. 
                    atts = Acc3#p1acc.atts},
   processImports(Tail, Acc4);
 processImports([#redefineType{schemaLocation = Location,
@@ -441,7 +448,10 @@ transformTypes([#globalComplexTypeType{name=Name, model=Model, attributes=Attrib
    transformTypes(Tail, Acc2#p1acc{path = [], tps = [Type2 | ResultSoFar]});
 
 %%-record(globalSimpleTypeType, {name, annotation, model}).
-transformTypes([#globalSimpleTypeType{name=Name, model=undefined}| Tail],
+%% TODO: better would be to avoid getting the 'any' stuff in the 
+%% translation of the XSD alltogether.
+%% transformTypes([#globalSimpleTypeType{name=Name, model=undefined}| Tail],
+transformTypes([#globalSimpleTypeType{name=Name}| Tail],
                 Acc = #p1acc{tps = ResultSoFar, nsp = Prefix}) ->
    Type = #typeInfo{typeName = erlsom_lib:makeTypeName(Name, Prefix), typeRef = "##string", global = false, 
                             typeType = simpleType},

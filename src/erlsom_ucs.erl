@@ -48,7 +48,7 @@ decode_utf8(Utf8) ->
 %% parameter has value []). 
 %% The goal is to allow parsing of data in arbitrary blocks.
 
-from_utf8(Bin) when binary(Bin) -> 
+from_utf8(Bin) when is_binary(Bin) -> 
   from_utf8(binary_to_list(Bin));
 
 from_utf8(List) -> 
@@ -229,7 +229,7 @@ from_utf16le(_Bin,_Acc) ->
 
 %%% UTF-8 encoding and decoding
 %% TODO: isn't this very inefficient? Building all these lists?
-to_utf8(List) when list(List) -> lists:flatmap(fun to_utf8/1, List);
+to_utf8(List) when is_list(List) -> lists:flatmap(fun to_utf8/1, List);
 to_utf8(Ch) -> char_to_utf8_list(Ch).
 
 %% TODO: this is probably not the best way to do this.
@@ -249,7 +249,7 @@ char_to_utf8(Char) ->
 %%% 	- Non-canonical encoding used.
 %%%	- Surrogate-pair code encoded as UTF-8.
 %%%	- 16#FFFE or 16#FFFF character in string.
-char_to_utf8_list(Ch) when integer(Ch), Ch >= 0 ->
+char_to_utf8_list(Ch) when is_integer(Ch), Ch >= 0 ->
     if Ch < 128 ->
 	    %% 0yyyyyyy
 	    [Ch];

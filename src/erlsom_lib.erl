@@ -125,6 +125,7 @@ addTreeElement(Child, Parent, Tree) ->
   [{Child, Parent} | Tree].
 
 %% find out whether Ancestor is really an Ancestor of Element.
+isAncestor(Element, Element, _Tree) -> true; %% added because of problem reported by Stu
 isAncestor(Ancestor, Element, Tree) ->
   case lists:keysearch(Element, 1, Tree) of
     {value, {_, Ancestor}} -> true;
@@ -594,7 +595,7 @@ detect_encoding3(Variables) ->
       utf8
   end.
 
-encoding_type(Cs) when list(Cs) -> 
+encoding_type(Cs) when is_list(Cs) -> 
    case to_lower(Cs) of
        "iso-8859-1" -> 'iso-8859-1';
        "iso_8859_1" -> 'iso-8859-1';

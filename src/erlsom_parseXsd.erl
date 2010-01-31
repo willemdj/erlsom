@@ -60,7 +60,7 @@ xsdModel(Namespaces) ->
                                 #alt{tag = 'xsd:annotation', tp = 'annotationType'}], 
                         mn   = 0, 
                         mx   = unbound, 
-                        nr   = 7},
+                        nr   = 8},
                     #el{alts = [#alt{tag = 'xsd:element', tp = 'globalElementType'},
                                 #alt{tag = 'xsd:complexType', tp = 'globalComplexTypeType'},
                                 #alt{tag = 'xsd:simpleType', tp = 'globalSimpleTypeType'},
@@ -70,14 +70,15 @@ xsdModel(Namespaces) ->
                                 #alt{tag = 'xsd:annotation', tp = 'annotationType'}], 
                         mn = 0, 
                         mx = unbound, 
-                        nr = 8}], 
+                        nr = 9}], 
 	     atts = [#att{nm = targetNamespace, nr = 1, opt = true, tp = char},
                      #att{nm = elementFormDefault, nr = 2, opt = true, tp = char}, 
                      #att{nm = attributeFormDefault, nr = 3, opt = true, tp = char}, 
                      #att{nm = blockDefault, nr = 4, opt = true, tp = char}, 
                      #att{nm = finalDefault, nr = 5, opt = true, tp = char}, 
-                     #att{nm = version, nr = 6, opt = true, tp = char}], 
-             nr = 9},
+                     #att{nm = version, nr = 6, opt = true, tp = char}, 
+                     #att{nm = id, nr = 7, opt = true, tp = char}], 
+             nr = 10},
 
 %% -record(importType, {id, namespace, schemaLocation}).
 %% global attribute not supported
@@ -589,7 +590,8 @@ xsdModel(Namespaces) ->
 	     atts = [#att{nm = ref, nr = 1, opt = true, tp = qname}, 
 	             #att{nm = id, nr = 2, opt = true, tp = char}],
              nr = 3}], 
-       nss = [#ns{prefix = "xsd", uri = "http://www.w3.org/2001/XMLSchema"} | Namespaces]}.
+       nss = [#ns{prefix = "xsd", uri = "http://www.w3.org/2001/XMLSchema"} | Namespaces],
+       th = []}.
 
 xsdModel() ->
   xsdModel([]).
@@ -597,6 +599,6 @@ xsdModel() ->
 parseXsd(Xsd, Namespaces) ->
   %% -record(anyAttr, {prCont, ns}). %% for anyAttributes
   GrammarModel = xsdModel(Namespaces),
-  {ok, ParsedXsd, _Tail} = erlsom_sax:parseDocument(Xsd, GrammarModel, 
-                               {erlsom_parse, xml2StructCallback}),
+  {ok, ParsedXsd, _Tail} = 
+    erlsom_sax:parseDocument(Xsd, GrammarModel, fun erlsom_parse:xml2StructCallback/2),
   ParsedXsd.

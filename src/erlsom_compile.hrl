@@ -26,7 +26,7 @@
 %% records for the structures as found in the XSD
 -record(schemaType, 
         {elInfo, targetNamespace, elementFormDefault, attributeFormDefault, blockDefault, finalDefault, 
-         version, imports, elements}).
+         version, id, imports, elements}).
 -record(importType, {elInfo, id, namespace, schemaLocation, annotation}).
 -record(includeType, {elInfo, id, schemaLocation, annotation}).
 -record(redefineType, {elInfo, id, schemaLocation, elements}).
