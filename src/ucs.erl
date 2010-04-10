@@ -53,7 +53,7 @@
 
 
 %%% Test if Ch is a legitimate ISO-10646 character code
-is_iso10646(Ch) when integer(Ch), Ch >= 0 ->
+is_iso10646(Ch) when is_integer(Ch), Ch >= 0 ->
     if Ch  < 16#D800 -> true;
        Ch  < 16#E000 -> false;	% Surrogates
        Ch  < 16#FFFE -> true;
@@ -70,7 +70,7 @@ is_unicode(_) -> false.
 
 %%% Test if Ch is a legitimate ISO-10646 character code belonging to
 %%% the basic multi-lingual plane (BMP).
-is_bmpchar(Ch) when integer(Ch), Ch >= 0 ->
+is_bmpchar(Ch) when is_integer(Ch), Ch >= 0 ->
     if Ch < 16#D800 -> true;
        Ch < 16#E000 -> false;	% Surrogates
        Ch < 16#FFFE -> true;
@@ -79,15 +79,15 @@ is_bmpchar(Ch) when integer(Ch), Ch >= 0 ->
 is_bmpchar(_) -> false.
 
 %%% Test for legitimate Latin-1 code
-is_latin1(Ch) when integer(Ch), Ch >= 0, Ch =< 255 -> true;
+is_latin1(Ch) when is_integer(Ch), Ch >= 0, Ch =< 255 -> true;
 is_latin1(_) -> false.
 
 %%% Test for legitimate ASCII code
-is_ascii(Ch) when integer(Ch), Ch >= 0, Ch =< 127 -> true;
+is_ascii(Ch) when is_integer(Ch), Ch >= 0, Ch =< 127 -> true;
 is_ascii(_) -> false.
 
 %%% Test for char an element of ISO-646.basic set
-is_iso646_basic(Ch) when integer(Ch), Ch >= $\s ->
+is_iso646_basic(Ch) when is_integer(Ch), Ch >= $\s ->
     if Ch =< $Z ->
 	    %% Everything in this range except $# $$ and $@
 	    if Ch > $$ -> Ch =/= $@;
@@ -103,7 +103,7 @@ is_iso646_basic(_) ->
 
 %%% Test for char a visible Latin-1 char, i.e. a non-control Latin-1 char,
 %%% excepting non-break space (but including space).
-is_visible_latin1(Ch) when integer(Ch), Ch >= $\s ->
+is_visible_latin1(Ch) when is_integer(Ch), Ch >= $\s ->
     if Ch =< $~ -> true;
        Ch >= 161 -> Ch =< 255
     end;
@@ -112,77 +112,77 @@ is_visible_latin1(_) ->
 
 %%% Test for char a visible ASCII char, i.e. a non-control ASCII char
 %%% (including space).
-is_visible_ascii(Ch) when integer(Ch), Ch >= $\s -> Ch =< $~;
+is_visible_ascii(Ch) when is_integer(Ch), Ch >= $\s -> Ch =< $~;
 is_visible_ascii(_) -> false.
 
 
 %%% UCS-4, big and little endian versions, encoding and decoding
-to_ucs4be(List) when list(List) -> lists:flatmap(fun to_ucs4be/1, List);
+to_ucs4be(List) when is_list(List) -> lists:flatmap(fun to_ucs4be/1, List);
 to_ucs4be(Ch) -> char_to_ucs4be(Ch).
 
-from_ucs4be(Bin) when binary(Bin) -> from_ucs4be(Bin,[],[]);
+from_ucs4be(Bin) when is_binary(Bin) -> from_ucs4be(Bin,[],[]);
 from_ucs4be(List) -> from_ucs4be(list_to_binary(List),[],[]).
 
-from_ucs4be(Bin,Tail) when binary(Bin) -> from_ucs4be(Bin,[],Tail);
+from_ucs4be(Bin,Tail) when is_binary(Bin) -> from_ucs4be(Bin,[],Tail);
 from_ucs4be(List,Tail) -> from_ucs4be(list_to_binary(List),[],Tail).
 
-to_ucs4le(List) when list(List) -> lists:flatmap(fun to_ucs4le/1, List);
+to_ucs4le(List) when is_list(List) -> lists:flatmap(fun to_ucs4le/1, List);
 to_ucs4le(Ch) -> char_to_ucs4le(Ch).
 
-from_ucs4le(Bin) when binary(Bin) -> from_ucs4le(Bin,[],[]);
+from_ucs4le(Bin) when is_binary(Bin) -> from_ucs4le(Bin,[],[]);
 from_ucs4le(List) -> from_ucs4le(list_to_binary(List),[],[]).
 
-from_ucs4le(Bin,Tail) when binary(Bin) -> from_ucs4le(Bin,[],Tail);
+from_ucs4le(Bin,Tail) when is_binary(Bin) -> from_ucs4le(Bin,[],Tail);
 from_ucs4le(List,Tail) -> from_ucs4le(list_to_binary(List),[],Tail).
 
 %%% UCS-2, big and little endian versions, encoding and decoding
-to_ucs2be(List) when list(List) -> lists:flatmap(fun to_ucs2be/1, List);
+to_ucs2be(List) when is_list(List) -> lists:flatmap(fun to_ucs2be/1, List);
 to_ucs2be(Ch) -> char_to_ucs2be(Ch).
 
-from_ucs2be(Bin) when binary(Bin) -> from_ucs2be(Bin,[],[]);
+from_ucs2be(Bin) when is_binary(Bin) -> from_ucs2be(Bin,[],[]);
 from_ucs2be(List) -> from_ucs2be(list_to_binary(List),[],[]).
 
-from_ucs2be(Bin,Tail) when binary(Bin) -> from_ucs2be(Bin,[],Tail);
+from_ucs2be(Bin,Tail) when is_binary(Bin) -> from_ucs2be(Bin,[],Tail);
 from_ucs2be(List,Tail) -> from_ucs2be(list_to_binary(List),[],Tail).
 
-to_ucs2le(List) when list(List) -> lists:flatmap(fun to_ucs2le/1, List);
+to_ucs2le(List) when is_list(List) -> lists:flatmap(fun to_ucs2le/1, List);
 to_ucs2le(Ch) -> char_to_ucs2le(Ch).
 
-from_ucs2le(Bin) when binary(Bin) -> from_ucs2le(Bin,[],[]);
+from_ucs2le(Bin) when is_binary(Bin) -> from_ucs2le(Bin,[],[]);
 from_ucs2le(List) -> from_ucs2le(list_to_binary(List),[],[]).
 
-from_ucs2le(Bin,Tail) when binary(Bin) -> from_ucs2le(Bin,[],Tail);
+from_ucs2le(Bin,Tail) when is_binary(Bin) -> from_ucs2le(Bin,[],Tail);
 from_ucs2le(List,Tail) -> from_ucs2le(list_to_binary(List),[],Tail).
 
 
 %%% UTF-16, big and little endian versions, encoding and decoding
-to_utf16be(List) when list(List) -> lists:flatmap(fun to_utf16be/1, List);
+to_utf16be(List) when is_list(List) -> lists:flatmap(fun to_utf16be/1, List);
 to_utf16be(Ch) -> char_to_utf16be(Ch).
 
-from_utf16be(Bin) when binary(Bin) -> from_utf16be(Bin,[],[]);
+from_utf16be(Bin) when is_binary(Bin) -> from_utf16be(Bin,[],[]);
 from_utf16be(List) -> from_utf16be(list_to_binary(List),[],[]).
 
-from_utf16be(Bin,Tail) when binary(Bin) -> from_utf16be(Bin,[],Tail);
+from_utf16be(Bin,Tail) when is_binary(Bin) -> from_utf16be(Bin,[],Tail);
 from_utf16be(List,Tail) -> from_utf16be(list_to_binary(List),[],Tail).
 
-to_utf16le(List) when list(List) -> lists:flatmap(fun to_utf16le/1, List);
+to_utf16le(List) when is_list(List) -> lists:flatmap(fun to_utf16le/1, List);
 to_utf16le(Ch) -> char_to_utf16le(Ch).
 
-from_utf16le(Bin) when binary(Bin) -> from_utf16le(Bin,[],[]);
+from_utf16le(Bin) when is_binary(Bin) -> from_utf16le(Bin,[],[]);
 from_utf16le(List) -> from_utf16le(list_to_binary(List),[],[]).
 
-from_utf16le(Bin,Tail) when binary(Bin) -> from_utf16le(Bin,[],Tail);
+from_utf16le(Bin,Tail) when is_binary(Bin) -> from_utf16le(Bin,[],Tail);
 from_utf16le(List,Tail) -> from_utf16le(list_to_binary(List),[],Tail).
 
 
 %%% UTF-8 encoding and decoding
-to_utf8(List) when list(List) -> lists:flatmap(fun to_utf8/1, List);
+to_utf8(List) when is_list(List) -> lists:flatmap(fun to_utf8/1, List);
 to_utf8(Ch) -> char_to_utf8(Ch).
 
-from_utf8(Bin) when binary(Bin) -> from_utf8(Bin,[],[]);
+from_utf8(Bin) when is_binary(Bin) -> from_utf8(Bin,[],[]);
 from_utf8(List) -> from_utf8(list_to_binary(List),[],[]).
 
-from_utf8(Bin,Tail) when binary(Bin) -> from_utf8(Bin,[],Tail);
+from_utf8(Bin,Tail) when is_binary(Bin) -> from_utf8(Bin,[],Tail);
 from_utf8(List,Tail) -> from_utf8(list_to_binary(List),[],Tail).
 
 
@@ -365,7 +365,7 @@ from_ucs2le(Bin,Acc,Tail) ->
 %%% Possible errors decoding UTF-16:
 %%%	- Unmatched surrogate-pair code in string.
 %%%	- 16#FFFE or 16#FFFF character in string.
-char_to_utf16be(Ch) when integer(Ch), Ch >= 0 ->
+char_to_utf16be(Ch) when is_integer(Ch), Ch >= 0 ->
     if Ch =< 16#FFFF ->
 	    if Ch < 16#D800; Ch >= 16#E000, Ch < 16#FFFE ->
 		    [Ch bsr 8, Ch band 16#FF]
@@ -397,7 +397,7 @@ from_utf16be(Bin,Acc,Tail) ->
     io:format("ucs Error: Bin=~p~n     Acc=~p~n     Tail=~p~n",[Bin,Acc,Tail]),
     {error,not_utf16be}.
 
-char_to_utf16le(Ch) when integer(Ch), Ch >= 0 ->
+char_to_utf16le(Ch) when is_integer(Ch), Ch >= 0 ->
     if Ch =< 16#FFFF ->
 	    if Ch < 16#D800; Ch >= 16#E000, Ch < 16#FFFE ->
 		    [Ch band 16#FF, Ch bsr 8]
@@ -442,7 +442,7 @@ from_utf16le(Bin,Acc,Tail) ->
 %%% 	- Non-canonical encoding used.
 %%%	- Surrogate-pair code encoded as UTF-8.
 %%%	- 16#FFFE or 16#FFFF character in string.
-char_to_utf8(Ch) when integer(Ch), Ch >= 0 ->
+char_to_utf8(Ch) when is_integer(Ch), Ch >= 0 ->
     if Ch < 128 ->
 	    %% 0yyyyyyy
 	    [Ch];
@@ -559,43 +559,43 @@ is_incharset(In,Cs) when Cs=='ansi_x3.4-1968';Cs=='iso-ir-6';
 			 Cs=='ascii';Cs=='iso646-us';Cs=='us-ascii';Cs=='us';
 			 Cs=='ibm367';Cs=='cp367';Cs=='csascii' -> % US-ASCII
     if
-	integer(In) -> is_ascii(In);
-	list(In) -> test_charset(fun is_ascii/1,In)
+	is_integer(In) -> is_ascii(In);
+	is_list(In) -> test_charset(fun is_ascii/1,In)
     end;
 is_incharset(In,Cs) when Cs=='iso-10646-utf-1';Cs=='csiso10646utf1' ->
     if
-	integer(In) -> is_unicode(In);
-	list(In) -> test_charset(fun is_unicode/1, In)
+	is_integer(In) -> is_unicode(In);
+	is_list(In) -> test_charset(fun is_unicode/1, In)
     end;
 is_incharset(In,Cs) when Cs=='iso_646.basic:1983';Cs=='ref';
 			 Cs=='csiso646basic1983' ->
     if
-	integer(In) -> is_iso646_basic(In);
-	list(In) -> test_charset(fun is_iso646_basic/1, In)
+	is_integer(In) -> is_iso646_basic(In);
+	is_list(In) -> test_charset(fun is_iso646_basic/1, In)
     end;
 is_incharset(In,Cs) when Cs=='iso_8859-1:1987';Cs=='iso-ir-100';
 			 Cs=='iso_8859-1';Cs=='latin1';Cs=='l1';Cs=='ibm819';
 			 Cs=='cp819';Cs=='csisolatin1' ->
     if
-	integer(In) -> is_latin1(In);
-	list(In) -> test_charset(fun is_latin1/1, In)
+	is_integer(In) -> is_latin1(In);
+	is_list(In) -> test_charset(fun is_latin1/1, In)
     end;
-is_incharset(In,Charset) when integer(In) ->
+is_incharset(In,Charset) when is_integer(In) ->
     case to_unicode([In],Charset) of
 	{error,unsupported_charset} ->
 	    {error,unsupported_charset};
 	{error,_} ->
 	    false;
-	[Int] when integer(Int) ->
+	[Int] when is_integer(Int) ->
 	    true
     end;
-is_incharset(In,Charset) when list(In) ->
+is_incharset(In,Charset) when is_list(In) ->
     case to_unicode(In,Charset) of
 	{error,unsupported_charset} ->
 	    {error,unsupported_charset};
 	{error,_} ->
 	    false;
-	[Int] when integer(Int) ->
+	[Int] when is_integer(Int) ->
 	    true
     end.
 

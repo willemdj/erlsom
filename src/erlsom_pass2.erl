@@ -71,8 +71,15 @@ secondPass(IntermediateStruct,
   Types2 = pass3(Types1),
   Types3 = pass4(Types2, Info),
   DocType = make_Document(GlobalElements, [], Info),
-  DocType2 =  pass3Type(DocType, Types3), %% this is a list
-  Types5 = DocType2 ++ Types3,
+  %% fiddle a bit more - replace refernces in the _document that point
+  %% to unknown types by {#PCDATA, ...}, assuming that they point to 
+  %% simple types that are no longer visible. Even if that assumption 
+  %% would be wrong, it wouldn't have worked otherwise either, so it won't 
+  %% break anything (but it fixes the error pointer out by Alexander Wingrad 
+  %% for those cases).
+  DocType2 = removeDeadRefsFromDoc(DocType, Types3), 
+  DocType3 =  pass3Type(DocType2, Types2), %% this is a list
+  Types5 = DocType3 ++ Types3,
   Types6 = pass5(Types5, Info),
   #model{tps = Types6, nss = NS, tns = Tns,
          th = TypeHierarchy}.
@@ -176,7 +183,20 @@ make_Document([], Acc, _Info) ->
         els = [#el{alts = Acc, mn = 1,  mx = 1, nr = 1}], 
         atts = [], 
         nr = 1}.
-  
+
+removeDeadRefsFromDoc(Type = #type{nm = '_document', els = [El = #el{alts = Alts}]}, Types) ->
+  F = fun(Alt = #alt{tp = {'#PCDATA', _}}) -> Alt;
+         (Alt = #alt{tp = AltType}) -> 
+           case lists:keysearch(AltType, #type.nm, Types) of
+             {value, _} -> Alt;
+             _ -> Alt#alt{tp = list_to_type("##string")}
+           end
+      end,
+  LivingAlts = [F(Alt) || Alt <- Alts],
+  Type#type{els=[El#el{alts = LivingAlts}]};
+removeDeadRefsFromDoc(Type, _Types) ->
+  Type.
+
 
 %% Each Type is of the form {TypeName, TypeType, Elements, Attributes, NrOfElements}.
 %% - TypeName is an atom.
@@ -382,8 +402,14 @@ translateAlternative(#alternative{tag=Tag, type=Type, real=Real, min=Min, max=Ma
       %% debug("Tag " ++ Tag),
       #alt{tag = list_to_atom(Tag), tp = list_to_type("##string"), rl = Real, mn = Min, mx = Max, anyInfo = AnyInfo};
     {value, #typeInfo{typeType = globalElementRefOnly, typeRef=Ref, elements=undefined, attributes=[]}} ->
-      %% debug("Tag: " ++ Tag ++ " Ref: " ++ Ref),
-      #alt{tag = list_to_atom(Tag), tp = list_to_type(Ref), rl = Real, mn = Min, mx = Max, anyInfo = AnyInfo};
+      %% (error reported by Alexander Wingard) this can also be a ref to a simple type (as above)
+      Tp = case lists:keysearch(Ref, #typeInfo.typeName, Types) of
+        {value, #typeInfo{typeRef="##string"}} ->
+          list_to_type("##string");
+        _ -> 
+          list_to_type(Ref)
+      end,
+      #alt{tag = list_to_atom(Tag), tp = Tp, rl = Real, mn = Min, mx = Max, anyInfo = AnyInfo};
     %% If Type has only 1 element and this element has only 1 alternative with tag = '#text' and 'real'  = false
     %% *and* the element has no attributes, then there is no point in referring to that type.
     %% However, this remains on the TODO list for now.
