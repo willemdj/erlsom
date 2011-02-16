@@ -1,31 +1,42 @@
+APPLICATION := erlsom
 
-SUBDIRS	=	src 
-include ./include.mk
-include vsn.mk
+ERL := erl
+EPATH := -pa ebin
+TEST_EPATH := -pa .eunit
 
+DIALYZER=dialyzer
+DIALYZER_OPTS=-Wno_return -Wrace_conditions -Wunderspecs -Wbehaviours
+PLT_FILE=.erlsom_plt
+APPS=kernel stdlib
 
-all debug clean:	
-	@set -e ; \
-	  for d in $(SUBDIRS) ; do \
-	    if [ -f $$d/Makefile ]; then ( cd $$d && $(MAKE) $@ ) || exit 1 ; fi ; \
-	  done
+.PHONY: all clean test
 
-install:	all 
-	set -e ; \
-	for d in $(SUBDIRS) ; do \
-	    if [ -f $$d/Makefile ]; then ( cd $$d && $(MAKE) $@ ) || exit 1 ; fi ; \
-	  done; \
-	echo "** beam files went into $(DESTDIR)/$(APPDIR)/ebin"
+all: compile
 
+compile:
+	@./rebar compile
 
+doc:
+	@./rebar doc
 
-docs:
-	( cd doc && $(MAKE) docs )
+clean:
+	@./rebar clean
 
-conf_clean:
-	-rm include.mk config.cache config.status config.log 2> /dev/null
+build-plt: compile
+	@./rebar build-plt
+
+check-plt: compile
+	@./rebar check-plt
+
+dialyze:
+	@./rebar dialyze
+
+eunit:
+	@./rebar eunit
+
+shell: compile
+	$(ERL) -sname $(APPLICATION) $(EPATH)
 
 touch:
 	find . -name '*' -print | xargs touch -m
 	find . -name '*.erl' -print | xargs touch -m
-
