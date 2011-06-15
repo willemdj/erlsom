@@ -305,7 +305,7 @@ processImports([#redefineType{schemaLocation = Location,
                           Dirs),
   %% debug("Parse imported/redefined file, location = " ++ Location),
   ParsedGrammar = erlsom_parseXsd:parseXsd(Xsd, Acc#p1acc.nss),
-  Acc2 = Acc#p1acc{tps = [], seqCnt = 0, attGrps = [], atts = []},
+  Acc2 = Acc#p1acc{tps = [], attGrps = [], atts = []},
   %% transform (recursively)
   Acc3 = (#p1acc{tps = ImportedTypes} = transform(ParsedGrammar, Acc2)),
   #p1acc{tps = TypesToRedefine} = transformTypes(Redefines, Acc2),
@@ -517,7 +517,7 @@ translateLocalComplexType(#localComplexTypeType{model=Model, attributes=Attribut
                                   %% that the 'model' has the last word.
                  end,
   {Type#typeInfo{attributes = TheAttributes, global = false, anyAttr = AnyAttrValue, 
-                 mixed = if Mixed -> Mixed; true -> Type#typeInfo.mixed end}, Acc2}. 
+                 mixed = if Mixed -> Mixed; true -> Type#typeInfo.mixed end}, Acc2#p1acc{seqCnt = 0}}. 
    %% global = false???
 
 %% -record(anyAttributeType, {elInfo, id, namespace, processContents, annotation}).
