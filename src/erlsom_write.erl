@@ -513,7 +513,7 @@ processNamespaces(Tag, Namespaces, DeclaredNamespaces = {NamespacesList, Counter
       {[], DeclaredNamespaces};
     _Else ->
       %% find prefix in Model
-      case lists:keysearch(Prefix, 3, Namespaces) of
+      case lists:keysearch(Prefix, 3, lists:reverse(Namespaces)) of
 	{value, #ns{uri = Uri}} ->
 	  Xmlns = case Prefix of
 	           undefined -> " xmlns";
