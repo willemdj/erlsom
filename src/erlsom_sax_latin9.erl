@@ -30,7 +30,7 @@
 %% easy to see whether the files are the same, although this check is obviously 
 %% rather primitive.)
 
--define(U16L, true).
+-define(LAT9, true).
 -ifdef(UTF8).
 -module(erlsom_sax_utf8).
 -define(BINARY, true).

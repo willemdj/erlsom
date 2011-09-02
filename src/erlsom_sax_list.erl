@@ -25,7 +25,7 @@
 %% this file exists several times, but with different names: 
 %% erlsom_sax_utf8, erlsom_sax_latin1 etc.
 %% The only difference to the content of these 2 files is the definition below:
-%% it can be UTF8, LAT1, U16B or U16L. (The names have been chosen so that the 
+%% it can be UTF8, LAT1, LAT9, U16B or U16L. (The names have been chosen so that the 
 %% number of bytes in the file will be the same in either case, so that it is 
 %% easy to see whether the files are the same, although this check is obviously 
 %% rather primitive.)
@@ -107,6 +107,30 @@
 
 -ifdef(LAT1).
 -module(erlsom_sax_latin1).
+-define(BINARY, true).
+-define(STR1(X), <<X>>).
+-define(STR2(X1, X2), <<X1, X2>>).
+-define(STR3(X1, X2, X3), <<X1, X2, X3>>).
+-define(STR4(X1, X2, X3, X4), <<X1, X2, X3, X4>>).
+-define(STR5(X1, X2, X3, X4, X5), <<X1, X2, X3, X4, X5>>).
+-define(STR6(X1, X2, X3, X4, X5, X6), <<X1, X2, X3, X4, X5, X6>>).
+-define(STR7(X1, X2, X3, X4, X5, X6, X7), <<X1, X2, X3, X4, X5, X6, X7>>).
+-define(STR8(X1, X2, X3, X4, X5, X6, X7, X8), <<X1, X2, X3, X4, X5, X6, X7, X8>>).
+-define(DONTCARE_T(Y), <<_, Y/binary>>).
+-define(STR1_T(X, Y), <<X, Y/binary>>).
+-define(STR2_T(X1, X2, Y), <<X1, X2, Y/binary>>).
+-define(STR3_T(X1, X2, X3, Y), <<X1, X2, X3, Y/binary>>).
+-define(STR4_T(X1, X2, X3, X4, Y), <<X1, X2, X3, X4, Y/binary>>).
+-define(STR7_T(X1, X2, X3, X4, X5, X6, X7, Y), <<X1, X2, X3, X4, X5, X6, X7, Y/binary>>).
+-define(STR8_T(X1, X2, X3, X4, X5, X6, X7, X8, Y), <<X1, X2, X3, X4, X5, X6, X7, X8, Y/binary>>).
+-define(STR9_T(X1, X2, X3, X4, X5, X6, X7, X8, X9, Y), <<X1, X2, X3, X4, X5, X6, X7, X8, X9, Y/binary>>).
+-define(BOM1(X), [no_match | X]).
+-define(BOM2, no_match).
+-define(BOM3, no_match2).
+-endif.
+
+-ifdef(LAT9).
+-module(erlsom_sax_latin9).
 -define(BINARY, true).
 -define(STR1(X), <<X>>).
 -define(STR2(X1, X2), <<X1, X2>>).
@@ -350,6 +374,33 @@ decodeChar(Tail, State) ->
     ?EMPTY -> ?CF3(Tail, State, fun decodeChar/2);
     ?STR1_T(C, T) -> {C, T, State}
   end.
+-endif.
+
+-ifdef(LAT9).
+decodeChar(Tail, State) -> 
+  case Tail of
+    ?EMPTY -> ?CF3(Tail, State, fun decodeChar/2);
+    ?STR1_T(C, T) -> {latin9toUnicode(C), T, State}
+  end.
+
+latin9toUnicode(16#A4) -> % EURO SIGN
+  16#20AC;
+latin9toUnicode(16#A6) -> % LATIN CAPITAL LETTER S WITH CARON
+  16#0160;
+latin9toUnicode(16#A8) -> % LATIN SMALL LETTER S WITH CARON
+  16#0161;
+latin9toUnicode(16#B4) -> % LATIN CAPITAL LETTER Z WITH CARON
+  16#017D;
+latin9toUnicode(16#B8) -> % LATIN SMALL LETTER Z WITH CARON
+  16#017E;
+latin9toUnicode(16#BC) -> % LATIN CAPITAL LIGATURE OE
+  16#0152;
+latin9toUnicode(16#BD) -> % LATIN SMALL LIGATURE OE
+  16#0153;
+latin9toUnicode(16#BE) -> % LATIN CAPITAL LETTER Y WITH DIAERESIS
+  16#0178;
+latin9toUnicode(Char) -> 
+  Char.
 -endif.
 
 -ifdef(LIST).
@@ -1078,6 +1129,11 @@ encode(List) ->
   list_to_binary(List).
 -endif.
 
+-ifdef(LAT9).
+encode(List) ->
+  list_to_binary(List).
+-endif.
+
 -ifdef(LIST).
 encode(List) ->
   List.
@@ -1317,6 +1373,11 @@ decode(Bin) ->
 decode(Bin) ->
   {Value, _} = erlsom_ucs:from_utf8(Bin),
   Value.
+-endif.
+
+-ifdef(LAT9).
+decode(Bin) ->
+  [latin9toUnicode(Char) || Char <- binary_to_list(Bin)].
 -endif.
 
 -ifdef(U16B).

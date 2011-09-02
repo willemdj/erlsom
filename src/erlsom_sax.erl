@@ -176,6 +176,8 @@ parseDocumentBinary(Encoding, Xml, State) ->
       erlsom_sax_latin1:parse(Xml, State);
     'iso_8859_1' ->
       erlsom_sax_latin1:parse(Xml, State);
+    'iso_8859_15' ->
+      erlsom_sax_latin9:parse(Xml, State);
     'list' ->
       erlsom_sax_list:parse(Xml, State);
     _ ->

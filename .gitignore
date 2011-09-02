@@ -1,3 +1,5 @@
+*.swp
+*.beam
 config.log
 config.status
 include.mk
