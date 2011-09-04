@@ -585,12 +585,12 @@ pass4Element(Element = #el{alts = Alternatives, mn = Min}, Types, Count, NextEle
   Element#el{alts = UniqueAlternatives, mn = Min2}.
 
 pass4Alternatives(Alternatives, Types, Count, NextElements, Info) ->
-  pass4Alternatives(Alternatives, [], true, Types, Count, NextElements, Info).
+  pass4Alternatives(Alternatives, [], false, Types, Count, NextElements, Info).
 
 %% returns {TranslatedAlternatives, Optional}
 pass4Alternatives([Alternative | Tail], Acc, Optional, Types, Count, NextElements, Info) ->
   {TranslatedAlternatives, Optional2} = pass4Alternative(Alternative, Types, Count, NextElements, Info),
-  Optional3 = if Optional2 == true -> Optional; true -> false end,
+  Optional3 = if Optional2 == true -> true; true -> Optional end,
   pass4Alternatives(Tail, TranslatedAlternatives ++ Acc, Optional3, Types, Count, NextElements, Info);
 pass4Alternatives([], Acc, Optional, _Types, _Count, _NextElements, _Info) ->
   {Acc, Optional}.
