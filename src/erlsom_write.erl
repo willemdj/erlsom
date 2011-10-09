@@ -35,7 +35,6 @@
 %% debug(Text) ->
   %% io:format("write: ~p\n", [Text]).
 
-
 %% Returns the XML document. {ok, Document}
 write(Struct, Model = #model{tps = Types}) ->
 
@@ -56,12 +55,12 @@ struct2xml(_Struct, [], ResultSoFar, _Model, _Namespaces, _Mixed) ->
 %% Struct = {RecordType, value, ...}
 %% Processes whatever is INSIDE the tags (= the values of the struct), one by one, from the first
 struct2xml(Struct, 
-           _StructModel = [ModelForThisElement = #el{alts = Alternatives, mn = Min, mx = Max, nr = SequenceNr} | 
-                           NextElements], 
+           _StructModel = [ModelForThisElement = #el{alts = Alternatives, mn = Min, mx = Max, nr = SequenceNr,
+                           nillable = Nillable} | NextElements], 
            ResultSoFar, Model = #model{nss = Namespaces, th = Th}, DeclaredNamespaces,
            Mixed) ->
 
-  %% We are dealing with element nr given by SequnceNr + 2
+  %% We are dealing with element nr given by SequenceNr + 2
   %% (n+2 because the 1st is the type name and the 2nd is the list of 'anyAttributes')
   %% Which alternative has been selected follows from the value of this element
   CurrentValue = element(SequenceNr + 2, Struct),
@@ -82,9 +81,21 @@ struct2xml(Struct,
         undefined ->
           if 
             Min > 0  -> throw({error, "No value provided for non-optional element"});
-	    true -> true
+	    true -> ok
           end,
           ResultForThisElement = [];
+        nil ->
+          if 
+            Nillable /= true -> throw({error, "nil value provided for non-nillable element"});
+	    true -> ok
+          end,
+          ResultForThisElement = printNilValue(Alternatives, Namespaces, DeclaredNamespaces);
+        {nil, AttrValues} ->
+          if 
+            Nillable /= true -> throw({error, "nil value provided for non-nillable element"});
+	    true -> ok
+          end,
+          ResultForThisElement = printNilValue(Alternatives, AttrValues, Model, Namespaces, DeclaredNamespaces);
         [V1 | _] ->
           case V1 of  
             _ when is_integer(V1) -> %% CurrentValue is a string
@@ -135,7 +146,7 @@ processElementValues([],
       lists:flatten(lists:reverse(ResultSoFar))
   end;
 
-%% ElemnentValues can be:
+%% ElementValues can be:
 %% 
 %% FirstElement can be:
 %% - a tuple
@@ -149,8 +160,12 @@ processElementValues([],
 %%    - for a choice with maxOccurs > 1 and an alternative with maxOccurs > 1
 %%    - it could in theory be a list of lists of lists (etc.)? But not now, since choice in choice is 
 %%      not supported.
+%% - nil
+%%    - for a nillable element without attributes - even though it is not clear how useful this is
+%% - {nil, Record}
+%%    - for a nillable element with attributes 
 processElementValues([V1 | NextValues], 
-               ModelForThisElement = #el{alts = Alternatives, mx = Max}, 
+               ModelForThisElement = #el{alts = Alternatives, mx = Max, nillable=Nillable}, 
                ResultSoFar, Counter, Model = #model{nss = Namespaces, th = Th}, DeclaredNamespaces, Mixed) ->
 
   %% debug("procesElementValues, counter = " ++ integer_to_list(Counter)),
@@ -187,9 +202,19 @@ processElementValues([V1 | NextValues],
       #qname{} ->
         %% debug("element w. MaxOccurs > 1, (1st value is a qname)."),
         {qname, 1};
+      {nil, _Record}  ->
+        if 
+          Nillable /= true -> throw({error, "nil value provided for non-nillable element"});
+	  true -> {V1, 1} %% {{nil, Values}, 1} -- a bit tricky
+        end;
       _ when is_tuple(V1) ->
         %% debug("element w. MaxOccurs > 1, (1st value is a subtype)"),
         {tuple, 1};
+      nil ->
+        if 
+          Nillable /= true -> throw({error, "nil value provided for non-nillable element"});
+	  true -> {nil, 1}
+        end;
       _ ->
         %% debug("element w. MaxOccurs > 1, (1st value is a simple type)"),
         {simpleType, 1}
@@ -199,34 +224,33 @@ processElementValues([V1 | NextValues],
       throw({error, "Too many values provided"});
     true -> true
   end,
-  ResultWithThisElement = 
+  ResultForThisElement = 
     case Case of
       listOfTuples ->
-        ResultForThisElement = processAlternatives(V1, Alternatives, Model, DeclaredNamespaces, Th, Mixed),
-        [ResultForThisElement | ResultSoFar];
+        processAlternatives(V1, Alternatives, Model, DeclaredNamespaces, Th, Mixed);
       mixed ->
-        [xmlString(V1) | ResultSoFar];
+        xmlString(V1);
       listOfStrings ->
-        ResultForThisElement = printValue(V1, Alternatives, Namespaces, DeclaredNamespaces, Mixed),
-        [ResultForThisElement | ResultSoFar];
+        printValue(V1, Alternatives, Namespaces, DeclaredNamespaces, Mixed);
       qname ->
-        ResultForThisElement = printValue(V1, Alternatives, Namespaces, DeclaredNamespaces, Mixed),
-        [ResultForThisElement | ResultSoFar];
+        printValue(V1, Alternatives, Namespaces, DeclaredNamespaces, Mixed);
       tuple ->
-        ResultForThisElement = processSubType(V1, Alternatives, Model, DeclaredNamespaces, Mixed),
-        [ResultForThisElement | ResultSoFar];
+        processSubType(V1, Alternatives, Model, DeclaredNamespaces, Mixed);
       simpleType ->
-        ResultForThisElement = printValue(V1, Alternatives, Namespaces, DeclaredNamespaces, Mixed),
-        [ResultForThisElement | ResultSoFar]
+        printValue(V1, Alternatives, Namespaces, DeclaredNamespaces, Mixed);
+      nil ->
+        printNilValue(Alternatives, Namespaces, DeclaredNamespaces);
+      {nil, Record} ->
+        printNilValue(Alternatives, Record, Model, Namespaces, DeclaredNamespaces)
     end,
 
-  processElementValues(NextValues, ModelForThisElement, ResultWithThisElement, Counter + IncreaseCounter, 
+    processElementValues(NextValues, ModelForThisElement, [ResultForThisElement | ResultSoFar], Counter + IncreaseCounter, 
                        Model, DeclaredNamespaces, Mixed).
 
 %% returns a string that represents the value
 processSubType(Value, Alternatives, Model = #model{tps = Types, th = TypeHierarchy}, DeclaredNamespaces,
                Mixed) ->
-  %% RecordType can be an instabtiated abstract type
+  %% RecordType can be an instantiated abstract type
   RecordType = element(1, Value),
   {Alternative, Abstract} = findAlternative(RecordType, Alternatives, TypeHierarchy),
   TypeRecord = findType(RecordType, Types),
@@ -449,10 +473,18 @@ processAnyAttributes([{{Name, Uri}, Value} | Tail], Acc, Namespaces, DeclaredNam
       processAnyAttributes(Tail, Acc ++ " " ++ Name ++ "=\"" ++ decodeIfRequired(Value) ++ "\"", 
         Namespaces, DeclaredNamespaces);
     _Other ->
-     %% get prefix +, if relevant, NS declaration text
-     {PrefixedName, DeclaredNamespaces2} = processAnyNamespaces(Name, Uri, Namespaces, DeclaredNamespaces),
-     processAnyAttributes(Tail, Acc ++ " " ++ PrefixedName ++ "=\"" ++ decodeIfRequired(Value) ++ "\"", 
-       Namespaces, DeclaredNamespaces2)
+      %% the "xsi:nil=true" is not written, because it is inserted in another way.
+      case {Name, Uri, Value} of
+        {"nil", "http://www.w3.org/2001/XMLSchema-instance", "true"} ->
+          processAnyAttributes(Tail, Acc, Namespaces, DeclaredNamespaces);
+        {"nil", "http://www.w3.org/2001/XMLSchema-instance", "1"} ->
+          processAnyAttributes(Tail, Acc, Namespaces, DeclaredNamespaces);
+        _ -> 
+          %% get prefix +, if relevant, NS declaration text
+          {PrefixedName, DeclaredNamespaces2} = processAnyNamespaces(Name, Uri, Namespaces, DeclaredNamespaces),
+          processAnyAttributes(Tail, Acc ++ " " ++ PrefixedName ++ "=\"" ++ decodeIfRequired(Value) ++ "\"", 
+                               Namespaces, DeclaredNamespaces2)
+      end
   end.
 
 
@@ -581,7 +613,6 @@ printValue(CurrentValue, Alternatives, Namespaces,
       end;
 
     _E when CurrentValue ==  true; CurrentValue == false ->
-      %% is an integer also a float?
       case lists:keysearch({'#PCDATA', bool}, #alt.tp, Alternatives) of
         {value, #alt{tag = Tag, rl = RealElement}} ->
           TextValue = try atom_to_list(CurrentValue) 
@@ -598,6 +629,34 @@ printValue(CurrentValue, Alternatives, Namespaces,
       throw({error, "Type of value not valid for XML structure"})
 
   end.
+
+
+printNilValue([#alt{tag= Tag}], Namespaces, DeclaredNamespaces) ->
+  printElement("", Tag, true, Namespaces, DeclaredNamespaces, 
+    " xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+printNilValue(_Alternatives, _, _) ->
+  throw({error, "Nillable cannot be a choice"}).
+
+printNilValue([#alt{tag=Tag, tp = RecordType}], Value, #model{tps = Types}, Namespaces, DeclaredNamespaces) ->
+  TypeRecord = findType(RecordType, Types),
+  Attributes = TypeRecord#type.atts,
+
+  %% proces the attributes
+  {AttributesString, NewDeclaredNamespaces} = processAttributes(Value, [], Attributes, Namespaces, DeclaredNamespaces),
+  %% process anyAttributes
+  %% for now we don't check whether 'anyAttributes' are allowed!
+  {AnyAttributesString, DeclaredNamespaces2} = processAnyAttributes(element(2, Value), [],
+                                                      Namespaces, NewDeclaredNamespaces), 
+
+  %% deal with namespaces (that is, see if they have to be declared here)
+  TagAsText = atom_to_list(Tag),
+  {NamespacesString, _DeclaredNamespaces3} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces2),
+  %% print startTag
+  StartTag = ["<", TagAsText, NamespacesString, AttributesString, AnyAttributesString,
+              " xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">"],
+  %% print end tag
+  EndTag = ["</", atom_to_list(Tag), ">"],
+  [StartTag, EndTag].
 
 printPrefix(undefined, Prefix, _NamespacesList, _Namespaces) ->
   {Prefix, []};

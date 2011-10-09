@@ -48,7 +48,7 @@
 %% xml document.
 %% -record(typeInfo, 
 %%         {typeName, global, typeType, typeRef, elements, attributes}).
-%% -record(elementInfo, {alternatives, min, max}).
+%% -record(elementInfo, {alternatives, min, max, nillable}).
 %% -record(alternative, {tag, type, real, min, max}).
 %% -record(attribute, {name, optional, type}).
 %% -record(schemaInfo, {targetNamespace, elementFormDefault, namespacePrefix, namespaces, path=[]}).
@@ -365,10 +365,10 @@ translateElements([], Acc, _SeqNr, _Types) ->
 %%   value is redundant, it is only there because I thought it would be easier,
 %%   and maybe more performant.
 
-translateElement(#elementInfo{alternatives=Alternatives, min=Min, max=Max}, SeqNr, Types) ->
+translateElement(#elementInfo{alternatives=Alternatives, min=Min, max=Max, nillable=Nillable}, SeqNr, Types) ->
   #el{alts = translateAlternatives(Alternatives, [], Types), 
       mn = Min, 
-      mx = Max, nr = SeqNr}.
+      mx = Max, nr = SeqNr, nillable=Nillable}.
 
 translateAlternatives([Alternative | Tail], Acc, Types) ->
   translateAlternatives(Tail, [translateAlternative(Alternative, Types) | Acc], Types);

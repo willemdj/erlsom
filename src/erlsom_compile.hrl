@@ -85,7 +85,7 @@
                    min = 1,
                    max = 1}).
 
--record(elementInfo, {alternatives, min = 1, max = 1}).
+-record(elementInfo, {alternatives, min = 1, max = 1, nillable}).
 -record(alternative, {tag, type, real, min = 1, max = 1, anyInfo}).
 -record(attrib, {name, optional, type, ref}).
 -record(attGrp, {name, atts, anyAttr}).

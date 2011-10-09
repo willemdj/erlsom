@@ -726,9 +726,9 @@ translateSequenceInSequence(Sequence = #sequenceType{minOccurs=Min, maxOccurs=Ma
 
 %% -record(elementInfo, {alternatives, min, max}).
 %% -record(alternative, {tag, type, real}).
-translateLocalElement(Element = #localElementType{minOccurs=Min, maxOccurs = Max}, Acc) ->
+translateLocalElement(Element = #localElementType{minOccurs=Min, maxOccurs = Max, nillable=Nillable}, Acc) ->
   {Alternative, Acc2} = translateQuasiAlternative(Element, Acc),
-  {#elementInfo{alternatives= [Alternative], min=minMax(Min), max=minMax(Max)}, Acc2}.
+  {#elementInfo{alternatives= [Alternative], min=minMax(Min), max=minMax(Max), nillable=Nillable}, Acc2}.
 
 translateAlternative(#localElementType{type=undefined, ref=Ref, simpleOrComplex=undefined,
                                        minOccurs=Min, maxOccurs=Max}, Acc = #p1acc{nss = Nss}) when

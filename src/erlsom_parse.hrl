@@ -37,7 +37,7 @@
                             %% for derived types. The 'nm' field is actually a key, which may
                             %% include an additional prefix to differntiate between elements, types
                             %% and groups.
--record(el, {alts, mn = 1, mx = 1, nr}).
+-record(el, {alts, mn = 1, mx = 1, nillable, nr}).
 -record(alt, {tag, tp, nxt = [], mn = 1, mx = 1, rl = true, anyInfo}).
 -record(att, {nm, nr, opt, tp}).
 %% -record(ns, {uri, pf}).

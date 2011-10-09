@@ -175,6 +175,9 @@
 -import(erlsom_lib, [findType/6]). 
 -import(erlsom_lib, [convertPCData/4]).
 
+-define(format_record(Rec, Name), 
+user_default:format_record(Rec, Name, record_info(fields, Name))).
+
 %%%% lots of stuff to help debugging. Most of it only produces output if the process variable 'erlsom_debug'
 %%%% is set. This makes it possible to suppress this output in parts of the test program that use erlsom for parsing
 %%%% of a big configuration file.
@@ -376,8 +379,8 @@ stateMachine(Event,
 	  %% process the attributes
           if 
             RealElement ->
-              NewRecord = processAttributes(AttributeValues, TheType, newRecord(TheType), 
-                                            State#state.model, Namespaces);
+              {NewRecord, _} = processAttributes(AttributeValues, TheType, newRecord(TheType), 
+                                            State#state.model, Namespaces, false);
             true ->
               NewRecord = newRecord(TheType)
           end,
@@ -515,8 +518,8 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
 		  %% process the attributes
                   if 
                     Real ->
-		      NewRecord = processAttributes(Attributes, TypeDef, newRecord(TypeDef), 
-		                                    State#state.model, Namespaces);
+                      {NewRecord, _} = processAttributes(Attributes, TypeDef, newRecord(TypeDef), 
+		                                    State#state.model, Namespaces, false);
                     true ->
                       NewRecord = newRecord(TypeDef)
                   end,
@@ -714,7 +717,8 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
   %% debugEvent(Event),
   [#el{alts = Alternatives, 
        mn = MinOccurs,
-       mx = MaxOccurs} | NextElements] = RemainingElements,
+       mx = MaxOccurs,
+       nillable = Nullable} | NextElements] = RemainingElements,
   case Event of 
     {startElement, Uri, LocalName, _Prefix, Attributes}  ->
       Name = eventName(LocalName, Uri, NamespaceMapping),
@@ -749,8 +753,14 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
 		    {'#PCDATA', PCDataType} ->
 		      %% debug("receive text events"),
 		      %% push the current status, create a new level in the state machine
-                      State#state{currentState = {'#PCDATA', PCDataType, []}, 
-		                  resultSoFar = [State#state.currentState | ResultSoFar]};
+                      case (Nullable==true) andalso findNullableAttribute(Attributes) of
+                        true ->
+                          State#state{currentState = #cs{re = [], sf =0, er = nil, rl = true, mxd = false},
+		            resultSoFar = [State#state.currentState | ResultSoFar]};
+                        _ ->
+                          State#state{currentState = {'#PCDATA', PCDataType, []}, 
+		                  resultSoFar = [State#state.currentState | ResultSoFar]}
+                      end;
 		    _Else -> 
 		      %% not text: a complex type.
 		      %% look for the type discription
@@ -767,17 +777,25 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
 		      %% process the attributes
                       if 
                         RealElement2 ->
-		          NewRecord = processAttributes(Attributes, TypeDef, newRecord(TypeDef), 
-		                                        State#state.model, Namespaces);
+                          {NewRecord, Nil} = processAttributes(Attributes, TypeDef, newRecord(TypeDef), 
+		                                        State#state.model, Namespaces, Nullable);
                         true ->
-                          NewRecord = newRecord(TypeDef)
+                          {NewRecord, Nil} = {newRecord(TypeDef), false}
                       end,
-                      case Tp of
-                        sequence ->
+                      NewCurrentState = 
+                        if
+                        Nil ->
+                          %% Just need to get a closing tag (so no elements (re) below this one)
+                          %% The value will be a record as usual - xsi:nil = true will be in 
+                          %% anyAttributes, and elements will be undefined. TODO: change this
+                          %% into something that clearly indicates a nil value, but still allows for 
+                          %% attributes...
+                          #cs{re = [], sf =0, er = {nil, NewRecord}, rl = RealElement2, mxd = NewMxd};
+                        Tp == sequence ->
                           %% debug(NewRecord),
-                          NewCurrentState = #cs{re = Elements, sf =0, er = NewRecord, rl = RealElement2, mxd = NewMxd};
-                        all ->
-                          NewCurrentState = #all{re = Elements, er = NewRecord}
+                          #cs{re = Elements, sf =0, er = NewRecord, rl = RealElement2, mxd = NewMxd};
+                        Tp == all ->
+                          #all{re = Elements, er = NewRecord}
                       end,
 		      %% push the current status, create a new level in the state machine
                       NewState = State#state{currentState = NewCurrentState,
@@ -1001,8 +1019,8 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
 	       %% process the attributes
                if 
                  RealElement ->
-	           NewRecord = processAttributes(Attributes, TypeDef, newRecord(TypeDef), 
-		                                 State#state.model, Namespaces);
+                   {NewRecord, _} = processAttributes(Attributes, TypeDef, newRecord(TypeDef), 
+		                                 State#state.model, Namespaces, false);
                  true ->
                    NewRecord = newRecord(TypeDef)
                end,
@@ -1182,7 +1200,8 @@ specialEventName(LocalName, Uri) ->
 %% Record: a record of right type for the element
 %% 
 %% Returns: 
-%% updated version of the Record.
+%% {updated version of the Record, Null} where Null = true if nillable is true and an xsi:nil
+%% attribute is found, false otherwise.
 %%
 %% Exceptions:
 %% throws an error if attributes where missing, or if an unexpected attribute is found
@@ -1191,10 +1210,10 @@ specialEventName(LocalName, Uri) ->
 %% Process attributes one by one, remove processed attributes from the 
 %% ListOfAttributes, and, finally, see whether there are any non-optional
 %% attributes left in the ListOfAttributes
-processAttributes(Attributes, Type = #type{atts = ToReceive}, Record, Model, Namespaces) ->
-  processAttributes(Attributes, ToReceive, Type, Record, Model, Namespaces).
+processAttributes(Attributes, Type = #type{atts = ToReceive}, Record, Model, Namespaces, Nullable) ->
+  processAttributes(Attributes, ToReceive, Type, Record, Model, Namespaces, Nullable, false).
 
-processAttributes(_Attributes = [], ToReceive, _Type, Record, _Model, _Namespaces) ->
+processAttributes(_Attributes = [], ToReceive, _Type, Record, _Model, _Namespaces, _Nullable, Nil) ->
   checkAttributePresence(ToReceive),
   %% case catch checkAttributePresence(ToReceive) of
     %% true -> ok;
@@ -1202,10 +1221,10 @@ processAttributes(_Attributes = [], ToReceive, _Type, Record, _Model, _Namespace
       %% debug(Type),
       %% throw({error, "remove me"})
   %% end,
-  Record;
+  {Record, Nil};
 
 processAttributes(_Attributes = [#attribute{localName=LocalName, uri=Uri, value=Value} | Tail], ListOfAttributes, 
-		TypeDef, Record, Model = #model{nss = NamespaceMapping}, Namespaces) ->
+		TypeDef, Record, Model = #model{nss = NamespaceMapping}, Namespaces, Nullable, Nil) ->
   Name = eventName(LocalName, Uri, NamespaceMapping),
   case lists:keysearch(Name, #att.nm, ListOfAttributes) of
     {value, #att{nr = Position, tp = Type}}  ->
@@ -1216,7 +1235,7 @@ processAttributes(_Attributes = [#attribute{localName=LocalName, uri=Uri, value=
       end,
       processAttributes(Tail, lists:keydelete(Name, #att.nm, ListOfAttributes), TypeDef, 
                         setelement(Position + 2, Record, ConvertedValue), 
-                        Model, Namespaces);
+                        Model, Namespaces, Nullable, Nil);
     _Else ->
       %% debug(Name),
       ConvertedValue = try convertPCData(Value, char, Namespaces, NamespaceMapping) 
@@ -1225,29 +1244,29 @@ processAttributes(_Attributes = [#attribute{localName=LocalName, uri=Uri, value=
           throw({error, "Wrong Type in value for attribute " ++ LocalName})
       end,
       %% see whether the attribute is 'special'
-      case {LocalName, Uri} of
+      Nil2 = case {LocalName, Uri} of
         {"nil", "http://www.w3.org/2001/XMLSchema-instance"} ->
 	%% see whether the element is 'nillable'
-	  case TypeDef#type.nillable of
+	  case Nullable of
 	    true ->
-	      ok;
+              attributeIsTrue(ConvertedValue);
 	    _ ->
               throw({error, "Unexpected attribute: " ++ LocalName})
 	  end;
 
         {"schemaLocation", "http://www.w3.org/2001/XMLSchema-instance"} ->
-          ok;
+          Nil;
 
         %% TODO: do something with this!!!
         {"space", "http://www.w3.org/XML/1998/namespace"} ->
           %% debug("got a space attrib"),
-          ok;
+          Nil;
 
         {"noNamespaceSchemaLocation", "http://www.w3.org/2001/XMLSchema-instance"} ->
-          ok;
+          Nil;
 
         {"type", "http://www.w3.org/2001/XMLSchema-instance"} ->
-          ok;
+          Nil;
 
         _NotSpecial ->
           #type{anyAttr = AnyAttr} = TypeDef,
@@ -1267,7 +1286,7 @@ processAttributes(_Attributes = [#attribute{localName=LocalName, uri=Uri, value=
 		    Uri /= [] ->
                       throw({error, "Unexpected attribute: " ++ LocalName});
 		    true ->
-		      ok
+		      Nil
 		  end;
 	        "##other"->
                   %% debug(Uri),
@@ -1277,16 +1296,17 @@ processAttributes(_Attributes = [#attribute{localName=LocalName, uri=Uri, value=
 		    Uri ==  Tns ->
                       throw({error, "Unexpected attribute (from target NS): " ++ LocalName});
 		    true ->
-		      ok
+		      Nil
 		  end;
 	        _ ->   %% ##any, or a list of namespaces - the list is not checked
-		  ok
+		  Nil
 	      end
           end
       end,
 
       ListOfAttributes2 = [{{LocalName, Uri}, ConvertedValue} | element(2, Record)],
-      processAttributes(Tail, ListOfAttributes, TypeDef, setelement(2, Record, ListOfAttributes2), Model, Namespaces)
+      processAttributes(Tail, ListOfAttributes, TypeDef, setelement(2, Record, ListOfAttributes2), Model, Namespaces, 
+                        Nullable, Nil2)
   end.
 
 %% Goal: 
@@ -1404,3 +1424,14 @@ matchesAnyInfo(Uri, #anyInfo{ns = Namespace, tns = Tns}, _) ->
       %% debug("TODO!!"),
       true
   end.
+
+findNullableAttribute([]) ->
+  false;
+findNullableAttribute([#attribute{localName="nil", uri="http://www.w3.org/2001/XMLSchema-instance", value=Value} | _]) ->
+  attributeIsTrue(Value);
+findNullableAttribute([_Att | Tail]) ->
+  findNullableAttribute(Tail).
+
+attributeIsTrue("true") -> true;
+attributeIsTrue("1") -> true;
+attributeIsTrue(_) -> false.
