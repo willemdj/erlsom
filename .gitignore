@@ -3,3 +3,4 @@
 config.log
 config.status
 include.mk
+.DS_Store

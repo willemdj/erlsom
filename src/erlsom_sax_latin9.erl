@@ -706,7 +706,7 @@ parseAttrName(Head, Tail, State) ->
     ?is_name_char2(Char) ->
       parseAttrName([Char | Head], Tail2, State2);
     true ->
-      throw({error, "Malformed: Illegal character in atribute name"})
+      throw({error, "Malformed: Illegal character in attribute name"})
   end.
 
 %% should there be another check on the first character of the local name?
@@ -731,7 +731,7 @@ parseAttrName(Prefix, Head, Tail, State) ->
     ?is_name_char2(Char) ->
       parseAttrName(Prefix, [Char | Head], Tail2, State2);
     true ->
-      throw({error, "Malformed: Illegal character in atribute name"})
+          throw({error, "Malformed: Illegal character in attribute name"})
   end.
 
 %% returns {Name, Tail, State}
@@ -1261,7 +1261,7 @@ removeWS(_, _) ->
 %% returns: {Name, Attributes2, NewNamespaces}
 %% Name = {URI, LocalName, QualifiedName}
 %% Attributes2 = list of Attribute2
-%% Atrribute2 = #attribute
+%% Attribute2 = #attribute
 %% NewNamespaces = list of {Prefix, URI} (prefix can be []).
 %%
 %% Namespaces are in such an order that namespace of the 'closest ancestors' 
