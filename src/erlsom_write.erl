@@ -97,13 +97,13 @@ struct2xml(Struct,
           end,
           ResultForThisElement = printNilValue(Alternatives, AttrValues, Model, Namespaces, DeclaredNamespaces);
         [V1 | _] ->
-          case V1 of  
-            _ when is_integer(V1) -> %% CurrentValue is a string
-              ResultForThisElement = printValue(CurrentValue, Alternatives, Namespaces, DeclaredNamespaces, Mixed);
-            _ when is_tuple(V1) -> 
+          case V1 of
+            _ when is_tuple(V1) ->
               %% debug("alternative with MaxOccurs > 1"),
               ResultForThisElement = processAlternatives(CurrentValue, Alternatives, Model, DeclaredNamespaces, Th,
-                                                         Mixed)
+                                                         Mixed);
+            _ ->
+              ResultForThisElement = printValue(CurrentValue, Alternatives, Namespaces, DeclaredNamespaces, Mixed)
           end;
         #qname{} ->
           ResultForThisElement = printValue(CurrentValue, Alternatives, Namespaces, DeclaredNamespaces, Mixed);
