@@ -800,7 +800,6 @@ translateAlternative(Choice = #choiceType{minOccurs=Min, maxOccurs=Max},
 translateQuasiAlternative(#localElementType{type=undefined, ref=Ref, simpleOrComplex=undefined}, 
                                             Acc = #p1acc{nss = Nss}) when Ref /= undefined ->
   {#alternative{tag= erlsom_lib:makeTagFromRef(Ref, Nss), type=erlsom_lib:makeElementRef(Ref, Nss), real = true}, Acc};
-
 %% A child element exists - russian doll design
 translateQuasiAlternative(#localElementType{name=Name, type=undefined, ref=undefined, simpleOrComplex=SorC,
                                             form=Form},
@@ -821,19 +820,18 @@ translateQuasiAlternative(#localElementType{name=Name, type=undefined, ref=undef
          Acc3 = Acc2#p1acc{tps = Types}
    end,
    {#alternative{tag=erlsom_lib:makeTag(Name, Prefix, Efd), type=TypeRef, real = true}, Acc3#p1acc{path=Path}};
-
 translateQuasiAlternative(#localElementType{name=Name, type=Type, ref=undefined, simpleOrComplex=undefined, form = Form}, 
                           Acc = #p1acc{efd = Efd, nsp = Prefix, nss = Nss}) ->
    Form2 = case Form of undefined -> Efd; _ -> Form end,
-   {#alternative{tag=erlsom_lib:makeTag(Name, Prefix, Form2), type=erlsom_lib:makeTypeRef(Type, Nss), real = true}, Acc};
-%% -record(groupRefType, {ref, minOccurs, maxOccurs}).
-translateQuasiAlternative(#groupRefType{ref=Ref}, Acc = #p1acc{nss = Nss}) ->
-  {#alternative{tag="##TODO", type=erlsom_lib:makeGroupRef(Ref, Nss), real=false}, Acc}.
+   {#alternative{tag=erlsom_lib:makeTag(Name, Prefix, Form2), type=erlsom_lib:makeTypeRef(Type, Nss), real = true}, Acc}.
+%% %% -record(groupRefType, {ref, minOccurs, maxOccurs}).
+%% translateQuasiAlternative(#groupRefType{ref=Ref}, Acc = #p1acc{nss = Nss}) ->
+%%   {#alternative{tag="##TODO", type=erlsom_lib:makeGroupRef(Ref, Nss), real=false}, Acc}.
 
 %% used to process the old (deprecated) form to pass namespace info to the compiler.
 %% each #ns{namespace, prefix} record has to be transated to {Namespace, Prefix, undefined}
 %% translateNs(#ns{prefix = Prefix, uri = Ns}) ->
-  %% {Ns, Prefix, undefined}.
- %% TODO: sort this out - what is correct? 
+%%   {Ns, Prefix, undefined}.
+%% TODO: sort this out - what is correct? 
 translateNs(X) ->
   X.
