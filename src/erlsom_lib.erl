@@ -735,7 +735,7 @@ find_xsd(Namespace, Location, Dir_list, Include_list) ->
     {ok, Body} ->
       Prefix = prefix(Namespace),
       {Body, Prefix};
-    _ -> 
+    _ ->
        erlsom_lib:findFile(Namespace, Location, Dir_list, Include_list)
   end.
  
@@ -751,9 +751,9 @@ prefix(Namespace) ->
 %%% --------------------------------------------------------------------
 get_url("http://"++_ = URL) ->
     case httpc:request(URL) of
-	{ok,{{_HTTP,200,_OK}, _Headers, Body}} -> 
+	{ok, {{_HTTP, 200, _OK}, _Headers, Body}} -> 
 	    case http_uri:parse(URL) of
-		{_Method, _, _Host, _Port, _Path, _Qargs} ->
+		{ok, {_Method, _, _Host, _Port, _Path, _Qargs}} ->
 		    {ok, Body};
 		_ -> 
 		    {error, "failed to retrieve: "++URL}
@@ -762,7 +762,7 @@ get_url("http://"++_ = URL) ->
 	    {error, "failed to retrieve: "++URL}
     end;
 get_url(_) ->
-    {error, "not an URL"}.
+    {error, "not a URL"}.
   
 emptyListIfUndefined(undefined) -> [];
 emptyListIfUndefined(List) -> List.
