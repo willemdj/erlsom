@@ -649,12 +649,12 @@ stateMachine(Event, State = #state{currentState = {'#PCDATA', Type, TextSoFar},
   %% debugEvent(Event),
   case Event of 
     {characters, Characters} ->
-      State#state{currentState = {'#PCDATA', Type, lists:append(TextSoFar, Characters)}};
+      State#state{currentState = {'#PCDATA', Type, append(TextSoFar, Characters)}};
     {endElement, _Uri, _LocalName, _Prefix} ->
       ConvertedValue = try convertPCData(TextSoFar, Type, Namespaces, NamespaceMapping) 
       catch 
         _AnyClass:_Any ->
-          throw({error, "Wrong Type: " ++ TextSoFar ++ "/" ++ atom_to_list(Type)})
+          throw({error, pp("Wrong Type: ~s/~s", [TextSoFar, Type])})
       end,
       NewCurrentState = insertValue(ConvertedValue, Head), 
       %% debugFormat("new current state: ~p~n", [NewCurrentState]),
@@ -679,7 +679,7 @@ stateMachine(Event, State = #state{currentState = {'#text', Type, TextSoFar},
   %% debugEvent(Event),
   case Event of 
     {characters, Characters} ->
-      State#state{currentState = {'#text', Type, lists:append(TextSoFar, Characters)}};
+      State#state{currentState = {'#text', Type, append(TextSoFar, Characters)}};
     _Else ->
       ConvertedValue = try convertPCData(TextSoFar, Type, Namespaces, NamespaceMapping) 
       catch 
@@ -1053,7 +1053,8 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
     {characters, Characters} ->
        %% should be be extended to deal with mixed alements, or wit simple elements with attributes?
        %% not sure...
-         throw({error, "Unexpected characters event in All: " ++ Characters});
+         throw({error,
+                pp("Unexpected characters event in All: ~s", [Characters])});
 
     {endElement, _Uri, LocalName, _Prefix} ->
       case lists:keysearch(1, #el.mn, RemainingElements) of
@@ -1435,3 +1436,13 @@ findNullableAttribute([_Att | Tail]) ->
 attributeIsTrue("true") -> true;
 attributeIsTrue("1") -> true;
 attributeIsTrue(_) -> false.
+
+append([], B2) when is_binary(B2) ->
+    B2;
+append(B1, B2) when is_binary(B1), is_binary(B2) ->
+    <<B1/binary, B2/binary>>;
+append(L1, L2) when is_list(L1), is_list(L2) ->
+    lists:append(L1, L2).
+
+pp(Format, Args) ->
+    lists:flatten(io_lib:format(Format, Args)).
