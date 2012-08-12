@@ -419,7 +419,6 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
               throw({error, "Wrong Type in attribute  " ++ atom_to_list(Name) ++ ", expected Atom"})
           end;
         qname ->
-          writeQnameAttValue(AttributeValue, NamespacesString, Namespaces, NewDeclaredNamespaces),
           {CharValue, NamespacesString2, DeclaredNamespaces2} = 
              try writeQnameAttValue(AttributeValue, NamespacesString, Namespaces, NewDeclaredNamespaces)
           catch
@@ -527,7 +526,6 @@ processNamespaces(Tag, Namespaces, DeclaredNamespaces = {NamespacesList, Counter
 	_ ->
 	  case Prefix of
 	    undefined -> {[], DeclaredNamespaces};
-	    "" -> {[], DeclaredNamespaces};
 	    "xml" -> {[], DeclaredNamespaces};
 	    _ -> throw({error, "Inconsistency in model: namespace is not declared - " ++ Prefix})
 	  end
