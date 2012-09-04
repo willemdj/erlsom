@@ -3681,7 +3681,7 @@ style='mso-ansi-language:EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
 style='mso-ansi-language:EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-{<span class=SpellE>include_dirs</span>, <span class=SpellE>Dir_list</span>} |</span><span
+{<span class=SpellE>include_dirs</span>, <span class=SpellE>Include_dirs</span>} |</span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
@@ -3803,8 +3803,8 @@ class=SpellE>compile_<span class=GramE>xsd</span></span><span class=GramE>(</spa
 
 <p class=MsoNormal style='margin-left:70.9pt;text-indent:-35.45pt'><span
 lang=EN-US style='mso-ansi-language:EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-- <span class=SpellE>Dir_list</span>. This is the value of the ‘<span
-class=SpellE>dir_list</span>’ option if this option was passed to <span
+- <span class=SpellE>Include_dirs</span>. This is the value of the ‘<span
+class=SpellE>include_dirs</span>’ option if this option was passed to <span
 class=SpellE>compile_<span class=GramE>xsd</span></span><span class=GramE>(</span>);
 'undefined' otherwise.</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
@@ -3826,7 +3826,7 @@ EN-GB'><o:p></o:p></span></p>
 <p class=MsoNormal style='margin-left:63.8pt'><span class=SpellE><span
 lang=EN-US style='mso-ansi-language:EN-US'>Include_fun</span></span><span
 lang=EN-US style='mso-ansi-language:EN-US'> defaults to a function that uses
-the <span class=SpellE>Dir_list</span> and <span class=SpellE>Include_list</span>
+the <span class=SpellE>Include_dirs</span> and <span class=SpellE>Include_list</span>
 options as specified below.</span><span lang=EN-GB style='mso-ansi-language:
 EN-GB'><o:p></o:p></span></p>
 
@@ -3848,7 +3848,7 @@ lang=EN-US style='mso-ansi-language:EN-US'>&nbsp;</span></i><span lang=EN-GB
 style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:63.8pt;text-indent:-1.0cm'><span
-class=SpellE><i><span lang=EN-US style='mso-ansi-language:EN-US'>Dir_list</span></i></span><i><span
+class=SpellE><i><span lang=EN-US style='mso-ansi-language:EN-US'>Include_dirs</span></i></span><i><span
 lang=EN-US style='mso-ansi-language:EN-US'> </span></i><span lang=EN-US
 style='mso-ansi-language:EN-US'>is a list of directories (strings). It defaults
 to [&quot;.&quot;].</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
@@ -3902,7 +3902,7 @@ style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:63.8pt;text-indent:-1.0cm'><span
 lang=EN-US style='mso-ansi-language:EN-US'>attribute and the '<span
-class=SpellE>dir_list</span>' option will be used to locate the file.</span><span
+class=SpellE>include_dirs</span>' option will be used to locate the file.</span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:63.8pt;text-indent:-1.0cm'><span
@@ -3916,7 +3916,7 @@ lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:63.8pt;text-indent:-1.0cm'><span
 lang=EN-US style='mso-ansi-language:EN-US'>the file will be searched for in the
-<span class=SpellE>dir_list</span> (based on the 'location'</span><span
+<span class=SpellE>include_dirs</span> (based on the 'location'</span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:63.8pt;text-indent:-1.0cm'><span
@@ -4497,7 +4497,7 @@ lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 EN-US'>erlsom_lib:find_<span class=GramE>xsd</span></span></b></span><span
 class=GramE><b><span lang=EN-US style='mso-ansi-language:EN-US'>(</span></b></span><b><span
 lang=EN-US style='mso-ansi-language:EN-US'>Namespace, Location, <span
-class=SpellE>Dir_list</span>, <span class=SpellE>Include_list</span>) -&gt; </span></b><b><span
+class=SpellE>Include_dirs</span>, <span class=SpellE>Include_list</span>) -&gt; </span></b><b><span
 lang=EN-GB style='mso-ansi-language:EN-GB'>{XSD, Prefix}</span></b><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
@@ -4520,10 +4520,10 @@ XSD).</span></span><span lang=EN-US style='mso-ansi-language:EN-US'> This is a
 string or 'undefined'</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:70.8pt'><span class=SpellE><span
-class=GramE><span lang=EN-US style='mso-ansi-language:EN-US'>Dir_list</span></span></span><span
+class=GramE><span lang=EN-US style='mso-ansi-language:EN-US'>Include_dirs</span></span></span><span
 class=GramE><span lang=EN-US style='mso-ansi-language:EN-US'>.</span></span><span
 lang=EN-US style='mso-ansi-language:EN-US'> This is the value of the <span
-class=SpellE>Dir_list</span> option if this option was passed to <span
+class=SpellE>Include_dirs</span> option if this option was passed to <span
 class=SpellE>compile_<span class=GramE>xsd</span></span><span class=GramE>(</span>);
 'undefined' otherwise.</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
