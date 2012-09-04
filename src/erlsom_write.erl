@@ -80,7 +80,10 @@ struct2xml(Struct,
       case CurrentValue of  
         undefined ->
           if 
-            Min > 0  -> throw({error, "No value provided for non-optional element"});
+            Min > 0  ->
+              Tags = [Alt#alt.tag || Alt <- Alternatives],
+              Error = lists:flatten(io_lib:format("No value provided for non-optional element ~p~n", [Tags])),
+              throw({error, Error});
 	    true -> ok
           end,
           ResultForThisElement = [];
@@ -564,7 +567,7 @@ printValue(CurrentValue, Alternatives, Namespaces,
                       end,
 	  printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces, NsDecl);
 	_Else ->
-          throw({error, "Type of value (qname) does not match model"})
+          throw({error, "Type of value (qname) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
       end;
    
     _B when is_list(CurrentValue); is_binary(CurrentValue) -> 
@@ -578,7 +581,7 @@ printValue(CurrentValue, Alternatives, Namespaces,
               TextValue = xmlString(CurrentValue),
 	      printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
 	    _Else ->
-              throw({error, "Type of value (list) does not match model"})
+              throw({error, "Type of value (list) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <-- Expected ~p",[CurrentValue,Alternatives]))})
           end
       end;
 
@@ -593,7 +596,7 @@ printValue(CurrentValue, Alternatives, Namespaces,
           end,
 	  printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
 	_Else -> 
-          throw({error, "Type of value (integer) does not match model"})
+          throw({error, "Type of value (integer) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
       end;
 
     _D when is_float(CurrentValue) ->
@@ -607,7 +610,7 @@ printValue(CurrentValue, Alternatives, Namespaces,
           end,
 	  printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
 	_Else -> 
-          throw({error, "Type of value (float) does not match model"})
+          throw({error, "Type of value (float) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
       end;
 
     _E when CurrentValue ==  true; CurrentValue == false ->
@@ -620,11 +623,11 @@ printValue(CurrentValue, Alternatives, Namespaces,
           end,
 	  printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
 	_Else -> 
-          throw({error, "Type of value (atom) does not match model"})
+          throw({error, "Type of value (atom) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
       end;
 
     _Else -> 
-      throw({error, "Type of value not valid for XML structure"})
+      throw({error, "Type of value not valid for XML structure"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
 
   end.
 

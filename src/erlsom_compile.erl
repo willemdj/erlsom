@@ -140,10 +140,20 @@ compile_internal(Xsd, Options, Parsed) ->
                  {value, {_, If}} -> If;
                  _ -> fun erlsom_lib:findFile/4
                end,
-  IncludeDirs = case lists:keysearch('dir_list', 1, Options) of
-                 {value, {_, Id}} -> Id;
-                 _ -> ["."]
-               end,
+  IncludeDirs1 = case lists:keysearch('include_dirs', 1, Options) of
+                   {value, {_, Id}} -> Id;
+                   _ -> []
+                 end,
+  IncludeDirs2 = case lists:keysearch('dir_list', 1, Options) of
+                   {value, {_, Dl}} -> Dl;
+                   _ -> []
+                 end,
+  %% The 'dir_list' option is included here for backwards compatibility.
+  CombinedDirs = IncludeDirs1 ++ IncludeDirs2,
+  IncludeDirs = case CombinedDirs of
+                  [] -> ["."];
+                  CombinedDirs -> CombinedDirs
+                end,
   IncludeFiles = case lists:keysearch('include_files', 1, Options) of
                    {value, {_, Files}} -> Files;
                    _ -> Namespaces %% the two options are mutually exlclusive

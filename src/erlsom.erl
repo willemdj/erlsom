@@ -55,7 +55,7 @@
 %%     Options = [Option]
 %%     Option = {prefix, Prefix} |
 %%              {include_fun, Include_fun} |
-%%              {include_dirs, Dir_list} |
+%%              {include_dirs, Include_dirs} |
 %%              {include_files, Include_list}
 %%
 %%     'Prefix' is prefixed to the record names in the XSD. It should be
@@ -67,18 +67,18 @@
 %%        takes 3 arguments: 
 %%           Namespace (from the XSD). This is a string or 'undefined'
 %%           SchemaLocation (from the XSD). This is a string or 'undefined'
-%%           Dir_List. This is the value of the Dir_list option if provided,
+%%           Include_Dirs. This is the value of the Include_dirs option if provided,
 %%             'undefined' otherwise.
 %%           Prefix_list
 %%        Include_fun should return the {XSD, Prefix}, where XSD is a 
 %%           XSD = string()
 %%           Prefix = string or 'undefined', see above.
 %%        Include_fun defaults to a function that searches the directories
-%%        in Dir_list for a file with the name SchemaLocation; it returns 
+%%        in Include_dirs for a file with the name SchemaLocation; it returns 
 %%        'undefined' for the prefix, unless this was specified in the 
 %%        prefix_list.
 %%
-%%     'Dir_list' is a list of directories (strings), separated by comma's. 
+%%     'Include_dirs' is a list of directories (strings), separated by comma's. 
 %%       It defaults to ["."].
 %%           
 %%     'Include_files' is a list of tuples {Namespace, Location, Prefix}. 
@@ -92,10 +92,10 @@
 %% option will be searched for a matching namespace. If this is found, the
 %% specified prefix will be used. If a file is also specified, then this file will
 %% be used. If no file is specified (value is undefined), then the 'location'
-%% attribute and the 'dir_list'option will be used to locate the file.
+%% attribute and the 'include_dirs'option will be used to locate the file.
 %% 
 %% If the 'includes' option is not present, or if the namespace is not found, then
-%% the file will be searched for in the dir_list (based on the 'location'
+%% the file will be searched for in the include_dirs (based on the 'location'
 %% attribute). No prefix will be used.
 %%
 %% Returns: {ok, Model}, where Model is the internal structure, see 

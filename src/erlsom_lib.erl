@@ -723,20 +723,20 @@ readImportFile(Name) ->
 %% the XSD. It should be a function that takes 4 arguments: 
 %%        - Namespace (from the XSD). This is a string or 'undefined'
 %%        - SchemaLocation (from the XSD). This is a string or 'undefined'
-%%        - Dir_list. This is the value of the Dir_list option if this option
+%%        - Include_dirs. This is the value of the Include_dirs option if this option
 %%          was passed to compile_xsd(); 'undefined' otherwise.
 %%        - Inlcude_list. This is the value of the Include_list option if this
 %%          option was passed to compile_xsd(); 'undefined' otherwise.
 %%
 %% Include_fun should return {XSD, Prefix}, where XSD is a XSD = string(), Prefix
 %% = string or 'undefined', see above.
-find_xsd(Namespace, Location, Dir_list, Include_list) ->
+find_xsd(Namespace, Location, Include_dirs, Include_list) ->
   case get_url(Location) of
     {ok, Body} ->
       Prefix = prefix(Namespace),
       {Body, Prefix};
     _ ->
-       erlsom_lib:findFile(Namespace, Location, Dir_list, Include_list)
+       erlsom_lib:findFile(Namespace, Location, Include_dirs, Include_list)
   end.
  
 prefix(Namespace) ->
