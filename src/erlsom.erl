@@ -92,10 +92,10 @@
 %% option will be searched for a matching namespace. If this is found, the
 %% specified prefix will be used. If a file is also specified, then this file will
 %% be used. If no file is specified (value is undefined), then the 'location'
-%% attribute and the 'dir_list'option will be used to locate the file.
+%% attribute and the 'include_dirs'option will be used to locate the file.
 %% 
 %% If the 'includes' option is not present, or if the namespace is not found, then
-%% the file will be searched for in the dir_list (based on the 'location'
+%% the file will be searched for in the include_dirs (based on the 'location'
 %% attribute). No prefix will be used.
 %%
 %% Returns: {ok, Model}, where Model is the internal structure, see 

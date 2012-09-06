@@ -385,6 +385,9 @@ makeRef(#qname{uri = NS, localPart = Local}, Namespaces, ExtraPrefix) ->
   case lists:keysearch(NS, 2, Namespaces) of
     {value, #ns{prefix = undefined}} ->
       ExtraPrefix ++ Local;
+    %% undefined ~~ ""
+    {value, #ns{prefix = ""}} ->
+      ExtraPrefix ++ Local;
     {value, #ns{prefix = Prefix}} ->
       Prefix ++ ":" ++ ExtraPrefix ++ Local;
     _ ->

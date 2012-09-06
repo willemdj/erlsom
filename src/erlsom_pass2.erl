@@ -812,6 +812,8 @@ translateAttribute(#attrib{ref = Ref, optional = Optional}, SeqNo, Info= #schema
   end;
 
 %% -record(attributeGroupRefType, {elInfo, ref}).
+%% TODO: NS must be unique.
+%% FIXME: erlsom_lib:makeAttrRef(Ref, NS) returns leading delim for the empty namespace.
 translateAttribute(#attributeGroupRefType{ref=Ref}, SeqNo, Info = #schemaInfo{namespaces=NS}, Count) ->
   %% look for atributeGroup
   %% -record(attGrp, {name, atts, anyAttr}).

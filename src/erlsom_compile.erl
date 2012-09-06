@@ -140,7 +140,7 @@ compile_internal(Xsd, Options, Parsed) ->
                  {value, {_, If}} -> If;
                  _ -> fun erlsom_lib:findFile/4
                end,
-  IncludeDirs = case lists:keysearch('dir_list', 1, Options) of
+  IncludeDirs = case lists:keysearch('include_dirs', 1, Options) of
                  {value, {_, Id}} -> Id;
                  _ -> ["."]
                end,
