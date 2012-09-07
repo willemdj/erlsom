@@ -81,7 +81,10 @@ secondPass(IntermediateStruct,
   DocType3 =  pass3Type(DocType2, Types2), %% this is a list
   Types5 = DocType3 ++ Types3,
   Types6 = pass5(Types5, Info),
-  #model{tps = Types6, nss = NS, tns = Tns,
+  %% Delete duplicates. Can we do it sooner?
+  NS1 = lists:usort(NS),
+  Tns1 = lists:usort(Tns),
+  #model{tps = Types6, nss = NS1, tns = Tns1,
          th = TypeHierarchy}.
 
 %% for substitution groups:

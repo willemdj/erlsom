@@ -6,11 +6,16 @@
 
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("erlsom/src/erlsom.hrl").
+-include_lib("erlsom/src/erlsom_parse.hrl").
 
 compile_schema_test() ->
     DataDir = filename:join(code:priv_dir(erlsom), "gexf"),
     XsdFilePath = filename:join(DataDir, "gexf.xsd"),
-    {ok, _Model} = erlsom:compile_xsd_file(XsdFilePath, [{include_dirs, [DataDir]}]).
+    {ok, Model} = erlsom:compile_xsd_file(XsdFilePath, 
+                                          [{include_dirs, [DataDir]}]),
+    Namespaces = Model#model.nss,
+    ?assertEqual(lists:usort(Namespaces), Namespaces),
+    ok.
 
 
 %% @doc makeAttrRef returns ":parent-content". It is an error.
