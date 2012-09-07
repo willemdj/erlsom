@@ -44,7 +44,7 @@
          searchBase/2,
          makeQname/1, localName/1, 
          getTargetNamespaceFromXsd/1,
-         removePrefixes/1]).
+         removePrefixes/1, unique/1]).
 
 -include("erlsom_compile.hrl").
 -include("erlsom_sax.hrl").
@@ -899,3 +899,26 @@ splitOnColon(Text) ->
     true ->
       {string:substr(Text, 1, PosOfColon - 1), string:substr(Text, PosOfColon + 1)}
   end.
+
+
+%%----------------------------------------------------------------------
+%% function : unique/1
+%% Arguments: List - [term()]
+%% Returns  : [term()]
+%% Exception:
+%% Effect   : Remove all duplicates from the list.
+%%----------------------------------------------------------------------
+unique([]) -> [];
+unique(List) ->
+    Sorted = lists:sort(List),
+    unique(hd(Sorted),
+       tl(Sorted), []).
+
+unique(A, [A|R], Acc) ->
+    unique(A, R, Acc);
+unique(A, [B|R], Acc) ->
+    unique(B, R, [A|Acc]);
+unique(A, [], Acc) ->
+    lists:reverse([A|Acc]).
+
+

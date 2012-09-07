@@ -71,7 +71,7 @@ header() ->
 "%% only be used when *writing* an xml document.\n\n".
 
 writeTypes(Types, Acc) ->
-  Acc ++ lists:foldl(fun writeType/2, [], Types).
+  Acc ++ lists:foldl(fun writeType/2, [], erlsom_lib:unique(Types)).
 
 writeType(#type{nm = '_document'}, Acc) ->
   Acc;
