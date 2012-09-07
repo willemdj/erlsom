@@ -298,6 +298,7 @@ processAlternativeValue(Value, Count,
    true -> true
   end,
 
+  TagAsText = atom_to_list(Tag),
   if 
     RealElement ->
       %% proces the attributes
@@ -315,26 +316,21 @@ processAlternativeValue(Value, Count,
      end,
 
       %% deal with namespaces (that is, see if they have to be declared here)
-      TagAsText = atom_to_list(Tag),
       {NamespacesString, NewDeclaredNamespaces4} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces3),
-      %% print startTag
-      StartTag = "<" ++ TagAsText ++ NamespacesString ++ AttributesString ++ AnyAttrPlusXsiTypeString ++ ">";
+      ResultForThisElement = struct2xml(Value, Elements, [], Model, NewDeclaredNamespaces4, Mixed),
+      AllAttrs = NamespacesString ++ AttributesString ++ AnyAttrPlusXsiTypeString,
+      printTag(TagAsText, AllAttrs, ResultForThisElement);
     true -> 
-      StartTag = [],
-      NewDeclaredNamespaces4 = DeclaredNamespaces
-  end,
+      struct2xml(Value, Elements, [], Model, DeclaredNamespaces, Mixed)
+  end.
 
-  if 
-    RealElement ->
-      %% print end tag
-      EndTag = "</" ++ atom_to_list(Tag) ++ ">";
-    true ->
-      EndTag = []
-  end,
 
-  %% process sub-elements - recursively!
-  ResultForThisElement = struct2xml(Value, Elements, [], Model, NewDeclaredNamespaces4, Mixed),
-  [StartTag | [ResultForThisElement | EndTag]].
+printTag(TagAsText, AllAttrs, []) ->
+  %% Short tag
+  [$<, TagAsText, AllAttrs, "/>"];
+printTag(TagAsText, AllAttrs, Content) ->
+  %% Open, close tags
+  [$<, TagAsText, AllAttrs, ">", Content, "</", TagAsText, $>].
 
 
 findType(TypeName, Types) ->
@@ -431,7 +427,8 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
           NamespacesString2 = NamespacesString,
           CharValue = []
       end,
-      ResultWithThisAttribute = ResultSoFar ++ NamespacesString2 ++ " " ++ NameAsString ++ "=\"" ++ CharValue ++ "\" ",
+      %% NamespacesString is "" or " xmlns...".
+      ResultWithThisAttribute = ResultSoFar ++ NamespacesString2 ++ " " ++ NameAsString ++ "=\"" ++ CharValue ++ "\"",
       processAttributes(Struct, ResultWithThisAttribute, Rest, Namespaces, DeclaredNamespaces2)
   end.
 
@@ -481,7 +478,7 @@ processAnyAttributes([{{Name, Uri}, Value} | Tail], Acc, Namespaces, DeclaredNam
         _ -> 
           %% get prefix +, if relevant, NS declaration text
           {PrefixedName, DeclaredNamespaces2} = processAnyNamespaces(Name, Uri, Namespaces, DeclaredNamespaces),
-          processAnyAttributes(Tail, Acc ++ " " ++ PrefixedName ++ "=\"" ++ decodeIfRequired(Value) ++ "\"", 
+          processAnyAttributes(Tail, Acc ++ PrefixedName ++ "=\"" ++ decodeIfRequired(Value) ++ "\"", 
                                Namespaces, DeclaredNamespaces2)
       end
   end.
@@ -532,7 +529,6 @@ processNamespaces(Tag, Namespaces, DeclaredNamespaces = {NamespacesList, Counter
       end
   end.
 
-%%processAnyNamespaces(Name, Uri, Namespaces, {NamespacesList, Counter} = DeclaredNamespaces ) ->
 processAnyNamespaces(Name, Uri, Namespaces, {NamespacesList, Counter} = DeclaredNamespaces ) ->
   case lists:keysearch(Uri, 2, NamespacesList) of
     {value, {Prefix, _}} -> %% already declared
@@ -546,7 +542,8 @@ processAnyNamespaces(Name, Uri, Namespaces, {NamespacesList, Counter} = Declared
           %% make up a prefix, using counter
           ThePrefix = "pre" ++ integer_to_list(Counter +1)
       end,
-      {" xmlns:" ++  ThePrefix ++ "=\"" ++ Uri ++ "\" " ++ ThePrefix ++ ":" ++ Name , 
+      PrefixName = " xmlns:" ++  ThePrefix ++ "=\"" ++ Uri ++ "\" " ++ ThePrefix ++ ":" ++ Name,
+      {PrefixName, 
           {[{ThePrefix, Uri} | NamespacesList], Counter + 1}}
   end.
 
