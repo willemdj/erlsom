@@ -80,57 +80,108 @@ writeType(Type, Acc) ->
   Acc ++ writeType2(Type).
 
 writeType2(#type{nm = Name, els = Elements, atts = Attributes}) ->
-  "-record('" ++ atom_to_list(Name)
-  ++ joinStrings("', {anyAttribs",
-                 joinStrings(writeAttributes(Attributes), 
-		             writeElements(Elements)))
-  ++ "}).\n".
+  Format = "~3n-record(~p, {anyAttribs :: proplist:proplist() | undefined~s~s})."
+           "~2n-type ~s :: ~s.",
+  Args   = [Name, writeAttributes(Attributes), writeElements(Elements),
+            formatType(Name), formatRecord(Name)],
+  lists:flatten(io_lib:format(Format, Args)).
 
 writeElements(Elements) ->
-  writeElements(Elements, [], 0).
-writeElements([], String, _) ->
-  String;
-writeElements([Element], Acc, CountChoices) ->
-  {String, _} = writeElement(Element, CountChoices),
-  Acc ++ String;
-writeElements([Element | Tail], Acc, CountChoices) ->
-  {String, CountChoices2} = writeElement(Element, CountChoices),
-  writeElements(Tail, Acc  ++ String ++ ", ", CountChoices2).
+  writeElements(Elements, 0).
+
+writeElements([], _) ->
+  [];
+writeElements([Element | Tail], CountChoices) ->
+  {Elem, CountChoices2} = writeElement(Element, CountChoices),
+  NextElems = writeElements(Tail, CountChoices2),
+  [",\n\t", Elem, NextElems].
 
 writeElement(#el{alts = Alternatives}, CountChoices) ->
   writeAlternatives(Alternatives, CountChoices).
 
 %% easy case: 1 alternative (not a choice), 'real' element (not a group)
+%% FIXME: Collision with same names, but different prefixes.
+%%        For exampes, names are ns1:name, ns2:name, record is {name, name}.
 writeAlternatives([], CountChoices) ->
   {"any_strict_but_none_defined", CountChoices};
 writeAlternatives([#alt{tag = '#any'}], CountChoices) ->
   {"any", CountChoices};
-writeAlternatives([#alt{tag = Tag, rl = true}], CountChoices) ->
+writeAlternatives([#alt{tag = Tag, rl = true, tp = {_,_}}], CountChoices) ->
   {"'" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Tag)) ++ "'", CountChoices};
+writeAlternatives([A = #alt{tag = Tag, rl = true}], CountChoices) ->
+  %% <xs:sequence>                                  
+  %%   <xs:element minOccurs="0" ref="viz:spells"/> 
+  %% </xs:sequence>                                 
+  #alt{tp = Type, mn = Min, mx = Max} = A,
+  Format = "%% Choice (xs:sequence)."
+           "~n\t~p :: ~s | undefined",
+           Args = [tagName(Tag), formatListType(Type, Min, Max)],
+%% TODO: delete the flatten call.
+  Field = io_lib:format(Format, Args),
+  {Field, CountChoices};
 writeAlternatives([#alt{tag = Tag, rl = false, tp = {_,_}}], CountChoices) ->
   {"'" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Tag)) ++ "'", CountChoices};
 writeAlternatives([#alt{rl = false, tp=Tp}], CountChoices) ->
   {"'" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Tp)) ++ "'", CountChoices};
 %% more than 1 alternative: a choice
-writeAlternatives([#alt{} | _Tail], CountChoices) ->
-  Acc = case CountChoices of
+writeAlternatives([#alt{} | _Tail] = Alts, CountChoices) ->
+  Name = case CountChoices of
          0 ->
            "choice";
          _ -> 
            "choice" ++ integer_to_list(CountChoices)
        end,
-  {Acc, CountChoices +1}.
+  Acc2 = lists:flatten(io_lib:format("~s :: ~s | undefined", 
+                                     [Name, writeTypeAlts(Alts)])),
+  {Acc2, CountChoices + 1}.
       
+writeTypeAlts(Alts) ->
+    Types = [formatType(Type) ||  #alt{tp = Type} <- Alts],
+    io_lib:format("[~s]", [joinTypes(erlsom_lib:unique(Types))]).
 
+
+formatRecord(Type) ->
+    io_lib:format("#~p{}", [Type]).
+
+formatType(Type) ->
+    io_lib:format("~p()", [Type]).
+
+%% TODO: delete the flatten call.
 writeAttributes(Attributes) ->
-  lists:foldl(fun writeAttribute/2, [], Attributes).
+   lists:flatten(lists:map(fun writeAttribute/1, Attributes)).
 
-writeAttribute(#att{nm = Name}, []) -> "'" ++ atom_to_list(Name) ++ "'";
-writeAttribute(#att{nm = Name}, Acc) -> Acc  ++ ", '" ++ atom_to_list(Name) ++ "'".
 
-joinStrings([], StringB) ->
-  StringB;
-joinStrings(StringA, []) ->
-  StringA;
-joinStrings(StringA, StringB) ->
-  StringA ++ ", " ++ StringB.
+-spec writeAttribute(#att{}) -> Acc when Acc :: iolist().
+
+%% TODO: write type as a comment or as a type definition.
+writeAttribute(#att{nm = Name, opt = Optional, tp = _Type}) -> 
+    OptOrReq = if Optional -> "optional"; true -> "required" end,
+    Format = ","
+             "~n\t%% This attribute is ~s."
+             "~n\t~p",
+    io_lib:format(Format, [OptOrReq, Name]).
+
+
+tagName(Tag) ->
+    list_to_atom(erlsom_lib:nameWithoutPrefix(atom_to_list(Tag))).
+
+
+-spec joinTypes([iolist()]) -> iolist().
+joinTypes([H|T]) -> [H|joinTypes2(T)];
+joinTypes([])    -> "".
+
+joinTypes2([H|T]) -> [" | ", H | joinTypes2(T)];
+joinTypes2([])    -> "".
+
+
+-spec formatListType(Type, Min, Max) -> iolist() when
+    Type :: atom(),
+    Min :: Num,
+    Max :: Num,
+    Num :: undefined | non_neg_integer().
+
+formatListType(Type, 1, _Max) ->
+    io_lib:format("[~s]", [formatType(Type)]);
+
+formatListType(Type, _Min, _Max) ->
+    io_lib:format("[~s, ...]", [formatType(Type)]).

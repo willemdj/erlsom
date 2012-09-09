@@ -228,7 +228,7 @@ processImports([#importType{namespace="http://www.w3.org/XML/1998/namespace",
 processImports([Impt = #importType{namespace = Ns} | Tail], 
                Acc = #p1acc{includeDirs = Dirs,
                             includeFun = InclFun,
-			    includeFiles = InclFiles,
+                            includeFiles = InclFiles,
                             nss = Namespaces,
                             imported = Imported}) ->
   case lists:member(Ns, Imported) of
@@ -239,14 +239,13 @@ processImports([Impt = #importType{namespace = Ns} | Tail],
       %% read file
       {Xsd, Prefix1} = InclFun(Ns,
                               Impt#importType.schemaLocation,
-	                      InclFiles,
+                              InclFiles,
                               Dirs),
       Prefix = case Prefix1 of
                  undefined ->
                    erlsom_lib:findPrefix2(Ns, Namespaces);
                  _ -> Prefix1
                end,
-
       ParsedGrammar = case Xsd of
                         #schemaType{} -> 
                           Xsd;

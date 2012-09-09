@@ -81,11 +81,13 @@ secondPass(IntermediateStruct,
   DocType3 =  pass3Type(DocType2, Types2), %% this is a list
   Types5 = DocType3 ++ Types3,
   Types6 = pass5(Types5, Info),
-  %% Types order is important.
+  %% Types' order is important.
   %% Delete duplicates. Can we do it sooner?
   NS1 = lists:usort(NS),
-  Tns1 = lists:usort(Tns),
-  #model{tps = Types6, nss = NS1, tns = Tns1, th = TypeHierarchy}.
+  %% Types are:
+  %% NS  :: [#ns{}]
+  %% Tns :: string()
+  #model{tps = Types6, nss = NS1, tns = Tns, th = TypeHierarchy}.
 
 %% for substitution groups:
 %% for each element X that is in a substitution group: 
