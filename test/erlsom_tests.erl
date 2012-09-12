@@ -8,3 +8,6 @@
 
 gexf_test_() ->
     {module, erlsom_gexf_tests}.
+
+all_test_() ->
+    {"Test XSD with the xs:all tag.", {module, erlsom_all_tests}}.

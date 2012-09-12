@@ -41,3 +41,18 @@ leading_ns_delimeter_test_() ->
                  mappedPrefix = []},
     [?_assertEqual("parent-content", erlsom_lib:makeAttrRef(Ref, NS))].
 
+
+stability_test_() ->
+    [ stability_case("test.gexf")
+    , stability_case("basic.gexf")
+    , stability_case("data.gexf")
+    , stability_case("dynamics.gexf")
+    ].
+
+
+stability_case(FileName) ->
+    {ok, Model} = compile_gexf_xsd(),
+    {ok, Tree1} = parse_gexf_file(FileName, Model),
+    {ok, XML}   = erlsom:write(Tree1, Model),
+    {ok, Tree2} = erlsom:parse(XML, Model),
+    {FileName, ?_assertEqual(Tree1, Tree2)}.
