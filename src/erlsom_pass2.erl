@@ -81,8 +81,13 @@ secondPass(IntermediateStruct,
   DocType3 =  pass3Type(DocType2, Types2), %% this is a list
   Types5 = DocType3 ++ Types3,
   Types6 = pass5(Types5, Info),
-  #model{tps = Types6, nss = NS, tns = Tns,
-         th = TypeHierarchy}.
+  %% Types' order is important.
+  %% Delete duplicates. Can we do it sooner?
+  NS1 = lists:usort(NS),
+  %% Types are:
+  %% NS  :: [#ns{}]
+  %% Tns :: string()
+  #model{tps = Types6, nss = NS1, tns = Tns, th = TypeHierarchy}.
 
 %% for substitution groups:
 %% for each element X that is in a substitution group: 
@@ -812,6 +817,8 @@ translateAttribute(#attrib{ref = Ref, optional = Optional}, SeqNo, Info= #schema
   end;
 
 %% -record(attributeGroupRefType, {elInfo, ref}).
+%% TODO: NS must be unique.
+%% FIXME: erlsom_lib:makeAttrRef(Ref, NS) returns leading delim for the empty namespace.
 translateAttribute(#attributeGroupRefType{ref=Ref}, SeqNo, Info = #schemaInfo{namespaces=NS}, Count) ->
   %% look for atributeGroup
   %% -record(attGrp, {name, atts, anyAttr}).

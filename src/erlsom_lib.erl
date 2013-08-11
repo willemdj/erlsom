@@ -44,7 +44,7 @@
          searchBase/2,
          makeQname/1, localName/1, 
          getTargetNamespaceFromXsd/1,
-         removePrefixes/1]).
+         removePrefixes/1, unique/1]).
 
 -include("erlsom_compile.hrl").
 -include("erlsom_sax.hrl").
@@ -385,6 +385,9 @@ makeRef(#qname{uri = NS, localPart = Local}, Namespaces, ExtraPrefix) ->
   case lists:keysearch(NS, 2, Namespaces) of
     {value, #ns{prefix = undefined}} ->
       ExtraPrefix ++ Local;
+    %% undefined ~~ ""
+    {value, #ns{prefix = ""}} ->
+      ExtraPrefix ++ Local;
     {value, #ns{prefix = Prefix}} ->
       Prefix ++ ":" ++ ExtraPrefix ++ Local;
     _ ->
@@ -684,6 +687,19 @@ findFile(Namespace, Location, IncludeFiles, IncludeDirs) ->
       {getFile(Location, IncludeDirs), undefined}
   end.
 
+getFile("https://"++_ = URL, _) ->
+	case httpc:request(URL) of
+		{ok,{{_HTTP,200,_OK}, _Headers, Body}} ->
+			toUnicode(Body);
+		{ok,{{_HTTP,RC,Emsg}, _Headers, _Body}} ->
+			error_logger:error_msg("~p: http-request got: ~p~n",
+				[?MODULE, {RC, Emsg}]),
+			{error, "failed to retrieve: "++URL};
+		{error, Reason} ->
+			error_logger:error_msg("~p: http-request failed: ~p~n",
+				[?MODULE, Reason]),
+			{error, "failed to retrieve: "++URL}
+	end;
 getFile(Location, IncludeDirs) -> 
   case filelib:is_file(Location) of
     true -> 
@@ -896,3 +912,26 @@ splitOnColon(Text) ->
     true ->
       {string:substr(Text, 1, PosOfColon - 1), string:substr(Text, PosOfColon + 1)}
   end.
+
+
+%%----------------------------------------------------------------------
+%% function : unique/1
+%% Arguments: List - [term()]
+%% Returns  : [term()]
+%% Exception:
+%% Effect   : Remove all duplicates from the list.
+%%----------------------------------------------------------------------
+unique([]) -> [];
+unique(List) ->
+    Sorted = lists:sort(List),
+    unique(hd(Sorted),
+       tl(Sorted), []).
+
+unique(A, [A|R], Acc) ->
+    unique(A, R, Acc);
+unique(A, [B|R], Acc) ->
+    unique(B, R, [A|Acc]);
+unique(A, [], Acc) ->
+    lists:reverse([A|Acc]).
+
+
