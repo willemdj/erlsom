@@ -182,23 +182,36 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces) ->
 compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, IncludeFiles) ->
   %% InfoRecord will contain some information required along the way
   TargetNs = ParsedXsd#schemaType.targetNamespace,
+  case Prefix of
+    undefined -> 
+      Pf1 = "",
+      Pf2 = undefined;
+    _ -> 
+      Pf1 = Prefix ++ ":",
+      Pf2 = Prefix
+  end,
+  case TargetNs of
+    undefined -> 
+      Nsp = "",
+      Nss = Namespaces;
+    _ ->
+      case lists:keyfind(TargetNs, #ns.uri, Namespaces) of
+        false ->
+          Nsp = Pf1,
+          Nss = [#ns{prefix = Pf2, uri = TargetNs} | Namespaces];
+        #ns{prefix = Pf} ->
+          Nsp = Pf ++ ":",
+          Nss = Namespaces 
+      end
+  end,
   Acc = #p1acc{tns = TargetNs,
                includeFun = IncludeFun,
                includeDirs = IncludeDirs,
 	       includeFiles = IncludeFiles,
 	       efd = ParsedXsd#schemaType.elementFormDefault, 
 	       afd = ParsedXsd#schemaType.attributeFormDefault, 
-	       nsp = case TargetNs of
-                       undefined -> "";
-                       _ -> case Prefix of 
-                         undefined -> ""; 
-                         _ -> Prefix ++ ":" 
-                       end
-                     end,
-	       nss = case TargetNs of
-                       undefined -> Namespaces;
-                       _ -> [#ns{prefix = Prefix, uri = TargetNs} | Namespaces]
-                     end},
+	       nsp = Nsp,
+	       nss = Nss},
   case catch transform(ParsedXsd, Acc) of
     {error, Message} -> {error, Message};
     {'EXIT', Message} -> throw({'EXIT', Message});
