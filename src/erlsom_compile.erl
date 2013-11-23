@@ -378,8 +378,8 @@ replaceElements(ImportedTypes, [Original = #typeInfo{} | Tail],
 %% information from this schema is combined with info from a potential 'parent' XSD. 
 combineInfo(#schemaType{targetNamespace=Tns, elementFormDefault=Efd, 
                         attributeFormDefault = Afd}, 
-            Acc = #p1acc{tns=TnsParent, efd = EfdParent, 
-                         afd = AfdParent, nss = Namespaces},
+            Acc = #p1acc{tns=TnsParent, efd = _EfdParent,
+                         afd = _AfdParent, nss = Namespaces},
             Prefix) ->
    Acc#p1acc{tns = if 
                       Tns == undefined -> TnsParent; 
@@ -788,7 +788,7 @@ translateAlternative(#localElementType{name=Name, type=Type, ref=undefined, simp
 %% -record(groupRefType, {ref, minOccurs, maxOccurs}).
 translateAlternative(#groupRefType{ref=Ref, minOccurs=Min, maxOccurs=Max}, Acc = #p1acc{nss = Nss}) ->
   {#alternative{tag="##TODO", type=erlsom_lib:makeGroupRef(Ref, Nss), real=false, min=minMax(Min), max=minMax(Max)}, Acc};
-translateAlternative(#anyType{minOccurs=Min, maxOccurs = Max, namespace = Ns, processContents = Pc}, Acc) ->
+translateAlternative(#anyType{minOccurs=_Min, maxOccurs = _Max, namespace = Ns, processContents = Pc}, Acc) ->
    AnyInfo = #anyInfo{prCont = case Pc of undefined -> "strict"; _ -> Pc end, 
                      ns = case Ns of undefined -> "##any"; _ -> Ns end}, 
   {#alternative{tag="#any", type="any", real=true, anyInfo = AnyInfo}, Acc};
