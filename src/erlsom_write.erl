@@ -481,7 +481,7 @@ processAnyAttributes([{{Name, Uri}, Value} | Tail], Acc, Namespaces, DeclaredNam
         _ -> 
           %% get prefix +, if relevant, NS declaration text
           {PrefixedName, DeclaredNamespaces2} = processAnyNamespaces(Name, Uri, Namespaces, DeclaredNamespaces),
-          processAnyAttributes(Tail, Acc ++ PrefixedName ++ "=\"" ++ decodeIfRequired(Value) ++ "\"", 
+          processAnyAttributes(Tail, Acc ++ " " ++ PrefixedName ++ "=\"" ++ decodeIfRequired(Value) ++ "\"", 
                                Namespaces, DeclaredNamespaces2)
       end
   end.
