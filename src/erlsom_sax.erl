@@ -135,33 +135,24 @@
 parseDocument(Xml, UserState, Callback) ->
   parseDocument(Xml, UserState, Callback, []).
 
-parseDocument(Xml, UserState, Callback, Options) when is_list(Xml) ->
-  {CFun, CState} = getCFunction(Options),
-  erlsom_sax_list:parse(Xml, 
-    #erlsom_sax_state{callback = Callback, 
-                      user_state = UserState,
-                      continuation_state = CState,
-                      continuation_fun = CFun,
-                      output = getOutput(Options)});
+parseDocument(Xml, UserState, Callback, Options) ->
+  S = (getOptions(Options))#erlsom_sax_state{callback = Callback,
+                                             user_state = UserState},
+  parseDocument(Xml, S).
 
-parseDocument(Xml, UserState, Callback, Options) when is_binary(Xml) ->
-  {CFun, CState} = getCFunction(Options),
-  case getEncoding(Options) of
+parseDocument(Xml, S) when is_list(Xml) ->
+  erlsom_sax_list:parse(Xml, S);
+
+parseDocument(Xml, S) when is_binary(Xml) ->
+  case S#erlsom_sax_state.encoding of
     undefined ->
-      {Encoding, Xml2, CState2} = erlsom_lib:detectEncoding(Xml, CFun, CState),
+      {Encoding, Xml2, CState2} = 
+        erlsom_lib:detectEncoding(Xml, S#erlsom_sax_state.continuation_fun, 
+                                       S#erlsom_sax_state.continuation_state),
       parseDocumentBinary(Encoding, Xml2, 
-        #erlsom_sax_state{callback = Callback, 
-                          user_state = UserState,
-                          continuation_state = CState2,
-                          continuation_fun = CFun,
-                          output = getOutput(Options)});
+        S#erlsom_sax_state{continuation_state = CState2});
     Encoding ->
-      parseDocumentBinary(Encoding, Xml, 
-        #erlsom_sax_state{callback = Callback, 
-                          user_state = UserState,
-                          continuation_state = CState,
-                          continuation_fun = CFun,
-                          output = getOutput(Options)})
+      parseDocumentBinary(Encoding, Xml, S)
   end.
 
 parseDocumentBinary(Encoding, Xml, State) ->
@@ -184,20 +175,34 @@ parseDocumentBinary(Encoding, Xml, State) ->
       throw({error, "Encoding not supported: " ++ atom_to_list(Encoding)})
   end.
 
-getCFunction(Options) ->
-  case lists:keysearch(continuation_function,1,Options) of
-    {value, {_, F, S}} -> {F, S};
-    false -> {fun(T, S) -> {T, S} end, undefined}
-  end.
+getOptions(Options) ->
+  getOptions(Options, #erlsom_sax_state{}).
 
-getOutput(Options) ->
-  case lists:keysearch(output_encoding,1,Options) of
-    {value, {_, Encoding}} -> Encoding;
-    false -> list
-  end.
-
-getEncoding(Options) ->
-  case lists:keysearch(encoding,1,Options) of
-    {value, {_, F}} -> list_to_atom(F);
-    false -> undefined
-  end.
+getOptions([], S) ->
+  case S#erlsom_sax_state.continuation_fun of
+    undefined -> 
+      S#erlsom_sax_state{continuation_fun = fun(T, St) -> {T, St} end};
+    _ -> 
+      S
+  end;
+getOptions([expand_entities | T], S) ->
+  getOptions(T, S#erlsom_sax_state{expand_entities = true});
+getOptions([{expand_entities, V} | T], S) when is_boolean(V) ->
+  getOptions(T, S#erlsom_sax_state{expand_entities = V});
+getOptions([{output_encoding, V} | T], S) ->
+  getOptions(T, S#erlsom_sax_state{output = V});
+getOptions([{continuation_function, Cf, Cs} | T], S) when is_function(Cf) ->
+  getOptions(T, S#erlsom_sax_state{continuation_fun = Cf,
+                                   continuation_state = Cs});
+getOptions([{encoding, V} | T], S) ->
+  getOptions(T, S#erlsom_sax_state{encoding = list_to_atom(V)});
+getOptions([{max_entity_depth, V} | T], S) when is_integer(V); V == infinity ->
+  getOptions(T, S#erlsom_sax_state{max_entity_depth = V});
+getOptions([{max_entity_size, V} | T], S) when is_integer(V); V == infinity ->
+  getOptions(T, S#erlsom_sax_state{max_entity_size = V});
+getOptions([{max_nr_of_entities, V} | T], S) 
+    when is_integer(V); V == infinity ->
+  getOptions(T, S#erlsom_sax_state{max_nr_of_entities = V});
+getOptions([{max_expanded_entity_size, V} | T], S) 
+    when is_integer(V); V == infinity ->
+  getOptions(T, S#erlsom_sax_state{max_expanded_entity_size = V}).

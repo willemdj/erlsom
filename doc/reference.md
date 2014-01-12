@@ -10,7 +10,7 @@
 - [scan_file/2](#scan_file)
 - [write/2](#write)
 - [write_xsd_hrl_file/3](#write_xsd_hrl_file)
-- [parse_sax/4](parse_sax)
+- [parse_sax/4](#parse_sax)
 - [simple_form/1](#simple_form)
 - [simple_form/2](#simple_form_2)
 - [erlsom_lib:toUnicode/1](#toUnicode)
@@ -215,7 +215,11 @@ Xml      = [int()], a list of Unicode code points
 Acc0     = a term() that is passed to the EventFun. 
 Eventfun = a fun() that is called by the parser whenever it has parsed a bit of the Xml input 
 Options  = [Option]
-Option   = {continuation_function, CState, CFunction} | {output_format, utf8}
+Option   = {continuation_function, CState, CFunction} | {output_encoding, utf8} |
+           {expand_entities, true | false} | {max_entity_depth, int() | infinity} |
+           {max_entity_size, int() | infinity} | {max_nr_of_entities, int() | infinity} |
+           {max_nr_of_entities, int() | infinity} | 
+           {max_expanded_entity_size, int() | infinity}
 
 AccOut   = a the result of the last invocation of EventFun. 
 Rest     = list of characters that follow after the end of the XML document
@@ -242,8 +246,15 @@ CFunction returns `{NewData, NewState}`, where NewData is a list of characters/u
 
 Note: if the encoding of the document supports multi-byte characters (UTF8, UTF16) you don’t have to ensure that each block of data contains only complete characters - but in case of UTF16 you do have to ensure that you return an odd number of bytes.
 
-The ‘output_format’ option determines the encoding of the 'character data': element values and attribute values. The only supported encoding at this moment is 'utf8'. The default is string().
+The ‘output_encoding’ option determines the encoding of the 'character data': element values and attribute values. The only supported encoding at this moment is 'utf8'. The default is string().
 
+There is a number of options to protect against malicious entities, such as the 'billion laughs' attack. An attempt has been made to use defaults that allow most "bona fide" use of entities, but block malicious cases. Depending on the situation it may make sense to select settings that are more or less restrictive.
+- expand_entities: if set to 'false', entities will not be expanded. Default: true
+- max_entity_depth: limits the level of nesting of entities. The default value
+  is 2, which means that an entity can refer to 1 or more other entities, but none of those can contain entity references.
+- max_entity_size: limits the size of a single entity definition. Default: 2000
+- max_nr_of_entities: limits the number of entities that can be defined. Default: 100
+- max_expanded_entity_size: limits the total number of characters that can be introduced in an XML document by expansion of entities. Default: 10.000.000.
 
 ### <a name="simple_form">simple_form/1</a> ##
 

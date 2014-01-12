@@ -27,7 +27,8 @@
 -module(erlsom_sax_lib).
 
 -include("erlsom_sax.hrl").
--export([findCycle/1]).
+-export([test/0]).
+-export([findCycle/4]).
 -export([continueFun/3]).
 -export([continueFun/4]).
 -export([continueFun2/4]).
@@ -219,38 +220,45 @@ attributeNameTuple(AttributeName, Namespaces) ->
   end.
 
 %% simplistic function to find a cycle in a list [{a, b}, {b, c}, ...]
-findCycle([]) ->
+%% or if there is a path longer than MaxDepth.
+%% The edge A, B is added; the rest of the graph is known
+%% to be acyclical. So we start from B (To) and look for a path
+%% to A (Current).
+findCycle(To, Current, Edges, MaxDepth) ->
+  findCycle(To, Current, Edges, MaxDepth, 1).
+
+findCycle(_To, _Current, [], _MaxD, _CurrentD) ->
   false;
-findCycle([{A, A} | _]) ->
-  true;
-findCycle([{A, B} | Rest]) ->
-  %% See whether there is a path back to the first node
-  case returnToStart(A, B, Rest) of
-    true -> true;
+findCycle(To, Current, Edges, MaxD, CurrentD) ->
+  %% take the next edge from edge from Current 
+  case lists:keyfind(To, 1, Edges) of
+    _ when MaxD == CurrentD ->
+      max_depth; %% reached Max Depth
     false -> 
-      %% try the other nodes
-      findCycle(Rest) 
+      false;
+    {_, Current} ->
+      cycle; %% found a cycle
+    {_, B} ->
+      RemainingEdges = lists:keydelete(To, 1, Edges),
+      case findCycle(B, Current, RemainingEdges, MaxD, CurrentD + 1) of
+        false ->
+          findCycle(To, Current, RemainingEdges, MaxD, CurrentD);
+        Other ->
+          Other
+      end
   end.
 
-%% can we return to Start?
-%% maybe we are there already?
-returnToStart(Start, Start, _) ->
-  true;
-%% maybe there is nowhere else to go?
-returnToStart(_, _, []) ->
-  false;
-returnToStart(Start, Position, Rest) ->
-  %% is there a next node where we can go?
-  case lists:keysearch(Position, 1, Rest) of
-    {value, {_, Next} = NextEdge} ->
-      %% check whether you can get there via this node
-      case returnToStart(Start, Next, lists:delete(NextEdge, Rest)) of
-        true -> true;
-        false -> 
-          %% check whether we can go via one of the remaining nodes
-          returnToStart(Start, Position, lists:delete(NextEdge, Rest))
-      end;
-    _ ->
-      false
-  end.
+test() ->
+  false = findCycle(b, a, [{a, b}], 2),
+  max_depth  = findCycle(b, a, [{a, b}, {b, c}], 2),
+  false = findCycle(b, a, [{a, b}, {b, c}], 3),
+  false = findCycle(b, a, [{a, b}, {b, c}, {c, d}, {c, e}, 
+                   {c, f}, {c, g}, {f, q}, {f, r}, {f, s},
+                   {g, z}], 12),
+  cycle  = findCycle(b, a, [{a, b}, {c, d}, {b, c}, {c, e}, 
+                   {c, f}, {f, q}, {f, r}, {f, s}, {q, s},
+                   {g, a}, {c, g}], 12),
+  cycle  = findCycle(b, a, [{a, b}, {b, c}, {c, d}, {c, e}, 
+                   {c, a}, {c, g}, {f, q}, {f, r}, {f, s},
+                   {g, a}], 12).
 

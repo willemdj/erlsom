@@ -504,31 +504,45 @@ parseEntity(Tail, State) ->
       %% throw({error, "Malformed: Illegal character in entity name"})
   %% end.
 
-parseEntityName(Tail, State) ->
+parseEntityName(Tail, State = #erlsom_sax_state{max_entity_size = MaxSize,
+                                                max_nr_of_entities = MaxNr,
+                                                output = OutputEncoding,
+                                                entities = EntitiesSoFar,
+                                                par_entities = ParEntitiesSoFar}) ->
   CurrentEntity = State#erlsom_sax_state.current_entity,
   {Type, Tail2, State2} = getType(Tail, State),
   {Name, Tail3, State3} = parseNameNoNamespaces(Tail2, State2),
   {value, Value, Tail4, State4} = 
     parseLiteral(definition, Tail3, State3#erlsom_sax_state{current_entity = Name}),
+  if 
+    length(EntitiesSoFar) + length(ParEntitiesSoFar) >= MaxNr ->
+      throw({error, "Too many entities defined"});
+    true ->
+      ok
+  end,
   %% this is a bit of a hack - parseliteral may return an encoded value, 
   %% but that is not what we want here.
-  ValueAsList = case State4#erlsom_sax_state.output of
+  ValueAsList = case OutputEncoding of
                   'utf8' -> erlsom_ucs:decode_utf8(Value);
                   _ -> Value
                 end,
+  if
+    length(ValueAsList) > MaxSize ->
+      throw({error, "Entity too long"});
+    true ->
+      ok
+  end,
   {Tail5, State5} = parseEndHook(Tail4, State4),
   case Type of
     general ->
-      EntitiesSoFar = State5#erlsom_sax_state.entities,
       State6 = State5#erlsom_sax_state{
         %% if an entity is declared twice, the first definition should be used.
         %% Therefore, add new ones to the back of the list.
         entities = EntitiesSoFar ++ [{Name, ValueAsList}],
         current_entity = CurrentEntity};
     parameter ->
-      EntitiesSoFar = State5#erlsom_sax_state.par_entities,
       State6 = State5#erlsom_sax_state{
-        par_entities = EntitiesSoFar ++ [{Name, ValueAsList}]}
+        par_entities = ParEntitiesSoFar ++ [{Name, ValueAsList}]}
   end,
   {Tail5, State6}.
 
@@ -1055,31 +1069,56 @@ translateReference(Reference, Context, Tail, State) ->
       translateReferenceNonCharacter(Reference, Context, Tail, State)
   end.
 
-translateReferenceNonCharacter(Reference, Context, Tail, State) ->
+translateReferenceNonCharacter(Reference, Context, Tail, 
+  State = #erlsom_sax_state{current_entity = CurrentEntity, 
+                            max_entity_depth = MaxDepth,
+                            entity_relations = Relations,
+                            entity_size_acc = TotalSize,
+                            max_expanded_entity_size = MaxSize}) ->
   case Context of 
     definition ->
-      %% check on circular definition
-      CurrentEntity = State#erlsom_sax_state.current_entity,
-      Relations = [{CurrentEntity, Reference} | State#erlsom_sax_state.entity_relations],
-      case erlsom_sax_lib:findCycle(Relations) of
-        true -> throw({error, "Malformed: Cycle in entity definitions"});
+      case MaxDepth of
+        0 -> throw({error, "Entities nested too deep"});
         _ -> ok
       end,
-      %% dont't replace
-      {lists:reverse("&" ++ Reference ++ ";"), Tail, State#erlsom_sax_state{entity_relations = Relations}};
-    attribute ->
-      {Translation, _Type} = nowFinalyTranslate(Reference, Context, State),
-      %% replace, add to the parsed text (head)
-      {Translation, Tail, State};
-    _ -> %% element or parameter
+      %% check on circular definition
+      NewRelation = {CurrentEntity, Reference},
+      case lists:member(NewRelation, Relations) of
+        true ->
+          Relations2 = Relations;
+        false ->
+          Relations2 = [NewRelation | Relations],
+          case erlsom_sax_lib:findCycle(Reference, CurrentEntity, Relations2, MaxDepth) of
+            cycle -> 
+              throw({error, "Malformed: Cycle in entity definitions"});
+            max_depth -> 
+              throw({error, "Entities nested too deep"});
+            _ -> ok
+          end
+      end,
+      %% don't replace
+      {lists:reverse("&" ++ Reference ++ ";"), Tail, State#erlsom_sax_state{entity_relations = Relations2}};
+    _ ->
       {Translation, Type} = nowFinalyTranslate(Reference, Context, State),
-      case Type of 
-        user_defined ->
-          %% replace, encode again and put back into the input stream (Tail)
-          TEncoded = encode(Translation),
-          {[], combine(TEncoded, Tail), State};
-        _ ->
-          {Translation, Tail, State}
+      NewTotal = TotalSize + length(Translation),
+      if
+        NewTotal > MaxSize ->
+          throw({error, "Too many characters in expanded entities"});
+        true ->
+          ok
+      end,
+      case Context of attribute ->
+        %% replace, add to the parsed text (head)
+        {Translation, Tail, State#erlsom_sax_state{entity_size_acc = NewTotal}};
+      _ -> %% element or parameter
+        case Type of 
+          user_defined ->
+            %% replace, encode again and put back into the input stream (Tail)
+            TEncoded = encode(Translation),
+            {[], combine(TEncoded, Tail), State#erlsom_sax_state{entity_size_acc = NewTotal}};
+          _ ->
+            {Translation, Tail, State#erlsom_sax_state{entity_size_acc = NewTotal}}
+        end
       end
   end.
 
@@ -1091,15 +1130,20 @@ nowFinalyTranslate(Reference, Context, State) ->
     "apos" -> {[39], other}; %% apostrof
     "quot" -> {[34], other}; %% quote
   _ -> 
-    ListOfEntities = case Context of 
-      parameter -> State#erlsom_sax_state.par_entities;
-      element -> State#erlsom_sax_state.entities
-    end,
-    case lists:keysearch(Reference, 1, ListOfEntities) of
-      {value, {_, EntityText}} -> 
-        {EntityText, user_defined};
-      _ ->
-        throw({error, "Malformed: unknown reference: " ++ Reference})
+    case State#erlsom_sax_state.expand_entities of
+      true -> 
+        ListOfEntities = case Context of 
+          parameter -> State#erlsom_sax_state.par_entities;
+          element -> State#erlsom_sax_state.entities
+        end,
+        case lists:keysearch(Reference, 1, ListOfEntities) of
+          {value, {_, EntityText}} -> 
+            {EntityText, user_defined};
+          _ ->
+            throw({error, "Malformed: unknown reference: " ++ Reference})
+        end;
+      false ->
+        throw({error, "Entity expansion disabled, found reference " ++ Reference})
     end
   end.
 

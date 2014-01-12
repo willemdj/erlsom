@@ -29,6 +29,7 @@
 -record(erlsom_sax_state, 
   {user_state, 
    callback,
+   encoding,  %% of input document
    continuation_state,
    entities = [], 
    par_entities = [], 
@@ -36,9 +37,22 @@
    namespaces = [], 
    endtags = [],
    output, %% determines the encoding of text and atttribute values
+   expand_entities = true, %% if false, user defined entities will 
+                           %% be ignored in the DTD, and use of entities 
+                           %% will fail.
+   max_entity_depth = 2,   %% Maximum level of nesting of entities. 2 means: an 
+                           %% an entity can refer to 1 or more other entities,
+                           %% but none of those can contain entity references.
+   max_entity_size = 2000, %% Maximum size of a single entity
+   max_nr_of_entities = 100, %% Maximum number of entities that can be defined.
+                             %% Note that a large number can lead to long
+                             %% processing to find cycles, unless max depth has 
+                             %% been set to a small number.
+   max_expanded_entity_size = 10000000, %% Maximum total number of bytes of all
+                             %% expanded entities together.
+   entity_size_acc = 0, %% accumulated size of entities
    continuation_fun,
-   %% entity_relations is used to check on circular
-   %% definitions
+   %% entity_relations is used to check on circular definitions
    entity_relations = []}).
 
 %% useful macro approach copied from xmerl

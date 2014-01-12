@@ -556,7 +556,7 @@ It shows how "nil" values are represented - note that there are 2 different case
 
 Example 9 also shows what happens to "any-attributes" ("issued", in this case): these are put into the first field of the record.
 
-## <a name="installation>Installation</a>
+## <a name="installation">Installation</a>
 The easiest way to install Erlsom is probably to use rebar. 
  
 Klacke (Claes Wickstrom) has provided a makefile. This should enable Unix users to install Erlsom easily. 
