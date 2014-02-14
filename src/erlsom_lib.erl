@@ -40,6 +40,8 @@
          findFile/4, find_xsd/4, findType/6,
          readImportFile/1,
          newTree/0, addTreeElement/3, isAncestor/3, getAncestor/2,
+         getLeaves/2,
+         getDescendants/2,
          emptyListIfUndefined/1,
          searchBase/2,
          makeQname/1, localName/1, 
@@ -143,6 +145,45 @@ getAncestor(Element, Tree) ->
     _ -> false
   end.
     
+%% get all leaves (non-abstract types) of node (abstract type)
+getLeaves(Node, Tree) ->
+  Children = [Child || {Child, N} <- Tree, N == Node],
+  getLeaves(Children, [], Tree).
+
+getLeaves([], Leaves, _) ->
+  Leaves;
+getLeaves([Node | T], Leaves, Tree) ->
+  Children = [Child || {Child, N} <- Tree, N == Node],
+  %% if Node has no children, it is a leave.
+  case Children of 
+    [] ->
+      getLeaves(T, [Node | Leaves], Tree);
+    _ ->
+      %% If Node does have children, go one level deeper
+      %% Delete (one instance..) of Node from the tree, to prevent 
+      %% endless looping
+      getLeaves(Children ++ T, Leaves, lists:keydelete(Node, 2, Tree)) 
+  end.
+    
+%% get all descendants of Node
+getDescendants(Node, Tree) ->
+  Children = [Child || {Child, N} <- Tree, N == Node],
+  getDescendants(Children, Children, Tree).
+
+getDescendants([], Descendants, _) ->
+  Descendants;
+getDescendants([Node | T], Descendants, Tree) ->
+  Children = [Child || {Child, N} <- Tree, N == Node],
+  %% if Node has no children, it is a leave.
+  case Children of 
+    [] ->
+      getDescendants(T, Descendants, Tree);
+    _ ->
+      %% If Node does have children, go one level deeper
+      %% Delete (one instance..) of Node from the tree, to prevent 
+      %% endless looping
+      getDescendants(Children ++ T, Children ++ Descendants, lists:keydelete(Node, 2, Tree)) 
+  end.
 
 minMax(undefined) ->
   1;
