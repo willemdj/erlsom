@@ -1001,14 +1001,20 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
       %% tag occurs as an alternative in any one of them.
       %% and remove this element from the list of elements.
       case findTagInElements(Name, RemainingElements) of
-        {#alt{tp = Type, rl = RealElement}, RemainingElements2, Nr} ->
+        {#alt{tp = Type, rl = RealElement}, RemainingElements2, Nr, Nullable} ->
           NewCurrentState = #all{re = RemainingElements2, er = ElementRecord, nr = Nr},
 	  case Type of 
 	    {'#PCDATA', PCDataType} ->
 	       %% receive text events
 	       %% push the current status, create a new level in the state machine
-               State#state{currentState = {'#PCDATA', PCDataType, []}, 
-		                  resultSoFar = [NewCurrentState | ResultSoFar]};
+               case (Nullable==true) andalso findNullableAttribute(Attributes) of
+                 true ->
+                   State#state{currentState = #cs{re = [], sf =0, er = nil, rl = true, mxd = false},
+		               resultSoFar = [NewCurrentState | ResultSoFar]};
+                 _ ->
+                   State#state{currentState = {'#PCDATA', PCDataType, []}, 
+		               resultSoFar = [NewCurrentState | ResultSoFar]}
+               end;
 	    _Else -> 
 	       %% not text: a complex type.
 	       %% look for the type discription
@@ -1392,11 +1398,11 @@ findTagInElements(Tag, Elements) ->
   findTagInElements(Tag, Elements, []).
 findTagInElements(_Tag, [], _) -> false;
 findTagInElements(Tag, 
-                  [Element = #el{alts = Alternatives, nr = Nr} | NextElements],
+                  [Element = #el{alts = Alternatives, nr = Nr, nillable = Nillable} | NextElements],
                   PreviousElements) ->
       case lists:keysearch(Tag, #alt.tag, Alternatives) of
         {value, Alt = #alt{}} ->
-          {Alt, PreviousElements ++ NextElements, Nr};
+          {Alt, PreviousElements ++ NextElements, Nr, Nillable};
         _Else ->
           findTagInElements(Tag, NextElements, [Element | PreviousElements])
       end.
