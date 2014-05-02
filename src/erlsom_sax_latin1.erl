@@ -909,7 +909,7 @@ parseContentLT(?STR1_T($/, Tail), State) ->
       State5 = State4#erlsom_sax_state{namespaces = OldNamespaces, endtags = EndTags2},
       case EndTags2 of
         [] ->
-          {State5, Tail3};
+          {State5, binary_to_list(Tail3)};
         _ ->
           parseContent(Tail3, State5)
       end;
@@ -934,7 +934,7 @@ parseContentLT(Tail, State) ->
       State6 = mapEndPrefixMappingCallback(NewNamespaces, State5),
       case EndTags of
         [] ->
-          {State5, Tail2};
+          {State5, binary_to_list(Tail2)};
         _ ->
           parseContent(Tail2, State6)
       end;
