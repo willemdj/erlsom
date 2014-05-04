@@ -225,8 +225,8 @@ parseProlog(?STR2_T($<, $!, Tail) = T, State) ->
     ?EMPTY -> ?CF3(T, State, fun parseProlog/2);
     _ -> throw({error, "Malformed: Illegal character in prolog"})
   end;
-parseProlog(T = ?STR1_T($<, _Tail), State) ->
-  parseContent(T, State);
+parseProlog(?STR1_T($<, Tail), State) ->
+  parseContentLT(Tail, State);
 %% whitespace in the prolog is ignored
 parseProlog(?STR1_T(NextChar, Tail), State) 
   when ?is_whitespace(NextChar) ->
@@ -940,7 +940,7 @@ parseContentLT(Tail, State) ->
       parseContent(Tail2, State5)
   end.
 
-parseContent(?STR1_T($<, Tail), State) ->
+parseContent(?STR1_T($<, Tail), #erlsom_sax_state{endtags = EndTags} = State) when EndTags /= [] ->
   parseContentLT(Tail, State);
 
 parseContent(?EMPTY, #erlsom_sax_state{endtags = EndTags} = State) ->
