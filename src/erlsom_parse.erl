@@ -275,10 +275,14 @@ user_default:format_record(Rec, Name, record_info(fields, Name))).
   
 %% Creates a record as a tuple where the first element indicates the
 %% type. 
-newRecord(#type{nm = Type, nr = NrOfElements}) -> 
+%% The second argument indicates whether we want to store "any-attributes".
+newRecord(#type{nm = Type, nr = NrOfElements}, true) -> 
   NewRecord = erlang:make_tuple(NrOfElements + 1, undefined), 
   Record2 = setelement(1, NewRecord, Type),
-  setelement(2, Record2, []).
+  setelement(2, Record2, []);
+newRecord(#type{nm = Type, nr = NrOfElements}, false) -> 
+  NewRecord = erlang:make_tuple(NrOfElements, undefined),
+  setelement(1, NewRecord, Type).
 
 %% This is the call-back function (called by the sax parser)
 %% Filters out some events and calls the state machine.
@@ -362,7 +366,8 @@ stateMachine(Event,
                             model = #model{tps = [#type{nm = _document, 
                                                         els = [#el{alts = Alternatives} | _]} | _],
                                            nss = NamespaceMapping,
-                                           th = TypeHierarchy},
+                                           th = TypeHierarchy,
+                                           any_attribs = StoreAnyAttr},
                             namespaces = Namespaces}) ->
   Types = (State#state.model)#model.tps,
   case Event of 
@@ -379,10 +384,10 @@ stateMachine(Event,
 	  %% process the attributes
           if 
             RealElement ->
-              {NewRecord, _} = processAttributes(AttributeValues, TheType, newRecord(TheType), 
+              {NewRecord, _} = processAttributes(AttributeValues, TheType, newRecord(TheType, StoreAnyAttr), 
                                             State#state.model, Namespaces, false);
             true ->
-              NewRecord = newRecord(TheType)
+              NewRecord = newRecord(TheType, StoreAnyAttr)
           end,
           case Tp of
             sequence ->
@@ -481,7 +486,8 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
                                    resultSoFar  = [Head | Tail],
 			           model        = #model{tps = Types, 
                                                          nss = NamespaceMapping,
-                                                         th = TypeHierarchy},
+                                                         th = TypeHierarchy,
+                                                         any_attribs = StoreAnyAttr},
                                    namespaces   = Namespaces}) ->
   %% debug(Event),
   case Event of %%{
@@ -518,10 +524,10 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
 		  %% process the attributes
                   if 
                     Real ->
-                      {NewRecord, _} = processAttributes(Attributes, TypeDef, newRecord(TypeDef), 
+                      {NewRecord, _} = processAttributes(Attributes, TypeDef, newRecord(TypeDef, StoreAnyAttr), 
 		                                    State#state.model, Namespaces, false);
                     true ->
-                      NewRecord = newRecord(TypeDef)
+                      NewRecord = newRecord(TypeDef, StoreAnyAttr)
                   end,
 		  %% push the current status, create a new level in the state machine
                   NewState = State#state{currentState = #cs{re = TypeDef#type.els, 
@@ -710,7 +716,8 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
 			           model = #model{tps = Types, 
                                                   nss = NamespaceMapping,
                                                   th = TypeHierarchy,
-                                                  tns = Tns},
+                                                  tns = Tns,
+                                                  any_attribs = StoreAnyAttr},
                                    namespaces = Namespaces}) -> 
   %% debugMessage("the work"),
   %% debugState(State),
@@ -777,10 +784,10 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
 		      %% process the attributes
                       if 
                         RealElement2 ->
-                          {NewRecord, Nil} = processAttributes(Attributes, TypeDef, newRecord(TypeDef), 
+                          {NewRecord, Nil} = processAttributes(Attributes, TypeDef, newRecord(TypeDef, StoreAnyAttr), 
 		                                        State#state.model, Namespaces, Nullable);
                         true ->
-                          {NewRecord, Nil} = {newRecord(TypeDef), false}
+                          {NewRecord, Nil} = {newRecord(TypeDef, StoreAnyAttr), false}
                       end,
                       NewCurrentState = 
                         if
@@ -855,7 +862,7 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
 		             TypeDef = findType(Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
                              %% debug(Type),
                              #type{els = Elements, tp = Tp, mxd = Mxd} = TypeDef,
-                             NewRecord = newRecord(TypeDef),
+                             NewRecord = newRecord(TypeDef, StoreAnyAttr),
                              case Tp of
                                sequence ->
                                  %% debug(NewRecord),
@@ -927,7 +934,7 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
 	  TypeDef = findType(Type, Types, [], TypeHierarchy, Namespaces, NamespaceMapping),
 	  %% create new record for this element 
 	  %% (can't have any attributes)
-	  NewRecord = newRecord(TypeDef),
+	  NewRecord = newRecord(TypeDef, StoreAnyAttr),
 	  %% push the current status, create a new level in the state machine
 	  %% (we know that this is a helperElement, therfore RealElement = false)
           NewState = State#state{currentState = #cs{re = TypeDef#type.els, 
@@ -991,7 +998,8 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
                                    resultSoFar = ResultSoFar,
 			           model = #model{tps = Types, 
                                                   nss = NamespaceMapping,
-                                                  th = TypeHierarchy},
+                                                  th = TypeHierarchy,
+                                                  any_attribs = StoreAnyAttr},
                                    namespaces = Namespaces}) -> 
   %% debug(Event),
   case Event of 
@@ -1025,10 +1033,10 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
 	       %% process the attributes
                if 
                  RealElement ->
-                   {NewRecord, _} = processAttributes(Attributes, TypeDef, newRecord(TypeDef), 
+                   {NewRecord, _} = processAttributes(Attributes, TypeDef, newRecord(TypeDef, StoreAnyAttr), 
 		                                 State#state.model, Namespaces, false);
                  true ->
-                   NewRecord = newRecord(TypeDef)
+                   NewRecord = newRecord(TypeDef, StoreAnyAttr)
                end,
                case Tp of
                  sequence ->
@@ -1096,7 +1104,7 @@ pop(Value, #cs{re = NewRemainingElements,
   if 
     (MaxOccurs > 1) or (Mixed == true) ->
       %% if maxOccurs > 1, the value is a list
-        OldValue = element(SequenceNr + 2, NewElementRecord),
+        OldValue = element(SequenceNr, NewElementRecord),
         if 
           OldValue == undefined ->  %% this can occur in the case of 'any' values that are not 
                                     %% processed
@@ -1104,9 +1112,9 @@ pop(Value, #cs{re = NewRemainingElements,
           true -> 
 	    NewValue = OldValue ++ [Value]
        end,
-       ElementRecord2 = setelement(SequenceNr + 2, NewElementRecord, NewValue);
+       ElementRecord2 = setelement(SequenceNr, NewElementRecord, NewValue);
     true ->
-      ElementRecord2 = setelement(SequenceNr + 2, NewElementRecord, Value)
+      ElementRecord2 = setelement(SequenceNr, NewElementRecord, Value)
   end,
   %% debug("Pop"),
   NewState#cs{sf = NewReceivedSoFar + 1, er = ElementRecord2};
@@ -1133,7 +1141,7 @@ insertValue(Value, #cs{re = RemainingElements,
   if 
     (MaxOccurs > 1) or (Mixed == true) ->
     %% if maxOccurs > 1, the value is a list
-      case element(SequenceNr + 2, ElementRecord) of
+      case element(SequenceNr, ElementRecord) of
         undefined ->
           %% debugFormat("received so far: ~p\n", [ReceivedSoFar]),
           %% debugFormat("value: ~p\n", [element(SequenceNr + 2, ElementRecord)]),
@@ -1147,13 +1155,13 @@ insertValue(Value, #cs{re = RemainingElements,
       NewValue = Value
   end,
 
-  ElementRecord2 = setelement(SequenceNr + 2, ElementRecord, NewValue),
+  ElementRecord2 = setelement(SequenceNr, ElementRecord, NewValue),
   #cs{re = RemainingElements, 
       sf = if Mixed -> ReceivedSoFar; true -> ReceivedSoFar + 1 end,
       er = ElementRecord2, rl = RealElement, mxd = Mixed};
 
 insertValue(Value, State = #all{er = ElementRecord, nr = SequenceNr}) ->
-  ElementRecord2 = setelement(SequenceNr + 2, ElementRecord, Value),
+  ElementRecord2 = setelement(SequenceNr, ElementRecord, Value),
   State#all{er = ElementRecord2}.
 
 %% translate the LocalName and the Uri to a kind of standardised name.
@@ -1231,7 +1239,7 @@ processAttributes(_Attributes = [], ToReceive, _Type, Record, _Model, _Namespace
   {Record, Nil};
 
 processAttributes(_Attributes = [#attribute{localName=LocalName, uri=Uri, value=Value} | Tail], ListOfAttributes, 
-		TypeDef, Record, Model = #model{nss = NamespaceMapping}, Namespaces, Nullable, Nil) ->
+		TypeDef, Record, Model = #model{nss = NamespaceMapping, any_attribs = StoreAnyAttr}, Namespaces, Nullable, Nil) ->
   Name = eventName(LocalName, Uri, NamespaceMapping),
   case lists:keysearch(Name, #att.nm, ListOfAttributes) of
     {value, #att{nr = Position, tp = Type}}  ->
@@ -1241,7 +1249,7 @@ processAttributes(_Attributes = [#attribute{localName=LocalName, uri=Uri, value=
           throw({error, "Wrong Type in value for attribute " ++ atom_to_list(Name)})
       end,
       processAttributes(Tail, lists:keydelete(Name, #att.nm, ListOfAttributes), TypeDef, 
-                        setelement(Position + 2, Record, ConvertedValue), 
+                        setelement(Position, Record, ConvertedValue), 
                         Model, Namespaces, Nullable, Nil);
     _Else ->
       %% debug(Name),
@@ -1311,9 +1319,17 @@ processAttributes(_Attributes = [#attribute{localName=LocalName, uri=Uri, value=
           end
       end,
 
-      ListOfAttributes2 = [{{LocalName, Uri}, ConvertedValue} | element(2, Record)],
-      processAttributes(Tail, ListOfAttributes, TypeDef, setelement(2, Record, ListOfAttributes2), Model, Namespaces, 
-                        Nullable, Nil2)
+      case StoreAnyAttr of 
+        true -> 
+          ListOfAttributes2 = [{{LocalName, Uri}, ConvertedValue} | element(2, Record)],
+          processAttributes(Tail, ListOfAttributes, TypeDef, 
+                            setelement(2, Record, ListOfAttributes2), Model, Namespaces, 
+                            Nullable, Nil2);
+        false ->
+          processAttributes(Tail, ListOfAttributes, TypeDef, Record, 
+                            Model, Namespaces, Nullable, Nil2)
+      end
+
   end.
 
 %% Goal: 

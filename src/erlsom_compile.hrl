@@ -63,7 +63,10 @@
 %% the rest is for internal use in the translation of the XSD to the 
 %% format used by the parser
 %% path is used to give local elements a unique name (the 'path' to the element)
--record(schemaInfo, {targetNamespace, elementFormDefault, namespacePrefix, namespaces, path=[], attGrps, atts, th}).
+-record(schemaInfo, {targetNamespace, elementFormDefault, namespacePrefix, namespaces, path=[], attGrps, atts, th,
+                    include_any_attrs = false %% if true, the second element in the result types will be used for 
+                                              %% atributes that were not explicitly declared
+                    }).
 
 %% typeInfo - the intermediate format.
 %% global (true or false): we need to find out in the

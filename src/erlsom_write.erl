@@ -60,10 +60,8 @@ struct2xml(Struct,
            ResultSoFar, Model = #model{nss = Namespaces, th = Th}, DeclaredNamespaces,
            Mixed) ->
 
-  %% We are dealing with element nr given by SequenceNr + 2
-  %% (n+2 because the 1st is the type name and the 2nd is the list of 'anyAttributes')
   %% Which alternative has been selected follows from the value of this element
-  CurrentValue = element(SequenceNr + 2, Struct),
+  CurrentValue = element(SequenceNr, Struct),
   %% value = tuple => subtype
   %% value = list of chars (integers) => text
   %% value = list (not string) of:
@@ -232,7 +230,7 @@ processElementValues([V1 | NextValues],
       listOfTuples ->
         processAlternatives(V1, Alternatives, Model, DeclaredNamespaces, Th, Mixed);
       mixed ->
-        xmlString(V1);
+        erlsom_lib:xmlString(V1);
       listOfStrings ->
         printValue(V1, Alternatives, Namespaces, DeclaredNamespaces, Mixed);
       qname ->
@@ -280,7 +278,7 @@ processAlternativeValues([V1 | Tail], Count, Alternative, Type, Model, Ns, Abstr
 processAlternativeValue(Value, Count, 
                         #alt{tag = Tag, rl = RealElement, mx = MaxAlt},
                         #type{els = Elements, atts = Attributes, typeName = Name, mxd = MixedChild},
-                        Model = #model{nss = Namespaces},
+                        Model = #model{nss = Namespaces, any_attribs = AnyAtts},
                         DeclaredNamespaces,
                         Abstract,
                         MixedParent) ->
@@ -308,8 +306,13 @@ processAlternativeValue(Value, Count,
       {AttributesString, NewDeclaredNamespaces} = processAttributes(Value, [], Attributes, Namespaces, DeclaredNamespaces),
       %% process anyAttributes
       %% for now we don't check whether 'anyAttributes' are allowed!
-      {AnyAttributesString, DeclaredNamespaces2} = processAnyAttributes(element(2, Value), [],
-                                                      Namespaces, NewDeclaredNamespaces), 
+      {AnyAttributesString, DeclaredNamespaces2} = 
+        case AnyAtts of 
+          true ->
+            processAnyAttributes(element(2, Value), [], Namespaces, NewDeclaredNamespaces);
+          _ ->
+            {"", NewDeclaredNamespaces}
+        end,
       {AnyAttrPlusXsiTypeString, DeclaredNamespaces3} = 
         case Abstract of 
           false -> {AnyAttributesString, DeclaredNamespaces2};
@@ -369,7 +372,7 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
                                              tp = Type} | Rest], Namespaces, DeclaredNamespaces) ->
   NameAsString = atom_to_list(Name),
   {NamespacesString, NewDeclaredNamespaces} = processNamespaces(NameAsString, Namespaces, DeclaredNamespaces),
-  AttributeValue = element(SequenceNr + 2, Struct),
+  AttributeValue = element(SequenceNr, Struct),
   case AttributeValue of
     undefined ->
       if 
@@ -381,10 +384,10 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
     _Defined -> 
       case Type of
         
-        char ->
+        String when String == char; String == ascii ->
           DeclaredNamespaces2 = NewDeclaredNamespaces,
           NamespacesString2 = NamespacesString,
-          CharValue = xmlString(AttributeValue);
+          CharValue = erlsom_lib:xmlString(AttributeValue);
         integer ->
           DeclaredNamespaces2 = NewDeclaredNamespaces,
           NamespacesString2 = NamespacesString,
@@ -422,10 +425,11 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
              try writeQnameAttValue(AttributeValue, NamespacesString, Namespaces, NewDeclaredNamespaces)
           catch
             _AnyClass:_Any -> 
-              throw({error, "Wrong Type in attribute " ++ atom_to_list(Name) ++ ", expected qname"})
+              throw({error, "Wrong Type in attribute " ++ atom_to_list(Name) ++ ", expected qname, got " ++
+                     lists:flatten(io_lib:format("~p",[AttributeValue]))})
           end;
         _Else ->
-          throw({error, "unknown type in model"}),
+          throw({error, "unknown type in model: " ++lists:flatten(io_lib:format("~p",[Type]))}),
           DeclaredNamespaces2 = NewDeclaredNamespaces,
           NamespacesString2 = NamespacesString,
           CharValue = []
@@ -441,7 +445,7 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
 writeQnameAttValue(#qname{uri = Uri, localPart = LP, mappedPrefix = MP}, NamespacesString, Namespaces, 
                    DeclaredNamespaces = {NamespacesList, Counter}) ->
   case Uri of 
-    [] ->
+    None when None == []; None == undefined ->
       {LP, NamespacesString, DeclaredNamespaces};
     _ ->
       %% see whether the namespace has been defined. If not, then this has to be done.
@@ -559,8 +563,8 @@ printValue(CurrentValue, Alternatives, Namespaces,
           %% see whether this namespace was already declared
           {PrintPrefix, NsDecl} = printPrefix(Uri, Prefix, NamespacesList, Namespaces),
           TextValue = case PrintPrefix of
-                        undefined -> xmlString(LocalName);
-                        _ -> xmlString(PrintPrefix ++ ":" ++ LocalName)
+                        undefined -> erlsom_lib:xmlString(LocalName);
+                        _ -> erlsom_lib:xmlString(PrintPrefix ++ ":" ++ LocalName)
                       end,
 	  printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces, NsDecl);
 	_Else ->
@@ -570,12 +574,12 @@ printValue(CurrentValue, Alternatives, Namespaces,
     _B when is_list(CurrentValue); is_binary(CurrentValue) -> 
       if
         Mixed == true ->
-          xmlString(CurrentValue); %% Note: values for (non-mixed) elements have to be of the 
+          erlsom_lib:xmlString(CurrentValue); %% Note: values for (non-mixed) elements have to be of the 
                                    %% form {type, Value} within mixed types
         true ->
           case lists:keysearch({'#PCDATA', char}, #alt.tp, Alternatives) of
             {value, #alt{tag = Tag, rl = RealElement}} ->  %% Print Tags if RealElement
-              TextValue = xmlString(CurrentValue),
+              TextValue = erlsom_lib:xmlString(CurrentValue),
 	      printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
 	    _Else ->
               throw({error, "Type of value (list) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <-- Expected ~p",[CurrentValue,Alternatives]))})
@@ -635,7 +639,7 @@ printNilValue([#alt{tag= Tag}], Namespaces, DeclaredNamespaces) ->
 printNilValue(_Alternatives, _, _) ->
   throw({error, "Nillable cannot be a choice"}).
 
-printNilValue([#alt{tag=Tag, tp = RecordType}], Value, #model{tps = Types}, Namespaces, DeclaredNamespaces) ->
+printNilValue([#alt{tag=Tag, tp = RecordType}], Value, #model{tps = Types, any_attribs = AnyAtts}, Namespaces, DeclaredNamespaces) ->
   TypeRecord = findType(RecordType, Types),
   Attributes = TypeRecord#type.atts,
 
@@ -643,8 +647,13 @@ printNilValue([#alt{tag=Tag, tp = RecordType}], Value, #model{tps = Types}, Name
   {AttributesString, NewDeclaredNamespaces} = processAttributes(Value, [], Attributes, Namespaces, DeclaredNamespaces),
   %% process anyAttributes
   %% for now we don't check whether 'anyAttributes' are allowed!
-  {AnyAttributesString, DeclaredNamespaces2} = processAnyAttributes(element(2, Value), [],
-                                                      Namespaces, NewDeclaredNamespaces), 
+  {AnyAttributesString, DeclaredNamespaces2} = 
+    case AnyAtts of 
+      true ->
+        processAnyAttributes(element(2, Value), [], Namespaces, NewDeclaredNamespaces);
+      _ ->
+        {"", NewDeclaredNamespaces}
+    end,
 
   %% deal with namespaces (that is, see if they have to be declared here)
   TagAsText = atom_to_list(Tag),
@@ -693,19 +702,6 @@ printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces, QnameN
 
 printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces) ->
   printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces, []).
-
-%% - fixed an error that Anton Fedorov pointed out.
-%% TODO: Probably not the fastest way to do this
-xmlString(String) when is_list(String) ->
-  lists:map(fun(Char) -> escapeChar(Char) end, String);
-xmlString(String) when is_binary(String) ->
-  {String2, []} = erlsom_ucs:from_utf8(String),
-  xmlString(String2).
-
-escapeChar(38) -> "&amp;";
-escapeChar(34) -> "&quot;";
-escapeChar(60) -> "&lt;";
-escapeChar(Char) -> Char.
 
 decodeIfRequired(Text) when is_binary(Text) ->
   erlsom_ucs:decode_utf8(Text);
