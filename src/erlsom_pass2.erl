@@ -51,7 +51,7 @@
 %% -record(elementInfo, {alternatives, min, max, nillable}).
 %% -record(alternative, {tag, type, real, min, max}).
 %% -record(attribute, {name, optional, type}).
-%% -record(schemaInfo, {targetNamespace, elementFormDefault, namespacePrefix, namespaces, path=[]}).
+%% -record(schemaInfo, {targetNamespace, elementFormDefault, namespacePrefix, namespaces, path=[], include_any_attrs}).
 
 %% debug(Text) -> io:format("pass2: ~p\n", [Text]).
 %% debug(Text1, Text2) -> io:format("pass2: ~p - ~p\n", [Text1, Text2]).
@@ -63,12 +63,13 @@
 
 secondPass(IntermediateStruct, 
            Info = #schemaInfo{namespaces=NS, 
-                              targetNamespace = Tns}) ->
+                              targetNamespace = Tns,
+                              include_any_attrs = AnyAttrs}) ->
   Types0 = pass0(IntermediateStruct),
   {Types1, GlobalElements, TypeHierarchy} = translateTypes(Types0, 
                             [], [], Types0, Info, erlsom_lib:newTree()),
   %% Note: pass 4 is done before pass 3 (seems to be better).
-  Types2 = pass3(Types1),
+  Types2 = pass3(Types1, Info),
   Types3 = pass4(Types2, Info),
   DocType = make_Document(GlobalElements, [], Info),
   %% fiddle a bit more - replace refernces in the _document that point
@@ -78,7 +79,7 @@ secondPass(IntermediateStruct,
   %% break anything (but it fixes the error pointer out by Alexander Wingrad 
   %% for those cases).
   DocType2 = removeDeadRefsFromDoc(DocType, Types3), 
-  DocType3 =  pass3Type(DocType2, Types2), %% this is a list
+  DocType3 =  pass3Type(DocType2, Types2, Info), %% this is a list
   Types5 = DocType3 ++ Types3,
   Types6 = pass5(Types5, Info),
   %% Types' order is important.
@@ -87,7 +88,7 @@ secondPass(IntermediateStruct,
   %% Types are:
   %% NS  :: [#ns{}]
   %% Tns :: string()
-  #model{tps = Types6, nss = NS1, tns = Tns, th = TypeHierarchy}.
+  #model{tps = Types6, nss = NS1, tns = Tns, th = TypeHierarchy, any_attribs = AnyAttrs}.
 
 %% for substitution groups:
 %% for each element X that is in a substitution group: 
@@ -183,9 +184,10 @@ make_Document([#typeInfo{typeName=Name, typeRef=Type}|Tail], Acc, Info)
 make_Document([#typeInfo{typeName=Name}|Tail], Acc, Info) ->
   make_Document(Tail, [#alt{tag = list_to_atom(Name), 
                             tp = list_to_atom(Name), rl = true, mn = 1, mx = 1}|Acc], Info);
-make_Document([], Acc, _Info) ->
+make_Document([], Acc, Info) ->
+  Pos = case Info#schemaInfo.include_any_attrs of true -> 3; _ -> 2 end,
   #type{nm = '_document', tp = sequence, 
-        els = [#el{alts = Acc, mn = 1,  mx = 1, nr = 1}], 
+        els = [#el{alts = Acc, mn = 1,  mx = 1, nr = Pos}], 
         atts = [], 
         nr = 1}.
 
@@ -286,15 +288,16 @@ translateType(#typeInfo{typeName=Name, typeRef=undefined,
                         mixed = Mixed,
                         seqOrAll = SorA, min = Min, max = Max}, Types, Info) ->
   TypeName=list_to_atom(Name),
+  StartPos = case Info#schemaInfo.include_any_attrs of true -> 3; _ -> 2 end,
   %% 'anyAttribute' can be defined in the type, but also in an attribute group
-  {Attributes, AnyAttr} = translateAttributes(Attrs, {[], undefined}, 1, Info, 1),
+  {Attributes, AnyAttr} = translateAttributes(Attrs, {[], undefined}, StartPos, Info, 1),
   AnyAttr2 = if 
                AnyAttr == undefined -> AnyAttrValue; 
                true -> AnyAttr
              end,
   NrOfElements = erlsom_lib:listLength(Elemts) + 
                  erlsom_lib:listLength(Attributes) +1,
-  Elements = translateElements(Elemts, [], erlsom_lib:listLength(Attributes) +1, 
+  Elements = translateElements(Elemts, [], erlsom_lib:listLength(Attributes) + StartPos, 
                                Types),
   %% case Mixed of
     %% true ->
@@ -315,15 +318,16 @@ translateType(#typeInfo{typeName=Name, typeRef=Type,
                         seqOrAll = SorA,
 			anyAttr = AnyAttrValue,
                         min = Min,
-                        max = Max}, _Types, _Info) ->
+                        max = Max}, _Types, #schemaInfo{include_any_attrs = IncludeAnyAttrs}) ->
   TypeName=list_to_atom(Name),
+  Pos = case IncludeAnyAttrs of true -> 3; _ -> 2 end,
   {#type{nm = TypeName, tp = seqOrAll(SorA), 
          els = [#el{alts = [#alt{tag = TypeName, 
                                  tp = list_to_type(Type), 
                                  rl = true, 
                                  mn = 1, 
                                  mx = 1}], 
-                    mn = 1, mx = 1, nr = 1}], 
+                    mn = 1, mx = 1, nr = Pos}], 
          atts = [], nr = 2, mn = Min, mx = Max, anyAttr = AnyAttrValue}, TypeType}.
 
 seqOrAll(all) -> all;
@@ -331,26 +335,26 @@ seqOrAll(_) -> sequence.
 
 %% purpose of 'Count' is to make sure that we don't get into an infinite loop in case 
 %% of circular refernces in attributeGroups
-translateAttributes(_, _Acc, _SeqNr, _Info, 10) ->
+translateAttributes(_, _Acc, _Pos, _Info, 10) ->
   throw({error, "circular reference in attribute group?"});
-translateAttributes(undefined, _Acc, _SeqNr, _Info, _Count) ->
+translateAttributes(undefined, _Acc, _Pos, _Info, _Count) ->
   {[], undefined};
-translateAttributes([Attribute | Tail], {Acc, AnyAttr}, SeqNr, Info, Count) ->
+translateAttributes([Attribute | Tail], {Acc, AnyAttr}, Pos, Info, Count) ->
   %% 'Attribute' can also be a reference to an attribute group - which may include 'anyAttribute'
-  {TranslatedAttributes, AnyAttr2} = translateAttribute(Attribute, SeqNr, Info, Count),
+  {TranslatedAttributes, AnyAttr2} = translateAttribute(Attribute, Pos, Info, Count),
   AnyAttr3 = if AnyAttr2 == undefined -> AnyAttr; true -> AnyAttr2 end,
   %% 20100131: changed the order of the ++ term, to solve issue with attribute groups. See also below
-  translateAttributes(Tail, {Acc ++ TranslatedAttributes, AnyAttr3}, SeqNr + length(TranslatedAttributes), Info, Count);
-translateAttributes([], {Acc, AnyAttr}, _SeqNr, _Info, _Count) ->
+  translateAttributes(Tail, {Acc ++ TranslatedAttributes, AnyAttr3}, Pos + length(TranslatedAttributes), Info, Count);
+translateAttributes([], {Acc, AnyAttr}, _Pos, _Info, _Count) ->
   %% 20100131: removed the list:reverse, because the ++ above already puts them in the right order
   {Acc, AnyAttr}.
 
-translateElements(undefined, _Acc, _SeqNr, _Types) ->
+translateElements(undefined, _Acc, _Pos, _Types) ->
   [];
-translateElements([Element | Tail], Acc, SeqNr, Types) ->
+translateElements([Element | Tail], Acc, Pos, Types) ->
   %% debug(Element),
-  translateElements(Tail, [translateElement(Element, SeqNr, Types) | Acc], SeqNr+1, Types);
-translateElements([], Acc, _SeqNr, _Types) ->
+  translateElements(Tail, [translateElement(Element, Pos, Types) | Acc], Pos+1, Types);
+translateElements([], Acc, _Pos, _Types) ->
   lists:reverse(Acc).
 
 %% -record(elementInfo, {alternatives, min, max}).
@@ -370,10 +374,10 @@ translateElements([], Acc, _SeqNr, _Types) ->
 %%   value is redundant, it is only there because I thought it would be easier,
 %%   and maybe more performant.
 
-translateElement(#elementInfo{alternatives=Alternatives, min=Min, max=Max, nillable=Nillable}, SeqNr, Types) ->
+translateElement(#elementInfo{alternatives=Alternatives, min=Min, max=Max, nillable=Nillable}, Pos, Types) ->
   #el{alts = translateAlternatives(Alternatives, [], Types), 
       mn = Min, 
-      mx = Max, nr = SeqNr, nillable=Nillable}.
+      mx = Max, nr = Pos, nillable=Nillable}.
 
 translateAlternatives([Alternative | Tail], Acc, Types) ->
   translateAlternatives(Tail, [translateAlternative(Alternative, Types) | Acc], Types);
@@ -426,30 +430,30 @@ translateAlternative(#alternative{tag=Tag, type=Type, real=Real, min=Min, max=Ma
 %% sort of group (real = false, new type is introduced) (see example10)
 %% This also happens for simple type elements of mixed types (because you can't distinguish
 %% them from the mixed (text) elements otherwise).
-pass3(Types) ->
-  pass3(Types, [], Types).
+pass3(Types, Info) ->
+  pass3(Types, [], Types, Info).
 
-pass3([Type|Tail], Acc, Types) ->
-  pass3(Tail, pass3Type(Type, Types) ++ Acc, Types);
-pass3([], Acc, _Types) ->
+pass3([Type|Tail], Acc, Types, Info) ->
+  pass3(Tail, pass3Type(Type, Types, Info) ++ Acc, Types, Info);
+pass3([], Acc, _Types, _Info) ->
   lists:reverse(Acc).
 
-pass3Type(#type{nm = TypeName, els = Elements, mxd = Mixed} = Rec, Types) ->
-  {ThisTypesElements, NewTypes} = pass3Elements(Elements, TypeName, Types, Mixed),
+pass3Type(#type{nm = TypeName, els = Elements, mxd = Mixed} = Rec, Types, Info) ->
+  {ThisTypesElements, NewTypes} = pass3Elements(Elements, TypeName, Types, Mixed, Info),
   [Rec#type{els = ThisTypesElements} | NewTypes].
 
-pass3Elements(Elements, TypeName, Types, Mixed) ->
-  pass3Elements(Elements, TypeName, [], [], Types, Mixed).
+pass3Elements(Elements, TypeName, Types, Mixed, Info) ->
+  pass3Elements(Elements, TypeName, [], [], Types, Mixed, Info).
 
-pass3Elements([Element|Tail], TypeName, Acc, NewTypes, Types, Mixed) ->
-  {TranslatedElement, Types2} = pass3Element(Element, TypeName, Types, Mixed),
-  pass3Elements(Tail, TypeName, [TranslatedElement | Acc], Types2 ++ NewTypes, Types, Mixed);
-pass3Elements([], _TypeName, Acc, NewTypes, _Types, _Mixed) ->
+pass3Elements([Element|Tail], TypeName, Acc, NewTypes, Types, Mixed, Info) ->
+  {TranslatedElement, Types2} = pass3Element(Element, TypeName, Types, Mixed, Info),
+  pass3Elements(Tail, TypeName, [TranslatedElement | Acc], Types2 ++ NewTypes, Types, Mixed, Info);
+pass3Elements([], _TypeName, Acc, NewTypes, _Types, _Mixed, _Info) ->
   {lists:reverse(Acc), NewTypes}.
 
-pass3Element(#el{alts = Alternatives, mn = Min} = Rec, TypeName, Types, Mixed)->
+pass3Element(#el{alts = Alternatives, mn = Min} = Rec, TypeName, Types, Mixed, Info)->
   %% if one of the alternatives is optional, the whole choice is optional!
-  {ThisElementsAlternatives, NewTypes, Optional} = pass3Alternatives(Alternatives, TypeName, Types, Mixed),
+  {ThisElementsAlternatives, NewTypes, Optional} = pass3Alternatives(Alternatives, TypeName, Types, Mixed, Info),
   if 
     Optional -> Min2 = 0;
     true -> Min2 = Min
@@ -464,69 +468,70 @@ pass3Element(#el{alts = Alternatives, mn = Min} = Rec, TypeName, Types, Mixed)->
       {Rec#el{mn = Min2}, []}
   end.
 
-pass3Alternatives(Alternatives, TypeName, Types, Mixed) ->
-  pass3Alternatives(Alternatives, TypeName, [], [], false, Alternatives, Types, Mixed).
+pass3Alternatives(Alternatives, TypeName, Types, Mixed, Info) ->
+  pass3Alternatives(Alternatives, TypeName, [], [], false, Alternatives, Types, Mixed, Info).
 
-pass3Alternatives([Alternative | Tail], TypeName, Acc, NewTypes, Optional, Alternatives, Types, Mixed) ->
-  {TranslatedAlternative, Types2} = pass3Alternative(Alternative, TypeName, Alternatives, Types, Mixed),
+pass3Alternatives([Alternative | Tail], TypeName, Acc, NewTypes, Optional, Alternatives, Types, Mixed, Info) ->
+  {TranslatedAlternative, Types2} = pass3Alternative(Alternative, TypeName, Alternatives, Types, Mixed, Info),
   Min = TranslatedAlternative#alt.mn,
   Optional2 = if 
                  Min == 0 -> true;
                  true -> Optional
               end,
   pass3Alternatives(Tail, TypeName, [TranslatedAlternative | Acc], Types2 ++ NewTypes, 
-                    Optional2, Alternatives, Types, Mixed);
-pass3Alternatives([], _TypeName, Acc, NewTypes, Optional, _Alternatives, _Types, _Mixed) ->
+                    Optional2, Alternatives, Types, Mixed, Info);
+pass3Alternatives([], _TypeName, Acc, NewTypes, Optional, _Alternatives, _Types, _Mixed, _Info) ->
   {Acc, NewTypes, Optional}.
 
-pass3Alternative(Alternative = #alt{tag = Name, rl = Real, tp = Type, mn = Mn}, TypeName, Alternatives, Types, _Mixed) ->
-   if 
-     Real == false ->
-       {Alternative, []};
-     true ->
-       case Type of
-         {'#PCDATA', _} -> 
-           NewTypeName = 
-              if 
-                %% TODO: this probably doesn't make any sense. I guess 'any' types
-                %% should be handled as above (return {Alternative, []}).
-                Name == '#any' -> list_to_atom(atom_to_list(TypeName) ++ "-any");
+pass3Alternative(Alternative = #alt{tag = Name, rl = Real, tp = Type, mn = Mn}, TypeName, Alternatives, Types, _Mixed, Info) ->
+  Pos = case Info#schemaInfo.include_any_attrs of true -> 3; _ -> 2 end,
+  if 
+    Real == false ->
+      {Alternative, []};
+    true ->
+      case Type of
+        {'#PCDATA', _} -> 
+          NewTypeName = 
+             if 
+               %% TODO: this probably doesn't make any sense. I guess 'any' types
+               %% should be handled as above (return {Alternative, []}).
+               Name == '#any' -> list_to_atom(atom_to_list(TypeName) ++ "-any");
+               true -> 
+                 case TypeName of
+                   '_document' -> Name;
+                   _ -> list_to_atom(atom_to_list(TypeName) ++ "-" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Name)))
+                 end
+             end,
+          {Alternative#alt{tp = NewTypeName, rl = simple, mn = case Mn of 0 -> 0; _ -> 1 end}, 
+            [#type{nm = NewTypeName, tp = sequence, 
+                   els = [#el{alts = [Alternative#alt{mn = 1, mx = 1}], 
+                              mn = 1, mx = 1, nr = Pos}], 
+                   atts = [], 
+                   nr = 2}]};
+        _NoSimpleType ->
+          %% if the same type occurs in several alternatives, we need to do something similar
+          case occursMoreThanOnce(Type, #alt.tp, Alternatives) of
+            true ->
+              if
+                %% for any, we don't care (no need to distinguish between 2 different kinds of any)
+                Name == '#any' -> {Alternative, []};
                 true -> 
-                  case TypeName of
-                    '_document' -> Name;
-                    _ -> list_to_atom(atom_to_list(TypeName) ++ "-" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Name)))
+                  NewTypeName = 
+                    list_to_atom(atom_to_list(TypeName) ++ "-" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Name))),
+                  case lists:keysearch(Type, #type.nm, Types) of
+                    {value, Record} ->
+                      {Alternative#alt{tp = NewTypeName, rl = true, mn = case Mn of 0 -> 0; _ -> 1 end}, 
+                        [Record#type{nm = NewTypeName}]};
+                    _Else ->
+                      %% debugTypes(Types),
+                      throw({error, "Type definition not found " ++ atom_to_list(Type)})
                   end
-              end,
-           {Alternative#alt{tp = NewTypeName, rl = simple, mn = case Mn of 0 -> 0; _ -> 1 end}, 
-             [#type{nm = NewTypeName, tp = sequence, 
-                    els = [#el{alts = [Alternative#alt{mn = 1, mx = 1}], 
-                               mn = 1, mx = 1, nr = 1}], 
-                    atts = [], 
-                    nr = 2}]};
-         _NoSimpleType ->
-           %% if the same type occurs in several alternatives, we need to do something similar
-           case occursMoreThanOnce(Type, #alt.tp, Alternatives) of
-             true ->
-               if
-                 %% for any, we don't care (no need to distinguish between 2 different kinds of any)
-                 Name == '#any' -> {Alternative, []};
-                 true -> 
-                   NewTypeName = 
-                     list_to_atom(atom_to_list(TypeName) ++ "-" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Name))),
-                   case lists:keysearch(Type, #type.nm, Types) of
-                     {value, Record} ->
-                       {Alternative#alt{tp = NewTypeName, rl = true, mn = case Mn of 0 -> 0; _ -> 1 end}, 
-                         [Record#type{nm = NewTypeName}]};
-                     _Else ->
-                       %% debugTypes(Types),
-                       throw({error, "Type definition not found " ++ atom_to_list(Type)})
-                   end
-               end;
-             _ ->
-               {Alternative, []}
-           end
-       end
-   end.
+              end;
+            _ ->
+              {Alternative, []}
+          end
+      end
+  end.
 
 occursMoreThanOnce(Key, Pos, List) ->
   occursMoreThanOnce(Key, Pos, List, false).
@@ -797,20 +802,20 @@ list_to_type(List) ->
 %% -record(attribute, {name, optional, type}).
 %% Attribute is a tuple {Name, SequenceNr, Optional, Type}
 translateAttribute(#attrib{name=Name, optional=Optional, type = Type, ref = undefined}, 
-                   SeqNo, _Info, _Count) ->
-  {[#att{nm = list_to_atom(Name), nr = SeqNo, opt = trueFalse(Optional), tp = attributeType(Type)}], undefined};
+                   Pos, _Info, _Count) ->
+  {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional), tp = attributeType(Type)}], undefined};
 
-translateAttribute(#attrib{ref = Ref, optional = Optional}, SeqNo, Info= #schemaInfo{namespaces=NS}, _Count) ->
+translateAttribute(#attrib{ref = Ref, optional = Optional}, Pos, Info= #schemaInfo{namespaces=NS}, _Count) ->
   Name = erlsom_lib:makeAttrRef(Ref, NS),
   %% debug(Info#schemaInfo.atts),
   case lists:keysearch(Name, #attrib.name, Info#schemaInfo.atts) of
     {value, #attrib{name = Name, type=Type, optional=Optional2}} ->
       Optional3 = if Optional == undefined -> Optional2; true -> Optional end,
-      {[#att{nm = list_to_atom(Name), nr = SeqNo, opt = trueFalse(Optional3), tp = attributeType(Type)}], undefined};
+      {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional3), tp = attributeType(Type)}], undefined};
     _ ->
       if 
         Name == "xml:lang" ->
-          {[#att{nm = list_to_atom(Name), nr = SeqNo, opt = trueFalse(Optional), tp = 'char'}], undefined};
+          {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional), tp = 'char'}], undefined};
         true ->
           throw({error, "Attribute not found: " ++ erlsom_lib:makeAttrRef(Ref, NS)})
       end
@@ -819,13 +824,13 @@ translateAttribute(#attrib{ref = Ref, optional = Optional}, SeqNo, Info= #schema
 %% -record(attributeGroupRefType, {elInfo, ref}).
 %% TODO: NS must be unique.
 %% FIXME: erlsom_lib:makeAttrRef(Ref, NS) returns leading delim for the empty namespace.
-translateAttribute(#attributeGroupRefType{ref=Ref}, SeqNo, Info = #schemaInfo{namespaces=NS}, Count) ->
+translateAttribute(#attributeGroupRefType{ref=Ref}, Pos, Info = #schemaInfo{namespaces=NS}, Count) ->
   %% look for atributeGroup
   %% -record(attGrp, {name, atts, anyAttr}).
   case lists:keysearch(erlsom_lib:makeAttrRef(Ref, NS), #attGrp.name, Info#schemaInfo.attGrps) of
     {value, #attGrp{atts = Attrs, anyAttr = AnyAttrValue}} ->
       %% translate recursively
-      {Attributes, AnyAttr} = translateAttributes(Attrs, {[], undefined}, SeqNo, Info, Count + 1),
+      {Attributes, AnyAttr} = translateAttributes(Attrs, {[], undefined}, Pos, Info, Count + 1),
       AnyAttr2 = if 
                    AnyAttrValue == undefined -> AnyAttr; 
                    true -> AnyAttrValue

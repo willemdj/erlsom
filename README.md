@@ -414,7 +414,10 @@ As can be seen from the example:
    translated to a list (listOfItem).
 -  every record has ‘anyAttribs’ as its first element. If the Schema allows 
    ‘anyAttributes’, and if these are present in the XML document, then the 
-   values will be found here (as a list of attribute-value pairs) 
+   values will be found here (as a list of attribute-value pairs). Note 
+   that this can be avoided by passing the option {include_any_attribs, 
+   false} erlsom:compile_xsd_file: in that case the ‘anyAttribs’ element 
+   will not be there.
  
 It should be noted that there is quite a bit of information in po.xsd that is not used by erlsom:
  

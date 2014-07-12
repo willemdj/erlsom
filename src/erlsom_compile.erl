@@ -148,6 +148,10 @@ compile_internal(Xsd, Options, Parsed) ->
                    {value, {_, Dl}} -> Dl;
                    _ -> []
                  end,
+  IncludeAnyAttribs = case lists:keysearch('include_any_attribs', 1, Options) of
+                   {value, {_, false}} -> false;
+                   _ -> true
+                 end,
   %% The 'dir_list' option is included here for backwards compatibility.
   CombinedDirs = IncludeDirs1 ++ IncludeDirs2,
   IncludeDirs = case CombinedDirs of
@@ -170,16 +174,18 @@ compile_internal(Xsd, Options, Parsed) ->
                   end,
   case ParsingResult of
     {error, _Message} -> ParsingResult;
-    ParsedXsd -> compile_parsed_xsd(ParsedXsd, Prefix, Ns, IncludeFun, IncludeDirs, IncludeFiles)
+    ParsedXsd -> compile_parsed_xsd(ParsedXsd, Prefix, Ns, IncludeFun, IncludeDirs, IncludeFiles,
+                                   IncludeAnyAttribs)
   end.
 
 
       
 %% obsolete
 compile_parsed_xsd(ParsedXsd, Prefix, Namespaces) ->
-  compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, fun erlsom_lib:findFile/4, ["."], []).
+  compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, fun erlsom_lib:findFile/4, ["."], [], true).
 
-compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, IncludeFiles) ->
+compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, IncludeFiles,
+                  IncludeAnyAttribs) ->
   %% InfoRecord will contain some information required along the way
   TargetNs = ParsedXsd#schemaType.targetNamespace,
   case Prefix of
@@ -220,7 +226,8 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
 					 #schemaInfo{targetNamespace = IntermediateResult#p1acc.tns,
 						     namespaces = IntermediateResult#p1acc.nss,
 						     atts = IntermediateResult#p1acc.atts,
-						     attGrps = IntermediateResult#p1acc.attGrps}) of
+						     attGrps = IntermediateResult#p1acc.attGrps,
+                                                     include_any_attrs = IncludeAnyAttribs}) of
 	 {error, Message} -> {error, Message};
          {'EXIT', Message} -> throw({'EXIT', Message});
 	 FinalResult -> {ok, FinalResult}

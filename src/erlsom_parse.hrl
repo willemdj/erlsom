@@ -29,7 +29,11 @@
 
 -record(model, {tps, nss, 
                 tns, %% target namespace (the URI, a string)
-                th %% type hierarchy, see 'tree'-functions in erlsom_lib
+                th, %% type hierarchy, see 'tree'-functions in erlsom_lib
+                any_attribs %% Include "any_atributes" (i.e. attributes that
+                            %% have not been explicitly declared in the XSD) 
+                            %% in the result. If set to true these will be in
+                            %% the second element of the record.
                }).  
 -record(type, {nm, tp = sequence, els, atts = [], anyAttr, nillable, nr, 
                mn = 1, mx = 1, mxd = false, %% mn & mx are only used by erlsom_compile
@@ -37,7 +41,10 @@
                             %% for derived types. The 'nm' field is actually a key, which may
                             %% include an additional prefix to differntiate between elements, types
                             %% and groups.
--record(el, {alts, mn = 1, mx = 1, nillable, nr}).
+-record(el, {alts, mn = 1, mx = 1, nillable, 
+             nr %% nr is actually the position of the value in the 
+                %% result record. 
+            }).
 -record(alt, {tag, tp, nxt = [], mn = 1, mx = 1, rl = true, anyInfo}).
 -record(att, {nm, nr, opt, tp}).
 %% -record(ns, {uri, pf}).

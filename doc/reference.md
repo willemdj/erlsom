@@ -40,7 +40,8 @@ Option  = {prefix, Prefix} |
           {group_prefix, GroupPrefix} |
           {include_fun, Include_fun} |
           {include_dirs, Include_dirs} |
-          {include_files, Include_files}
+          {include_files, Include_files} |
+          {include_any_attribs, boolean()}
 
 Model   = the internal representation of the XSD
 ```
@@ -107,6 +108,14 @@ XSD can be an encoded binary (see section on character encoding) or a decoded li
   If the 'include_files' option is not present, or if the namespace is not found, then
   the file will be searched for in the include_dirs (based on the 'location'
   attribute). No prefix will be used.
+
+- If `include_any_attribs` == `true` (this is the default), then the second element of each
+  of the records that are created by `erlsom:scan(Xml, Model)` will be a list that contains
+  any attributes in the corresponding element of XML that are not explicitly specified by the
+  XSD. If `include_any_attribs` == `false`, such an extra element will not be present in the 
+  result of `erlsom:scan(Xml, Model)`. If Xml contains attributes that were not explicitly 
+  declared in the XSD they will be simply ignored, and they will not be visible in the output.
+  
 
 ### <a name="compile_xsd_file">compile_xsd_file/1</a> ###
 Equivalent to `compile_xsd_file(XSD, [])`.
