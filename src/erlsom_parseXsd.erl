@@ -586,7 +586,10 @@ xsdModel(Namespaces) ->
 %% -record(attributeGroupRefType, {ref}).
        #type{nm = attributeGroupRefType, 
              anyAttr = AnyAttr,
-	     els = [],
+	     els = [#el{alts = [#alt{tag = 'xsd:annotation', tp = 'annotationType'}],
+                        mn = 0,
+                        mx = 1,
+                        nr = 2}],
 	     atts = [#att{nm = ref, nr = 1, opt = true, tp = qname}, 
 	             #att{nm = id, nr = 2, opt = true, tp = char}],
              nr = 3}], 
