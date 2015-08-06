@@ -11,3 +11,6 @@ gexf_test_() ->
 
 all_test_() ->
     {"Test XSD with the xs:all tag.", {module, erlsom_all_tests}}.
+
+extension_test_() ->
+    {"Test XSD type extensions.", {module, erlsom_extension_tests}}.

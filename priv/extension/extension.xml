@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<employee id="1">
+  <firstname>Bart</firstname>
+  <lastname>Simpson</lastname>
+  <city>Springfield</city>
+  <country>U.S.A.</country>
+  <address>Evergreen Terrace</address>
+</employee>
