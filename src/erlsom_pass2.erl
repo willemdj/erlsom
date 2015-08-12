@@ -219,7 +219,7 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base
               Types, Info = #schemaInfo{namespaces=NS})
   when Base /= undefined ->
   case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS), Types) of
-    {value, #typeInfo{elements = BaseEls, attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2, mixed = Mixed2}} ->
+    {value, #typeInfo{elements = BaseEls, attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2, restricts = Base3, mixed = Mixed2}} ->
       %% debug(Elemts),
       %% debug(BaseEls),
       %% debug(Attrs),
@@ -229,7 +229,7 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base
                                   attributes = BaseAttrs ++ Attrs,  
 				  anyAttr = NewAnyAttr,
                                   mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,
-                                  extends = Base2}, Types, Info);
+                                  extends = Base2, restricts = Base3}, Types, Info);
     _Else ->
       throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, NS)})
   end;
