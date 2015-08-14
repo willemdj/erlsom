@@ -125,7 +125,7 @@ mapEndPrefixMappingCallback([], State, _Callback) ->
 %% returns: {Name, Attributes2, NewNamespaces}
 %% Name = {URI, LocalName, QualifiedName}
 %% Attributes2 = list of Attribute2
-%% Atrribute2 = #attribute
+%% Attribute2 = #attribute
 %% NewNamespaces = list of {Prefix, URI} (prefix can be []).
 %%
 %% Namespaces are in such an order that namespace of the 'closest ancestors' 

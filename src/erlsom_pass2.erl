@@ -820,7 +820,7 @@ translateAttribute(#attrib{ref = Ref, optional = Optional}, SeqNo, Info= #schema
 %% TODO: NS must be unique.
 %% FIXME: erlsom_lib:makeAttrRef(Ref, NS) returns leading delim for the empty namespace.
 translateAttribute(#attributeGroupRefType{ref=Ref}, SeqNo, Info = #schemaInfo{namespaces=NS}, Count) ->
-  %% look for atributeGroup
+  %% look for attributeGroup
   %% -record(attGrp, {name, atts, anyAttr}).
   case lists:keysearch(erlsom_lib:makeAttrRef(Ref, NS), #attGrp.name, Info#schemaInfo.attGrps) of
     {value, #attGrp{atts = Attrs, anyAttr = AnyAttrValue}} ->
@@ -853,7 +853,7 @@ attributeType(#qname{uri = NS, localPart = Local}) ->
 %% most likely way to use 'mixed' anyway.
 
 
-trueFalse(undefined) -> true; %% atributes are optional by default
+trueFalse(undefined) -> true; %% attributes are optional by default
 trueFalse("required") -> false;
 trueFalse("prohibited") -> true;  %% TODO: this is obviously not correct
 trueFalse("optional") -> true.
