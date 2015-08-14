@@ -3,5 +3,6 @@
 config.log
 config.status
 include.mk
+.rebar
 .eunit
 .test
