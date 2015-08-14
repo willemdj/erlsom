@@ -635,6 +635,8 @@ detect_encoding3(Variables) ->
           iso_8859_1;
         'iso-8859-15' -> 
           iso_8859_15;
+        'us-ascii' -> 
+          iso_8859_1;
         _ -> throw({error, "Encoding " ++ Encoding ++ " not supported"})
       end;
     _ -> 
@@ -653,6 +655,7 @@ encoding_type(Cs) when is_list(Cs) ->
        "iso8859-15"  -> 'iso-8859-15';
        "utf-8"      -> 'utf-8';
        "utf_8"      -> 'utf-8';
+       "us-ascii"   -> 'us-ascii';
        _            -> false 
    end.
 
