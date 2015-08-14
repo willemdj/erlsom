@@ -64,9 +64,11 @@
 %%
 %%     'Include_fun' is a function that finds the files that are 
 %%        included or imported in the XSD. It should be a function that 
-%%        takes 3 arguments: 
+%%        takes 4 arguments: 
 %%           Namespace (from the XSD). This is a string or 'undefined'
 %%           SchemaLocation (from the XSD). This is a string or 'undefined'
+%%           Include_files. This is the value of the ‘include_files’ option if this 
+%%             option was passed to compile_xsd(); [] otherwise.
 %%           Include_Dirs. This is the value of the Include_dirs option if provided,
 %%             'undefined' otherwise.
 %%           Prefix_list
