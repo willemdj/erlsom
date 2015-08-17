@@ -73,7 +73,7 @@
                 nss,            %% namespaces ([#namespace{}])
                 includeFun,     %% function to find included XSDs
                 includeDirs,    %% directories to look for XSDs
-	        includeFiles,   %% tuples {Namespace, Location, Prefix}
+                includeFiles,   %% tuples {Namespace, Prefix, Location}
                                 %% or {Namespace, Schema, Prefix}, where 
                                 %% Schema is a parsed XSD (used to parse WSDLs
                                 %% with multiple XSDs).
@@ -156,7 +156,7 @@ compile_internal(Xsd, Options, Parsed) ->
                 end,
   IncludeFiles = case lists:keysearch('include_files', 1, Options) of
                    {value, {_, Files}} -> Files;
-                   _ -> Namespaces %% the two options are mutually exlclusive
+                   _ -> Namespaces %% the two options are mutually exclusive
                  end,
   put(erlsom_typePrefix, TypePrefix),
   put(erlsom_groupPrefix, GroupPrefix),
