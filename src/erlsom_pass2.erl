@@ -226,7 +226,7 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base
       %% debug(BaseAttrs),
       NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
       translateType(Type#typeInfo{elements = BaseEls ++ Elemts, %% TODO: will never be 'undefined'?
-                                  attributes = BaseAttrs ++ Attrs,  
+                                  attributes = mergeAttrs(BaseAttrs, Attrs), 
 				  anyAttr = NewAnyAttr,
                                   mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,
                                   extends = Base2, restricts = Base3}, Types, Info);
@@ -251,8 +251,8 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs,
                               extends = undefined,
 		              restricts = undefined}, Types, Info);
 
-%% resolve 'restricted' types: look up the base and add (actually:  replace) its attributes
-translateType(Type = #typeInfo{elements=Elemts, restricts = Base, anyAttr = AnyAttr, mixed = Mixed}, 
+%% resolve 'restricted' types: look up the base and merge attributes
+translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, restricts = Base, anyAttr = AnyAttr, mixed = Mixed}, 
               Types, Info = #schemaInfo{namespaces=NS})
   when Base /= undefined ->
   case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS), Types) of
@@ -264,7 +264,7 @@ translateType(Type = #typeInfo{elements=Elemts, restricts = Base, anyAttr = AnyA
       %% debug(BaseAttrs),
       NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
       translateType(Type#typeInfo{elements = Elemts, 
-                                  attributes = BaseAttrs,
+                                  attributes = mergeAttrs(BaseAttrs, Attrs), 
 				  anyAttr = NewAnyAttr,
                                   mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,
                                   extends = Base2,
@@ -325,6 +325,20 @@ translateType(#typeInfo{typeName=Name, typeRef=Type,
                                  mx = 1}], 
                     mn = 1, mx = 1, nr = 1}], 
          atts = [], nr = 2, mn = Min, mx = Max, anyAttr = AnyAttrValue}, TypeType}.
+
+mergeAttrs([], Attrs) -> Attrs;
+mergeAttrs(BaseAttrs, []) -> BaseAttrs;
+mergeAttrs(BaseAttrs, [Attr | Attrs]) ->
+  mergeAttrs(mergeAttr(BaseAttrs, Attr), Attrs).
+
+mergeAttr([#attributeGroupRefType{id=Id} | BaseAttrs], #attributeGroupRefType{id=Id} = Attr) ->
+  [Attr | BaseAttrs];
+mergeAttr([#attrib{name=Name} | BaseAttrs], #attrib{name=Name} = Attr) ->
+  [Attr | BaseAttrs];
+mergeAttr([], Attr) ->
+  [Attr];
+mergeAttr([BaseAttr | BaseAttrs], Attr) ->
+  [BaseAttr | mergeAttr(BaseAttrs, Attr)].
 
 seqOrAll(all) -> all;
 seqOrAll(_) -> sequence.
