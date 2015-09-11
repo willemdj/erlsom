@@ -215,6 +215,23 @@ removeDeadRefsFromDoc(Type, _Types) ->
 %% - NrOfElements is an integer that indicates the number of elements in the Type.
 
 %% resolve 'extended' types: look up the base and add its elements and attributes
+%% First a special hack for extension of the 'anyType'.
+translateType(Type = #typeInfo{elements = Elemts, attributes = Attrs, 
+                               extends = {qname,"http://www.w3.org/2001/XMLSchema","anyType",_,_}, 
+                               anyAttr = AnyAttr, mixed = Mixed}, 
+              Types, Info = #schemaInfo{}) ->
+  AnyInfo = #anyInfo{prCont = "lax", ns = "##any"},
+  Any = [#elementInfo{alternatives = [#alternative{tag = "#any", type = "any", 
+                                                   real = true, min = 1, max = 1, 
+                                                   anyInfo = AnyInfo}], 
+                      min = 0, max = unbound}],
+  Mixed2 = if Mixed == undefined -> true; true -> Mixed end,
+  translateType(Type#typeInfo{elements = Any ++ Elemts, 
+                              attributes = Attrs, 
+                              anyAttr = AnyAttr, 
+                              mixed = Mixed2, 
+                              extends = undefined, 
+                              restricts = undefined}, Types, Info);
 translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base, anyAttr = AnyAttr, mixed = Mixed}, 
               Types, Info = #schemaInfo{namespaces=NS})
   when Base /= undefined ->
@@ -239,7 +256,7 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base
 %% 
 %% TODO: this needs some improvement - for example around anyAttributes
 %% 
-%% First a special hack for extension of the 'anyType'. In this
+%% First a special hack for restriction of the 'anyType'. In this
 %% special case the attributes of the derived type should remain.
 translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, 
                                restricts = {qname,"http://www.w3.org/2001/XMLSchema","anyType",_,_}, anyAttr = AnyAttr, mixed = Mixed}, 
