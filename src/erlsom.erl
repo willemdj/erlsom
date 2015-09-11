@@ -83,7 +83,7 @@
 %%     'Include_dirs' is a list of directories (strings), separated by comma's. 
 %%       It defaults to ["."].
 %%           
-%%     'Include_files' is a list of tuples {Namespace, Location, Prefix}. 
+%%     'Include_files' is a list of tuples {Namespace, Prefix, Location}. 
 %%
 %% Behaviour for includes:
 %% 
