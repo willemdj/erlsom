@@ -30,10 +30,14 @@
 -record(model, {tps, nss, 
                 tns, %% target namespace (the URI, a string)
                 th, %% type hierarchy, see 'tree'-functions in erlsom_lib
-                any_attribs %% Include "any_atributes" (i.e. attributes that
-                            %% have not been explicitly declared in the XSD) 
-                            %% in the result. If set to true these will be in
-                            %% the second element of the record.
+                any_attribs, %% Include "any_atributes" (i.e. attributes that
+                             %% have not been explicitly declared in the XSD) 
+                             %% in the result. If set to true these will be in
+                             %% the second element of the record.
+                value_fun    %% Function that is called after the parsing
+                             %% of a complex type (resulting in creation of a 
+                             %% record) has been created. Can be used
+                             %% to modify the value (or for side effects).
                }).  
 -record(type, {nm, tp = sequence, els, atts = [], anyAttr, nillable, nr, 
                mn = 1, mx = 1, mxd = false, %% mn & mx are only used by erlsom_compile
@@ -53,7 +57,8 @@
 -record(anyInfo, {prCont, ns, tns}). %% for any elements
 
 -record(state, {currentState, resultSoFar, model, namespaces, 
-                allNamespaces, continuationState}).
+                allNamespaces, continuationState, value_acc = [],
+                value_fun}).
 
 -record(cs, {re,     %% remaining elements
              sf,     %% nr of elements of the current type received so far
