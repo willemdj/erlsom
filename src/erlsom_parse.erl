@@ -327,8 +327,7 @@ xml2StructCallback(Event, State) ->
       endDocument -> 
          case State of 
            {result, Result} ->
-	     %% debug(Result),
-	     Result;
+             Result;
 	   _Else ->
              throw({error, "unexpected end"})
          end;
@@ -342,12 +341,13 @@ xml2StructCallback(Event, State) ->
     Class:Exception -> throwError(Class, Exception, Event, State)
   end.
   
-
 %% the initial call can either be with a #state record, or with just the model.
-stateMachine(Event, Model = #model{}) ->
+stateMachine(Event, Model = #model{value_fun = ValueFun}) ->
   case Event of 
     startDocument -> 
-      #state{model=Model, namespaces=[]};
+      %% to make live a bit easier, copy value_fun from the
+      %% model to the state record - a bit tricky...
+      #state{model=Model, namespaces=[], value_fun = ValueFun};
     _Other ->
       throw({error, "unexpected event"})
   end;
@@ -437,15 +437,18 @@ stateMachine({characters, Characters},
 stateMachine(Event, State = #state{currentState = #cs{re = [], 
                                                       er = ElementRecord, 
 					              rl = true}, 
-                                   resultSoFar = [Head | Tail]}) ->
+                                   resultSoFar = [Head | Tail],
+                                   value_fun = VFun,
+                                   value_acc = Acc}) ->
     %% debugMessage("pop"),
     %% debugState(State),
     %% debugEvent(Event),
   case Event of 
     {endElement, _Uri, _LocalName, _Prefix} ->
-      NewCurrentState = pop(ElementRecord, Head),
+      {NewCurrentState, Acc2} = pop(ElementRecord, Head, VFun, Acc),
       State#state{currentState = NewCurrentState, 
-                  resultSoFar = Tail};
+                  resultSoFar = Tail,
+                  value_acc = Acc2};
     _Else ->
       throw({error, {"1 - Unexpected event, expected end-tag"}})
   end;
@@ -453,12 +456,15 @@ stateMachine(Event, State = #state{currentState = #cs{re = [],
 stateMachine(Event, _State = #state{currentState = #cs{re = [], 
                                               er = ElementRecord, 
 					      rl = true}, 
-                           resultSoFar = []}) ->
+                                    value_fun = ValueFun,
+                                    value_acc = Acc,
+                                    resultSoFar = []}) ->
     %% debugState(_State),
     %% debugEvent(Event),
   case Event of 
     {endElement, _Uri, _LocalName, _Prefix} ->
-      {result, ElementRecord};
+      {_, Result} = ValueFun(ElementRecord, Acc),
+      {result, Result};
     _Else ->
       throw({error, {"2 - Unexpected event, expected end-tag"}})
   end;
@@ -471,14 +477,17 @@ stateMachine(Event, _State = #state{currentState = #cs{re = [],
 stateMachine(Event, State = #state{currentState = #cs{re = [], 
                                                       er = ElementRecord, 
 					              rl = Real}, 
+                                   value_fun = VFun,
+                                   value_acc = Acc,
                                    resultSoFar = [Head | Tail]})
              when Real /= true ->
     %% debugMessage("~nPop (after 'non-real' element)"),
     %% debugState(State),
     %% debugEvent(Event),
-    NewCurrentState = pop(ElementRecord, Head),
+    {NewCurrentState, Acc2} = pop(ElementRecord, Head, VFun, Acc),
     NewState = State#state{currentState = NewCurrentState, 
-                           resultSoFar = Tail},
+                           resultSoFar = Tail,
+                           value_acc = Acc2},
     stateMachine(Event, NewState);
 
 stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type, real=Real, 
@@ -488,6 +497,8 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
                                                          nss = NamespaceMapping,
                                                          th = TypeHierarchy,
                                                          any_attribs = StoreAnyAttr},
+                                   value_fun = VFun,
+                                   value_acc = ValueAcc,
                                    namespaces   = Namespaces}) ->
   %% debug(Event),
   case Event of %%{
@@ -501,8 +512,10 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
 	    Max /= unbound, Count >= Max ->
 	      %% debug("But we have already recieved this event the maximum number of times"),
               %% pop.
-              NewState = State#state{currentState = pop(lists:reverse(Acc), Head),
-                                     resultSoFar = Tail},
+              {NewCurrentState, Acc2} = pop(lists:reverse(Acc), Head, VFun, ValueAcc),
+              NewState = State#state{currentState = NewCurrentState,
+                                     resultSoFar = Tail,
+                                     value_acc = Acc2},
 	      %% debug(NewState#state.currentState),
 	      %% debug(NewState),
               stateMachine(Event, NewState);
@@ -553,8 +566,10 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
             Count < Min ->
               throw({error, "Missing element before end-tag: " ++ LocalName});
             true ->
-              NewState = State#state{currentState = pop(lists:reverse(Acc), Head),
-                                     resultSoFar = Tail},
+              {NewCurrentState, Acc2} = pop(lists:reverse(Acc), Head, VFun, ValueAcc),
+              NewState = State#state{currentState = NewCurrentState,
+                                     resultSoFar = Tail,
+                                     value_acc = Acc2},
               stateMachine(Event, NewState)
           end %%}
        end; %%}
@@ -565,8 +580,10 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
         Count < Min ->
           throw({error, "Missing element before end-tag: " ++ LocalName});
         true -> 
-          NewState = State#state{currentState = pop(lists:reverse(Acc), Head),
-                                 resultSoFar = Tail},
+          {NewCurrentState, Acc2} = pop(lists:reverse(Acc), Head, VFun, ValueAcc),
+          NewState = State#state{currentState = NewCurrentState,
+                                 resultSoFar = Tail,
+                                 value_acc = Acc2},
           stateMachine(Event, NewState)
       end; %%}
 
@@ -649,6 +666,8 @@ stateMachine(Event, State = #state{currentState = (#anyState{anyInfo = (#anyInfo
 stateMachine(Event, State = #state{currentState = {'#PCDATA', Type, TextSoFar},
                                    resultSoFar = [Head | Tail],
 			           model = #model{nss = NamespaceMapping},
+                                   value_fun = ValueFun,
+                                   value_acc = Acc,
                                    namespaces = Namespaces}) -> 
   %% debugMessage("Receive text events"),
   %% debugState(State),
@@ -666,7 +685,8 @@ stateMachine(Event, State = #state{currentState = {'#PCDATA', Type, TextSoFar},
       %% debugFormat("new current state: ~p~n", [NewCurrentState]),
       if
         (Tail == []) and (NewCurrentState#cs.rl /= true) -> 
-          {result, NewCurrentState#cs.er};
+          {_, Result} = ValueFun(NewCurrentState#cs.er, Acc),
+          {result, Result};
         true ->
           State#state{currentState = insertValue(ConvertedValue, Head), 
 		      resultSoFar = Tail}
@@ -1000,6 +1020,8 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
                                                   nss = NamespaceMapping,
                                                   th = TypeHierarchy,
                                                   any_attribs = StoreAnyAttr},
+                                   value_fun = VFun,
+                                   value_acc = Acc,
                                    namespaces = Namespaces}) -> 
   %% debug(Event),
   case Event of 
@@ -1077,10 +1099,12 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
         _ ->
           case ResultSoFar of
             [] ->
-              {result, ElementRecord};
+              {_, Result} = VFun(ElementRecord, Acc),
+              {result, Result};
             [PreviousState|Tail] ->
-              NewCurrentState = pop(ElementRecord, PreviousState),
-              State#state{currentState = NewCurrentState, resultSoFar = Tail}
+              {NewCurrentState, Acc2} = pop(ElementRecord, PreviousState, VFun, Acc),
+              State#state{currentState = NewCurrentState, resultSoFar = Tail,
+                          value_acc = Acc2}
           end
       end;
 
@@ -1088,15 +1112,18 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
       throw({error, "Unexpected event"})
   end.
   
-
+pop(Value, State, VFun, Acc) ->
+  {Value2, Acc2} = VFun(Value, Acc),
+  {pop2(Value2, State), Acc2}.
 
 %% 'pop': the result is in Value, move up one level in the state machine and put the result in the right 
 %% place in the ElementRecord at that level.
-pop(Value, State = #altState{receivedSoFar=Count, acc=Acc}) ->
+pop2(Value, State = #altState{receivedSoFar=Count, acc=Acc}) ->
    %% debug("pop to altState"),
+  %% io:format("pop to altstate, value = ~p \n", [Value]),
    State#altState{receivedSoFar=Count +1, acc=[Value| Acc]};
 
-pop(Value, #cs{re = NewRemainingElements, 
+pop2(Value, #cs{re = NewRemainingElements, 
                sf = NewReceivedSoFar,
                er = NewElementRecord,
                mxd = Mixed} = NewState) ->
@@ -1119,7 +1146,7 @@ pop(Value, #cs{re = NewRemainingElements,
   %% debug("Pop"),
   NewState#cs{sf = NewReceivedSoFar + 1, er = ElementRecord2};
 
-pop(Value, State = #all{}) ->
+pop2(Value, State = #all{}) ->
   insertValue(Value, State).
 
 

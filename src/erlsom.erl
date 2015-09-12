@@ -192,18 +192,17 @@ compile_file(XsdFile, Prefix, Namespaces) ->
 %%       XML document.
 %%----------------------------------------------------------------------
 scan(Xml, Model) ->
-  scan2(Xml, #state{model=Model, namespaces=[]}, []).
+  scan(Xml, Model, []).
 
-scan(Xml, Model, Options) ->
-  %%case lists:keysearch(continuation_function, 1 ,Options) of
-    %%{value, {_, F, S}}  = CFunOption -> 
-      %%scan2(Xml, #state{model=Model, namespaces=[], continuationState = {F, S}},
-            %%%% The 'continuation state' is incorporated in the Erlsom state.
-            %%%% The function 'cFunctionWrapper' hides this.
-            %%[{continuation_function, fun cFunctionWrapper/2} | lists:delete(CFunOption, Options)]);
-    %%false -> 
-      scan2(Xml, #state{model=Model, namespaces=[]}, Options).
-  %%end.
+scan(Xml, #model{value_fun = ValFun} = Model, Options) ->
+  State = #state{model=Model, namespaces=[], value_fun = ValFun},
+  case lists:keysearch(acc, 1, Options) of
+    {value, {_, Acc}} -> 
+      scan2(Xml, State#state{value_acc = Acc},
+            lists:keydelete(acc, 1, Options));
+    false -> 
+      scan2(Xml, State, Options)
+  end.
 
 %%cFunctionWrapper(T, S = #state{continuationState = {F, CS}}) ->
   %%{Data, CS2} = F(CS),

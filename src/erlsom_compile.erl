@@ -152,6 +152,13 @@ compile_internal(Xsd, Options, Parsed) ->
                    {value, {_, false}} -> false;
                    _ -> true
                  end,
+  ValueFun = case lists:keysearch('value_fun', 1, Options) of
+               {value, {_, VFun}} -> 
+                 VFun;
+               _ -> 
+                 %% default: do't modify the values
+                 defaultValueFun()
+             end,
   %% The 'dir_list' option is included here for backwards compatibility.
   CombinedDirs = IncludeDirs1 ++ IncludeDirs2,
   IncludeDirs = case CombinedDirs of
@@ -175,17 +182,19 @@ compile_internal(Xsd, Options, Parsed) ->
   case ParsingResult of
     {error, _Message} -> ParsingResult;
     ParsedXsd -> compile_parsed_xsd(ParsedXsd, Prefix, Ns, IncludeFun, IncludeDirs, IncludeFiles,
-                                   IncludeAnyAttribs)
+                                   IncludeAnyAttribs, ValueFun)
   end.
 
+defaultValueFun() ->
+  fun(Value, _Acc) -> {Value, Value} end.
 
       
 %% obsolete
 compile_parsed_xsd(ParsedXsd, Prefix, Namespaces) ->
-  compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, fun erlsom_lib:findFile/4, ["."], [], true).
+  compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, fun erlsom_lib:findFile/4, ["."], [], true, defaultValueFun()).
 
 compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, IncludeFiles,
-                  IncludeAnyAttribs) ->
+                  IncludeAnyAttribs, ValueFun) ->
   %% InfoRecord will contain some information required along the way
   TargetNs = ParsedXsd#schemaType.targetNamespace,
   case Prefix of
@@ -227,7 +236,8 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
 						     namespaces = IntermediateResult#p1acc.nss,
 						     atts = IntermediateResult#p1acc.atts,
 						     attGrps = IntermediateResult#p1acc.attGrps,
-                                                     include_any_attrs = IncludeAnyAttribs}) of
+                                                     include_any_attrs = IncludeAnyAttribs,
+                                                     value_fun = ValueFun}) of
 	 {error, Message} -> {error, Message};
          {'EXIT', Message} -> throw({'EXIT', Message});
 	 FinalResult -> {ok, FinalResult}

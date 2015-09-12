@@ -64,7 +64,9 @@
 secondPass(IntermediateStruct, 
            Info = #schemaInfo{namespaces=NS, 
                               targetNamespace = Tns,
-                              include_any_attrs = AnyAttrs}) ->
+                              include_any_attrs = AnyAttrs,
+                              value_fun = ValueFun}) ->
+  io:format("ValueFun: ~p~n", [ValueFun]),
   Types0 = pass0(IntermediateStruct),
   {Types1, GlobalElements, TypeHierarchy} = translateTypes(Types0, 
                             [], [], Types0, Info, erlsom_lib:newTree()),
@@ -88,7 +90,8 @@ secondPass(IntermediateStruct,
   %% Types are:
   %% NS  :: [#ns{}]
   %% Tns :: string()
-  #model{tps = Types6, nss = NS1, tns = Tns, th = TypeHierarchy, any_attribs = AnyAttrs}.
+  #model{tps = Types6, nss = NS1, tns = Tns, th = TypeHierarchy, 
+         any_attribs = AnyAttrs, value_fun = ValueFun}.
 
 %% for substitution groups:
 %% for each element X that is in a substitution group: 

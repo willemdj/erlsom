@@ -3,7 +3,7 @@
 
 %% The set of type specifications that can be translated is limited 
 
-%% The spec consists of record definitions only
+%% The spec consists of record definitions only.
 %% Only integer() and string() can be used as basic types.
 %% Lists and unions can be used to structure things (no tuples).
 %% All fields will be optional, except if you provide a default value (this is 
@@ -11,7 +11,7 @@
 %% want in the XSD. It is easy to fix this in the resulting XSD.
 
 %% 'elements' will be created for all types. You can change this behaviour by 
-%% explicitly stating which for types elements should be created by using
+%% explicitly limiting for which types elements must be created by using
 %% a module attribute "-erlsom_xsd_elements([Name])." (It is recommended 
 %% to do this, since it will result in better type checking and 
 %% a cleaner XSD).
@@ -148,6 +148,7 @@ translateElement(FieldName, Type, _State) ->
 translateAttribute(Field, Type) ->
   %% TODO: a check on the validity of attribute types
   {TranslatedType, MinOccurs, MaxOccurs} = translateType(Type),
+  %% TODO: attributes can be optional
   #localAttributeType{name = Field, type = TranslatedType}.
 
 -spec translateName(Record :: term()) -> {Name :: string(), IsAttribute :: boolean()}.
@@ -185,8 +186,8 @@ translateType({type, _, union, Alternatives}) ->
     _ -> undefined
   end,
   case Alternatives2 of
-    [{type, _, SimpleType, _} = TheType] when SimpleType == integer; SimpleType == string; SimpleType == record -> %% not really a choice
-    %% [{type, _, _, _} = TheType]  -> %% not really a choice (only 1 alternative)
+    [{type, _, SimpleType, _} = TheType] when SimpleType == integer; SimpleType == boolean;
+                                              SimpleType == string; SimpleType == record -> %% not really a choice
       {Type, _, MaxOccurs} = translateType(TheType),
       {Type,  MinOccurs, MaxOccurs};
     [{type, _, list, [Element]}] -> %% not really a choice
@@ -210,6 +211,9 @@ translateType({atom, _, undefined}) ->
 translateType({type, _, integer, []}) ->
   {#qname{localPart = "integer", uri = "http://www.w3.org/2001/XMLSchema"},
     undefined, undefined};
+translateType({type, _, boolean, []}) ->
+  {#qname{localPart = "boolean", uri = "http://www.w3.org/2001/XMLSchema"},
+    undefined, undefined};
 translateType({type, _, string, []}) ->
   {#qname{localPart = "string", uri = "http://www.w3.org/2001/XMLSchema"},
     undefined, undefined}.
@@ -232,6 +236,7 @@ writeXsd(Schema, File) ->
   %% get the model
   Model = erlsom_parseXsd:xsdModel(),
   %% create the Xsd
+  %% %% TODO: attributes can be optional
   {ok, R} = erlsom:write(Schema, Model),
   PP = erlsom_lib:prettyPrint(R),
   %% io:format("pretty printed: ~p~n", [PP]),

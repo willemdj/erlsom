@@ -381,7 +381,8 @@ xsdModel(Namespaces) ->
                         nr = 4},
                     #el{alts = [#alt{tag = 'xsd:sequence', tp = 'sequenceType'}, 
                                 #alt{tag = 'xsd:choice', tp = 'choiceType'},
-                                #alt{tag = 'xsd:group', tp = 'groupRefType'}],
+                                #alt{tag = 'xsd:group', tp = 'groupRefType'},
+                                #alt{tag = 'xsd:all', tp = 'allType'}],
                         mn = 0, 
                         mx = 1, 
                         nr = 5},
@@ -600,7 +601,8 @@ xsdModel(Namespaces) ->
              nr = 3}], 
        nss = [#ns{prefix = "xsd", uri = "http://www.w3.org/2001/XMLSchema"} | Namespaces],
        th = [],
-       any_attribs = true}.
+       any_attribs = true,
+       value_fun = fun(Value, _Acc) -> {Value, Value} end}.
 
 xsdModel() ->
   xsdModel([]).
