@@ -47,7 +47,7 @@ test() ->
 test(_Options) ->
   XsdFile = "test_hrl.xsd",
   type_to_xsd(testString(), XsdFile),
-  {ok,Model} = erlsom:compile_xsd_file(XsdFile, [{any_attributes, false}]),
+  {ok,Model} = erlsom:compile_xsd_file(XsdFile, [{include_any_attribs, false}]),
   {ok, Struct, _} = erlsom:scan_file("test_hrl.xml", Model),
   Struct.
 
