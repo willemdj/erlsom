@@ -66,7 +66,6 @@ secondPass(IntermediateStruct,
                               targetNamespace = Tns,
                               include_any_attrs = AnyAttrs,
                               value_fun = ValueFun}) ->
-  io:format("ValueFun: ~p~n", [ValueFun]),
   Types0 = pass0(IntermediateStruct),
   {Types1, GlobalElements, TypeHierarchy} = translateTypes(Types0, 
                             [], [], Types0, Info, erlsom_lib:newTree()),

@@ -157,7 +157,7 @@ compile_internal(Xsd, Options, Parsed) ->
                  VFun;
                _ -> 
                  %% default: do't modify the values
-                 defaultValueFun()
+                 skip
              end,
   %% The 'dir_list' option is included here for backwards compatibility.
   CombinedDirs = IncludeDirs1 ++ IncludeDirs2,
