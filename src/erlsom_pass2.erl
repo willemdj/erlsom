@@ -66,7 +66,6 @@ secondPass(IntermediateStruct,
                               targetNamespace = Tns,
                               include_any_attrs = AnyAttrs,
                               value_fun = ValueFun}) ->
-  io:format("ValueFun: ~p~n", [ValueFun]),
   Types0 = pass0(IntermediateStruct),
   {Types1, GlobalElements, TypeHierarchy} = translateTypes(Types0, 
                             [], [], Types0, Info, erlsom_lib:newTree()),
@@ -220,21 +219,38 @@ removeDeadRefsFromDoc(Type, _Types) ->
 %% - NrOfElements is an integer that indicates the number of elements in the Type.
 
 %% resolve 'extended' types: look up the base and add its elements and attributes
+%% First a special hack for extension of the 'anyType'.
+translateType(Type = #typeInfo{elements = Elemts, attributes = Attrs, 
+                               extends = {qname,"http://www.w3.org/2001/XMLSchema","anyType",_,_}, 
+                               anyAttr = AnyAttr, mixed = Mixed}, 
+              Types, Info = #schemaInfo{}) ->
+  AnyInfo = #anyInfo{prCont = "lax", ns = "##any"},
+  Any = [#elementInfo{alternatives = [#alternative{tag = "#any", type = "any", 
+                                                   real = true, min = 1, max = 1, 
+                                                   anyInfo = AnyInfo}], 
+                      min = 0, max = unbound}],
+  Mixed2 = if Mixed == undefined -> true; true -> Mixed end,
+  translateType(Type#typeInfo{elements = Any ++ Elemts, 
+                              attributes = Attrs, 
+                              anyAttr = AnyAttr, 
+                              mixed = Mixed2, 
+                              extends = undefined, 
+                              restricts = undefined}, Types, Info);
 translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base, anyAttr = AnyAttr, mixed = Mixed}, 
               Types, Info = #schemaInfo{namespaces=NS})
   when Base /= undefined ->
   case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS), Types) of
-    {value, #typeInfo{elements = BaseEls, attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2, mixed = Mixed2}} ->
+    {value, #typeInfo{elements = BaseEls, attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2, restricts = Base3, mixed = Mixed2}} ->
       %% debug(Elemts),
       %% debug(BaseEls),
       %% debug(Attrs),
       %% debug(BaseAttrs),
       NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
       translateType(Type#typeInfo{elements = BaseEls ++ Elemts, %% TODO: will never be 'undefined'?
-                                  attributes = BaseAttrs ++ Attrs,  
+                                  attributes = mergeAttrs(BaseAttrs, Attrs), 
 				  anyAttr = NewAnyAttr,
                                   mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,
-                                  extends = Base2}, Types, Info);
+                                  extends = Base2, restricts = Base3}, Types, Info);
     _Else ->
       throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, NS)})
   end;
@@ -244,7 +260,7 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base
 %% 
 %% TODO: this needs some improvement - for example around anyAttributes
 %% 
-%% First a special hack for extension of the 'anyType'. In this
+%% First a special hack for restriction of the 'anyType'. In this
 %% special case the attributes of the derived type should remain.
 translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, 
                                restricts = {qname,"http://www.w3.org/2001/XMLSchema","anyType",_,_}, anyAttr = AnyAttr, mixed = Mixed}, 
@@ -256,8 +272,8 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs,
                               extends = undefined,
 		              restricts = undefined}, Types, Info);
 
-%% resolve 'restricted' types: look up the base and add (actually:  replace) its attributes
-translateType(Type = #typeInfo{elements=Elemts, restricts = Base, anyAttr = AnyAttr, mixed = Mixed}, 
+%% resolve 'restricted' types: look up the base and merge attributes
+translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, restricts = Base, anyAttr = AnyAttr, mixed = Mixed}, 
               Types, Info = #schemaInfo{namespaces=NS})
   when Base /= undefined ->
   case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS), Types) of
@@ -269,7 +285,7 @@ translateType(Type = #typeInfo{elements=Elemts, restricts = Base, anyAttr = AnyA
       %% debug(BaseAttrs),
       NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
       translateType(Type#typeInfo{elements = Elemts, 
-                                  attributes = BaseAttrs,
+                                  attributes = mergeAttrs(BaseAttrs, Attrs), 
 				  anyAttr = NewAnyAttr,
                                   mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,
                                   extends = Base2,
@@ -332,6 +348,20 @@ translateType(#typeInfo{typeName=Name, typeRef=Type,
                                  mx = 1}], 
                     mn = 1, mx = 1, nr = Pos}], 
          atts = [], nr = 2, mn = Min, mx = Max, anyAttr = AnyAttrValue}, TypeType}.
+
+mergeAttrs([], Attrs) -> Attrs;
+mergeAttrs(BaseAttrs, []) -> BaseAttrs;
+mergeAttrs(BaseAttrs, [Attr | Attrs]) ->
+  mergeAttrs(mergeAttr(BaseAttrs, Attr), Attrs).
+
+mergeAttr([#attributeGroupRefType{id=Id} | BaseAttrs], #attributeGroupRefType{id=Id} = Attr) ->
+  [Attr | BaseAttrs];
+mergeAttr([#attrib{name=Name} | BaseAttrs], #attrib{name=Name} = Attr) ->
+  [Attr | BaseAttrs];
+mergeAttr([], Attr) ->
+  [Attr];
+mergeAttr([BaseAttr | BaseAttrs], Attr) ->
+  [BaseAttr | mergeAttr(BaseAttrs, Attr)].
 
 seqOrAll(all) -> all;
 seqOrAll(_) -> sequence.
@@ -828,8 +858,6 @@ translateAttribute(#attrib{ref = Ref, optional = Optional}, Pos, Info= #schemaIn
 %% TODO: NS must be unique.
 %% FIXME: erlsom_lib:makeAttrRef(Ref, NS) returns leading delim for the empty namespace.
 translateAttribute(#attributeGroupRefType{ref=Ref}, Pos, Info = #schemaInfo{namespaces=NS}, Count) ->
-  %% look for atributeGroup
-  %% -record(attGrp, {name, atts, anyAttr}).
   case lists:keysearch(erlsom_lib:makeAttrRef(Ref, NS), #attGrp.name, Info#schemaInfo.attGrps) of
     {value, #attGrp{atts = Attrs, anyAttr = AnyAttrValue}} ->
       %% translate recursively
@@ -861,7 +889,7 @@ attributeType(#qname{uri = NS, localPart = Local}) ->
 %% most likely way to use 'mixed' anyway.
 
 
-trueFalse(undefined) -> true; %% atributes are optional by default
+trueFalse(undefined) -> true; %% attributes are optional by default
 trueFalse("required") -> false;
 trueFalse("prohibited") -> true;  %% TODO: this is obviously not correct
 trueFalse("optional") -> true.

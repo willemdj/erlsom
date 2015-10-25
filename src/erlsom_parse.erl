@@ -169,14 +169,13 @@
 
 -module(erlsom_parse).
 -export([xml2StructCallback/2]).
+-export([new_state/1]).
 -include("erlsom.hrl").
 -include("erlsom_sax.hrl").
 -include("erlsom_parse.hrl"). %% the record definitions
 -import(erlsom_lib, [findType/6]). 
 -import(erlsom_lib, [convertPCData/4]).
 
--define(format_record(Rec, Name), 
-user_default:format_record(Rec, Name, record_info(fields, Name))).
 
 %%%% lots of stuff to help debugging. Most of it only produces output if the process variable 'erlsom_debug'
 %%%% is set. This makes it possible to suppress this output in parts of the test program that use erlsom for parsing
@@ -283,6 +282,11 @@ newRecord(#type{nm = Type, nr = NrOfElements}, true) ->
 newRecord(#type{nm = Type, nr = NrOfElements}, false) -> 
   NewRecord = erlang:make_tuple(NrOfElements, undefined),
   setelement(1, NewRecord, Type).
+
+%% to make it possible to use the callback without having 
+%% knowledge about the #state{} and #model{} records.
+new_state(#model{value_fun = ValFun} = Model) ->
+  #state{model=Model, namespaces=[], value_fun = ValFun}.
 
 %% This is the call-back function (called by the sax parser)
 %% Filters out some events and calls the state machine.
@@ -463,8 +467,7 @@ stateMachine(Event, _State = #state{currentState = #cs{re = [],
     %% debugEvent(Event),
   case Event of 
     {endElement, _Uri, _LocalName, _Prefix} ->
-      {_, Result} = ValueFun(ElementRecord, Acc),
-      {result, Result};
+      applyValueFun(ValueFun, ElementRecord, Acc);
     _Else ->
       throw({error, {"2 - Unexpected event, expected end-tag"}})
   end;
@@ -685,8 +688,7 @@ stateMachine(Event, State = #state{currentState = {'#PCDATA', Type, TextSoFar},
       %% debugFormat("new current state: ~p~n", [NewCurrentState]),
       if
         (Tail == []) and (NewCurrentState#cs.rl /= true) -> 
-          {_, Result} = ValueFun(NewCurrentState#cs.er, Acc),
-          {result, Result};
+          applyValueFun(ValueFun, NewCurrentState#cs.er, Acc);
         true ->
           State#state{currentState = insertValue(ConvertedValue, Head), 
 		      resultSoFar = Tail}
@@ -1099,8 +1101,7 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
         _ ->
           case ResultSoFar of
             [] ->
-              {_, Result} = VFun(ElementRecord, Acc),
-              {result, Result};
+              applyValueFun(VFun, ElementRecord, Acc);
             [PreviousState|Tail] ->
               {NewCurrentState, Acc2} = pop(ElementRecord, PreviousState, VFun, Acc),
               State#state{currentState = NewCurrentState, resultSoFar = Tail,
@@ -1112,6 +1113,9 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
       throw({error, "Unexpected event"})
   end.
   
+%% skip means: no value fun has been provided.
+pop(Value, State, skip, Acc) ->
+  {pop2(Value, State), Acc};
 pop(Value, State, VFun, Acc) ->
   {Value2, Acc2} = VFun(Value, Acc),
   {pop2(Value2, State), Acc2}.
@@ -1495,3 +1499,9 @@ append(L1, L2) when is_list(L1), is_list(L2) ->
 
 pp(Format, Args) ->
     lists:flatten(io_lib:format(Format, Args)).
+
+applyValueFun(skip, ElementRecord, _Acc) ->
+  {result, ElementRecord};
+applyValueFun(ValueFun, ElementRecord, Acc) ->
+  {_, Result} = ValueFun(ElementRecord, Acc),
+  {result, Result}.

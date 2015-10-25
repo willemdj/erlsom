@@ -73,7 +73,7 @@
                 nss,            %% namespaces ([#namespace{}])
                 includeFun,     %% function to find included XSDs
                 includeDirs,    %% directories to look for XSDs
-	        includeFiles,   %% tuples {Namespace, Location, Prefix}
+                includeFiles,   %% tuples {Namespace, Prefix, Location}
                                 %% or {Namespace, Schema, Prefix}, where 
                                 %% Schema is a parsed XSD (used to parse WSDLs
                                 %% with multiple XSDs).
@@ -157,7 +157,7 @@ compile_internal(Xsd, Options, Parsed) ->
                  VFun;
                _ -> 
                  %% default: do't modify the values
-                 defaultValueFun()
+                 skip
              end,
   %% The 'dir_list' option is included here for backwards compatibility.
   CombinedDirs = IncludeDirs1 ++ IncludeDirs2,
@@ -167,7 +167,7 @@ compile_internal(Xsd, Options, Parsed) ->
                 end,
   IncludeFiles = case lists:keysearch('include_files', 1, Options) of
                    {value, {_, Files}} -> Files;
-                   _ -> Namespaces %% the two options are mutually exlclusive
+                   _ -> Namespaces %% the two options are mutually exclusive
                  end,
   put(erlsom_typePrefix, TypePrefix),
   put(erlsom_groupPrefix, GroupPrefix),
@@ -612,6 +612,12 @@ translateAttribute(GroupRef = #attributeGroupRefType{}, _Acc) ->
 %% returns {#typeInfo{}, #p1acc{}}
 translateComplexTypeModel(undefined, Acc) ->
   {#typeInfo{elements = [], seqOrAll = sequence}, Acc};
+% do not use a prefix on local types when unqualified is requested.
+% maybe this logic needs to be pulled up into transformTypes?
+translateComplexTypeModel(Model, Acc = #p1acc{efd="unqualified", nsp=Nsp})
+   when Nsp /= "" ->
+  {Model2, Acc2} = translateComplexTypeModel(Model, Acc#p1acc{nsp = ""}),
+  {Model2, Acc2#p1acc{nsp = Nsp}};
 translateComplexTypeModel(Sequence = #sequenceType{elements=Elements, minOccurs=Min, maxOccurs=Max},
                             %% Acc = #p1acc{seqCnt = Count, nsp = Prefix, path = Path, efd = Efd}) ->
                             Acc = #p1acc{seqCnt = Count, path = Path}) ->

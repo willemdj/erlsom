@@ -578,6 +578,12 @@ It shows how "nil" values are represented - note that there are 2 different case
 
 Example 9 also shows what happens to "any-attributes" ("issued", in this case): these are put into the first field of the record.
 
+*A note about schema inclusion*
+
+Be careful when working with complex schemas since Erlsom does not handle duplicate inclusions. You may end up with duplicate types!
+
+However, duplicate inclusions can be resolved, e.g. by either editing the schemas or by detecting duplicate includes in a custom `include_fun` (which should then return an empty schema).
+
 ## <a name="installation">Installation</a>
 The easiest way to install Erlsom is probably to use rebar. 
  

@@ -352,7 +352,8 @@ xsdModel(Namespaces) ->
                         mn = 0, 
                         mx = 1, 
                         nr = 4},
-                    #el{alts = [#alt{tag = 'xsd:sequence', tp = 'sequenceType'}, 
+                    #el{alts = [#alt{tag = 'xsd:all', tp = 'allType'},
+                                #alt{tag = 'xsd:sequence', tp = 'sequenceType'}, 
                                 #alt{tag = 'xsd:choice', tp = 'choiceType'},
                                 #alt{tag = 'xsd:group', tp = 'groupRefType'},
                                 #alt{tag = 'xsd:all', tp = 'allType'}],
@@ -380,7 +381,9 @@ xsdModel(Namespaces) ->
                         mx = 1, 
                         nr = 4},
                     #el{alts = [#alt{tag = 'xsd:sequence', tp = 'sequenceType'}, 
-                                #alt{tag = 'xsd:group', tp = 'groupRefType'}],
+                                #alt{tag = 'xsd:choice', tp = 'choiceType'},
+                                #alt{tag = 'xsd:group', tp = 'groupRefType'},
+                                #alt{tag = 'xsd:all', tp = 'allType'}],
                         mn = 0, 
                         mx = 1, 
                         nr = 5},
@@ -587,7 +590,13 @@ xsdModel(Namespaces) ->
 %% -record(attributeGroupRefType, {ref}).
        #type{nm = attributeGroupRefType, 
              anyAttr = AnyAttr,
-	     els = [],
+	     els = [#el{alts = [#alt{tag = 'xsd:annotation', tp = 'annotationType'}],
+                        mn = 0,
+                        mx = 1,
+                        nr = 2}], %% TODO: fix this, this is wrong, since it puts the comment
+                                  %% in position 2. There should be an additional field in the 
+                                  %% record. But since the annotiation is not used, and pos 2 
+                                  %% is also not used, it does not really matter.
 	     atts = [#att{nm = ref, nr = 3, opt = true, tp = qname}, 
 	             #att{nm = id, nr = 4, opt = true, tp = char}],
              nr = 3}], 
