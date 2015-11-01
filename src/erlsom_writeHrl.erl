@@ -94,13 +94,19 @@ writeType(#type{nm = '_document'}, _, _) ->
   [];
 writeType(#type{nm = Name, els = Elements, atts = Attributes, mxd = Mixed},
           Hierarchy, AnyAtts) ->
+  Comma = case {Attributes, Elements} of 
+            {A, E} when length(A) > 0 andalso length(E) > 0 ->
+              ",";
+            _ ->
+              ""
+          end,
   Format = 
     case AnyAtts of
       true ->
-        "~3n-record(~p, {anyAttribs :: anyAttribs(),\n\t~s~s})."
+        "~3n-record(~p, {anyAttribs :: anyAttribs(),~s" ++ Comma ++ "~s})." ++
         "~2n-type ~s :: ~s.";
       _ ->
-        "~3n-record(~p, {\n\t~s~s})."
+        "~3n-record(~p, {~s" ++ Comma ++ "~s})." ++
         "~2n-type ~s :: ~s."
     end,
   Args   = [Name, writeAttributes(Attributes), 
@@ -125,7 +131,8 @@ writeElements(Elements, Mixed, Hierarchy) ->
     {[ElString | Acc], CountChoices2}
   end,
   {Result, _} = lists:foldl(WriteFun, {[], 0}, Elements),
-  string:join(lists:reverse(Result), ",\n\t").
+  string:join(lists:reverse(Result), ",").
+
 
 writeElement(#el{alts = Alternatives, mn = Min, mx = Max, nillable = Nillable}, Mixed, Hierarchy, CountChoices) ->
   {Label, Types, Count2} = case Mixed of
@@ -136,9 +143,9 @@ writeElement(#el{alts = Alternatives, mn = Min, mx = Max, nillable = Nillable}, 
   end,
   TypeSpec = case Mixed of
     true ->
-      [Label, "[", Types, " | string()]"];
+      ["\n\t", Label, "[", Types, " | string()]"];
     _ ->
-      [Label, Types]
+      ["\n\t", Label, Types]
   end,
   {lists:flatten(TypeSpec), Count2}.
 
@@ -153,7 +160,14 @@ writeAlternatives(Alts, Min, Max, _N, Hierarchy, CountChoices) when length(Alts)
          _ -> 
            ["choice", integer_to_list(CountChoices), " :: "]
        end,
-  Alternatives = [writeAlternative(A, 1, 1, false, Hierarchy) || A <- Alts],
+  Alternatives = case lists:keyfind('#any', #alt.tag, Alts) of
+                   false ->
+                     [writeAlternative(A, 1, 1, false, Hierarchy) || A <- Alts];
+                   Alt ->
+                   %% it makes no sense to have a choice between many things if 
+                   %% one of them is "any()" - in that case the any() suffices.
+                     [writeAlternative(Alt, 1, 1, false, Hierarchy)]
+                 end,
   Type = lists:flatten([minMaxType(string:join(Alternatives, " | "),
                           Min, Max, 1, false, simple)]),
   {Label, Type, CountChoices + 1};
