@@ -94,25 +94,22 @@ writeType(#type{nm = '_document'}, _, _) ->
   [];
 writeType(#type{nm = Name, els = Elements, atts = Attributes, mxd = Mixed},
           Hierarchy, AnyAtts) ->
-  Comma = case {Attributes, Elements} of 
-            {A, E} when length(A) > 0 andalso length(E) > 0 ->
-              ",";
-            _ ->
-              ""
-          end,
-  Format = 
-    case AnyAtts of
-      true ->
-        "~3n-record(~p, {anyAttribs :: anyAttribs(),~s" ++ Comma ++ "~s})." ++
-        "~2n-type ~s :: ~s.";
-      _ ->
-        "~3n-record(~p, {~s" ++ Comma ++ "~s})." ++
-        "~2n-type ~s :: ~s."
-    end,
-  Args   = [Name, writeAttributes(Attributes), 
-            writeElements(Elements, Mixed, Hierarchy),
+  Format = "~3n-record(~p, {~s})." ++
+           "~2n-type ~s :: ~s.",
+  Fields = [case AnyAtts of
+              true -> 
+                "anyAttribs :: anyAttribs()";
+              _ -> 
+                []
+            end,
+            writeAttributes(Attributes), 
+            writeElements(Elements, Mixed, Hierarchy)],
+  Args   = [Name, add_commas(Fields), 
             formatType(Name), formatRecord(Name)],
   lists:flatten(io_lib:format(Format, Args)).
+
+add_commas(Parts) ->
+  string:join(lists:filter(fun(S) -> S /= "" end, Parts), ",").
 
 %% writeElements(Elements, Mixed, Hierarchy) ->
   %% writeElements(Elements, Mixed, Hierarchy, 0).

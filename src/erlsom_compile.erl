@@ -709,7 +709,29 @@ translateAlternatives([Alternative | Tail], AlternativesSoFar, Acc) ->
   translateAlternatives(Tail, [TheAlternative | AlternativesSoFar], Acc2#p1acc{path = Path});
 
 translateAlternatives([], AlternativesSoFar, Acc) ->
-  {lists:reverse(AlternativesSoFar), Acc}.
+  %% if there is an "any" alternative, then there is no point in listing
+  %% all the other alternatives.
+  case findAnyAlternative(AlternativesSoFar) of
+    {true, AnyAlternative} ->
+      {[AnyAlternative], Acc};
+    false ->
+      {lists:reverse(AlternativesSoFar), Acc}
+  end.
+
+findAnyAlternative(Alternatives) ->
+  case lists:filter(fun isAny/1, Alternatives) of
+    [] ->
+      false;
+    [AnyAlternative |_] ->
+      {true, AnyAlternative}
+  end.
+
+%% for now only consider elements that are truely wildcards, because they seem
+%% to be the most common type and they are the easiest to deal with.
+isAny(#alt{tag = '#any', anyInfo = #anyInfo{prCont = "lax", ns = "##any"}}) ->
+  true;
+isAny(_) ->
+  false.
 
 %% TODO: seqCnt should be passed from one element to the next, but not down into the
 %% tree (it should be reset to 0) (the first sequence-in-sequnce should always have nr. 1).

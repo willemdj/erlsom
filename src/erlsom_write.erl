@@ -57,7 +57,7 @@ struct2xml(_Struct, [], ResultSoFar, _Model, _Namespaces, _Mixed) ->
 struct2xml(Struct, 
            _StructModel = [ModelForThisElement = #el{alts = Alternatives, mn = Min, mx = Max, nr = SequenceNr,
                            nillable = Nillable} | NextElements], 
-           ResultSoFar, Model = #model{nss = Namespaces, th = Th}, DeclaredNamespaces,
+           ResultSoFar, Model = #model{nss = Namespaces}, DeclaredNamespaces,
            Mixed) ->
 
   %% Which alternative has been selected follows from the value of this element
@@ -103,7 +103,7 @@ struct2xml(Struct,
               ResultForThisElement = printValue(CurrentValue, Alternatives, Namespaces, DeclaredNamespaces, Mixed);
             _ when is_tuple(V1) -> 
               %% debug("alternative with MaxOccurs > 1"),
-              ResultForThisElement = processAlternatives(CurrentValue, Alternatives, Model, DeclaredNamespaces, Th,
+              ResultForThisElement = processAlternatives(CurrentValue, Alternatives, Model, DeclaredNamespaces, 
                                                          Mixed)
           end;
         #qname{} ->
@@ -167,7 +167,7 @@ processElementValues([],
 %%    - for a nillable element with attributes 
 processElementValues([V1 | NextValues], 
                ModelForThisElement = #el{alts = Alternatives, mx = Max, nillable=Nillable}, 
-               ResultSoFar, Counter, Model = #model{nss = Namespaces, th = Th}, DeclaredNamespaces, Mixed) ->
+               ResultSoFar, Counter, Model = #model{nss = Namespaces}, DeclaredNamespaces, Mixed) ->
 
   %% debug("procesElementValues, counter = " ++ integer_to_list(Counter)),
   {Case, IncreaseCounter} =
@@ -228,7 +228,7 @@ processElementValues([V1 | NextValues],
   ResultForThisElement = 
     case Case of
       listOfTuples ->
-        processAlternatives(V1, Alternatives, Model, DeclaredNamespaces, Th, Mixed);
+        processAlternatives(V1, Alternatives, Model, DeclaredNamespaces, Mixed);
       mixed ->
         erlsom_lib:xmlString(V1);
       listOfStrings ->
@@ -249,19 +249,19 @@ processElementValues([V1 | NextValues],
                        Model, DeclaredNamespaces, Mixed).
 
 %% returns a string that represents the value
-processSubType(Value, Alternatives, Model = #model{tps = Types, th = TypeHierarchy}, DeclaredNamespaces,
+processSubType(Value, Alternatives, Model = #model{tps = Types}, DeclaredNamespaces,
                Mixed) ->
   %% RecordType can be an instantiated abstract type
   RecordType = element(1, Value),
-  {Alternative, Abstract} = findAlternative(RecordType, Alternatives, TypeHierarchy),
+  {Alternative, Abstract} = findAlternative(RecordType, Alternatives, Model),
   TypeRecord = findType(RecordType, Types),
   processAlternativeValue(Value, 1, Alternative, TypeRecord, Model, DeclaredNamespaces, Abstract, Mixed).
 
-processAlternatives(Values = [Value | _], Alternatives, Model = #model{tps = Types},  DeclaredNamespaces, TypeHierarchy,
+processAlternatives(Values = [Value | _], Alternatives, Model = #model{tps = Types},  DeclaredNamespaces, 
                     Mixed) ->
   %% See which alternative this is
   RecordType = element(1, Value),
-  {Alternative, Abstract} = findAlternative(RecordType, Alternatives, TypeHierarchy),
+  {Alternative, Abstract} = findAlternative(RecordType, Alternatives, Model),
   TypeRecord = findType(RecordType, Types),
   processAlternativeValues(Values, 0, Alternative, TypeRecord, Model, DeclaredNamespaces, Abstract, [], Mixed).
 
@@ -345,19 +345,26 @@ findType(TypeName, Types) ->
     _ -> throw({error, "Something wrong with the Model"})
   end.
 
-findAlternative(RecordType, Alternatives, TypeHierarchy) ->
-  findAlternative(RecordType, Alternatives, TypeHierarchy, false).
+findAlternative(RecordType, Alternatives, Model) ->
+  findAlternative(RecordType, Alternatives, Model, false).
 
-findAlternative(RecordType, Alternatives, TypeHierarchy, Abstract) ->
+findAlternative(RecordType, Alternatives, #model{th = TypeHierarchy} = Model, Abstract) ->
   case lists:keysearch(RecordType, #alt.tp, Alternatives) of
     {value, Alternative} -> {Alternative, Abstract};
     _ ->  
         %% see whether an ancestor in the type hierarchy is among the alternatives
         case erlsom_lib:getAncestor(RecordType, TypeHierarchy) of
           {value, Ancestor} -> 
-            findAlternative(Ancestor, Alternatives, TypeHierarchy, true);
+            findAlternative(Ancestor, Alternatives, Model, true);
           _ -> 
-            throw({error, "Struct doesn't match model: recordtype not expected: " ++ atom_to_list(RecordType)})
+            %% see whether this is an '#any' type
+            case Alternatives of
+              [#alt{tag='#any', anyInfo = #anyInfo{ns = AltNs}}] when AltNs /= "##other" ->
+                AnyAlternatives = Alternatives ++ erlsom_lib:documentAlternatives(Model),
+                findAlternative(RecordType, AnyAlternatives, Model, Abstract);
+              _ ->
+                throw({error, "Struct doesn't match model: recordtype not expected: " ++ atom_to_list(RecordType)})
+            end
         end
   end. 
   

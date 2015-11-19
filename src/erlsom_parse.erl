@@ -744,10 +744,11 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
   %% debugMessage("the work"),
   %% debugState(State),
   %% debugEvent(Event),
-  [#el{alts = Alternatives, 
-       mn = MinOccurs,
-       mx = MaxOccurs,
-       nillable = Nullable} | NextElements] = RemainingElements,
+  [FirstElement | NextElements] = RemainingElements,
+  #el{alts = Alternatives, 
+      mn = MinOccurs,
+      mx = MaxOccurs,
+      nillable = Nullable} = FirstElement,
   case Event of 
     {startElement, Uri, LocalName, _Prefix, Attributes}  ->
       Name = eventName(LocalName, Uri, NamespaceMapping),
@@ -846,70 +847,80 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
 
 	_Else ->
         %% See whether there is an 'Any' alternative.
-	%% note: if processContents (prCont) = "strict", then that 'doesn't count'
-	%% because in that there should be a proper alternative. Arguably
-	%% the 'any' alternative should not be part of the model in that case,
-	%% but it is needed as an anchor when adding xsd's to the model.
-           %% case lists:keysearch(any, #alt.tp, Alternatives) of
-           case lists:keysearch('#any', #alt.tag, Alternatives) of
-              {value, #alt{nxt = NextTags, tp = Type, anyInfo = AnyInfo, rl = RealElement2}} 
-              when AnyInfo#anyInfo.prCont /= "strict" ->
-              %% If the tag is in NextTags, we have to move on
-                 %% debug(NextTags),
-                 case lists:member(Name, NextTags) of
-                   true ->
-                     NewState = undefined;
-                   false ->
-	             if 
-	               MaxOccurs /= unbound, ReceivedSoFar >= MaxOccurs ->
-                         %% can this be valid at all?
-                         NewState = undefined;
-                       true ->
-                         %% push element
-                         %% HERE
-                         %% see whether this is a 'real' element. 
-		         if 
-		           RealElement2 ->
-                             %% need to check on 'anyInfo' here!!!!
-		             %% push the current status, create a new level in the state machine
-                             %% case matchesAnyInfo(Uri, AnyInfo, Tns) of 
-                             case matchesAnyInfo(Uri, AnyInfo, Tns) of 
-                               true ->
-                                 NewState = State#state{currentState = #anyState{anyInfo = AnyInfo},
-		                                        resultSoFar = [State#state.currentState | ResultSoFar]};
-                               false ->
-                                 NewState = undefined
-                             end;
-		           true ->  %% not a real element
-		             TypeDef = findType(Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
-                             %% debug(Type),
-                             #type{els = Elements, tp = Tp, mxd = Mxd} = TypeDef,
-                             NewRecord = newRecord(TypeDef, StoreAnyAttr),
-                             case Tp of
-                               sequence ->
-                                 %% debug(NewRecord),
-                                 NewCurrentState = #cs{re = Elements, sf =0, er = NewRecord, rl = RealElement2,
-                                                       mxd = Mxd};
-                               all ->
-                                 NewCurrentState = #all{re = Elements, er = NewRecord}
-                             end,
-		             %% push the current status, create a new level in the state machine
-                             NextState = State#state{currentState = NewCurrentState,
-		                                    resultSoFar = [State#state.currentState | ResultSoFar]},
-                                          %% a helper-state. The tag we just received was NOT a start tag for a 
-		                          %% corresponding enclosing element - there are no enclosing tags. The
-		                          %% tag just helped us to select the next type. Re-use the current event.
-	                     NewState = stateMachine(Event, NextState)
-                         end
-                     end
-                 end;
+           case Alternatives of 
+             [#alt{tag='#any', anyInfo = #anyInfo{ns = AltNs}}] when AltNs /= "##other" ->
+               %% Add the elements of the model to the alternatives and try again
+               AnyAlternatives = Alternatives ++ erlsom_lib:documentAlternatives(State#state.model),
+               CurrentCurrentState = State#state.currentState,
+               RemainingElementsWithAny = [FirstElement#el{alts = AnyAlternatives} | NextElements],
+               CurrentStateWithAny = CurrentCurrentState#cs{re = RemainingElementsWithAny},
+               NewState = stateMachine(Event, State#state{currentState = CurrentStateWithAny});
+             _ ->
+	       %% note: if processContents (prCont) = "strict", then that 'doesn't count'
+	       %% because in that there should be a proper alternative. Arguably
+	       %% the 'any' alternative should not be part of the model in that case,
+	       %% but it is needed as an anchor when adding xsd's to the model.
+               case lists:keysearch('#any', #alt.tag, Alternatives) of %{
+                 {value, #alt{nxt = NextTags, tp = Type, anyInfo = AnyInfo, rl = RealElement2}} 
+                   when AnyInfo#anyInfo.prCont /= "strict" ->
+                   %% If the tag is in NextTags, we have to move on
+                   %% debug(NextTags),
+                   case lists:member(Name, NextTags) of %{
+                     true ->
+                       NewState = undefined;
+                     false ->
+	               if  %{
+	                 MaxOccurs /= unbound, ReceivedSoFar >= MaxOccurs ->
+                           %% can this be valid at all?
+                           NewState = undefined;
+                         true ->
+                           %% push element
+                           %% HERE
+                           %% see whether this is a 'real' element. 
+		           if %{ 
+		             RealElement2 ->
+                               %% need to check on 'anyInfo' here!!!!
+		               %% push the current status, create a new level in the state machine
+                               %% case matchesAnyInfo(Uri, AnyInfo, Tns) of 
+                               case matchesAnyInfo(Uri, AnyInfo, Tns) of %{
+                                 true ->
+                                   NewState = State#state{currentState = #anyState{anyInfo = AnyInfo},
+		                                          resultSoFar = [State#state.currentState | ResultSoFar]};
+                                 false ->
+                                   NewState = undefined
+                               end; %}
+		             true ->  %% not a real element
+		               TypeDef = findType(Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
+                               %% debug(Type),
+                               #type{els = Elements, tp = Tp, mxd = Mxd} = TypeDef,
+                               NewRecord = newRecord(TypeDef, StoreAnyAttr),
+                               case Tp of
+                                 sequence ->
+                                   %% debug(NewRecord),
+                                   NewCurrentState = #cs{re = Elements, sf =0, er = NewRecord, rl = RealElement2,
+                                                         mxd = Mxd};
+                                 all ->
+                                   NewCurrentState = #all{re = Elements, er = NewRecord}
+                               end,
+		               %% push the current status, create a new level in the state machine
+                               NextState = State#state{currentState = NewCurrentState,
+		                                      resultSoFar = [State#state.currentState | ResultSoFar]},
+                                            %% a helper-state. The tag we just received was NOT a start tag for a 
+		                            %% corresponding enclosing element - there are no enclosing tags. The
+		                            %% tag just helped us to select the next type. Re-use the current event.
+	                       NewState = stateMachine(Event, NextState)
+                           end %}
+                       end %}
+                   end; %}
 
-       	      _NotAny ->
-                 %% debug(lists:keysearch('#any', #alt.tag, Alternatives)),
-	         %% debug("no Any alternative"),
-                 %% debug(Alternatives),
-                 NewState = undefined
-           end,
+       	          _NotAny ->
+                   %% debug(lists:keysearch('#any', #alt.tag, Alternatives)),
+	           %% debug("no Any alternative"),
+                   %% debug(Alternatives),
+                   NewState = undefined
+               end %}
+
+           end, %}
 
            if
               NewState == undefined ->

@@ -44,6 +44,7 @@
          newTree/0, addTreeElement/3, isAncestor/3, getAncestor/2,
          getLeaves/2,
          getDescendants/2,
+         documentAlternatives/1,
          emptyListIfUndefined/1,
          searchBase/2,
          makeQname/1, localName/1, 
@@ -933,6 +934,14 @@ localName(#qname{localPart = LocalName}) ->
 %%% hides the definition of #schemaType{}
 getTargetNamespaceFromXsd(#schemaType{targetNamespace = TNS}) ->
   TNS.
+
+%% these are the top-level elements. They can occur in an '#any' type.
+%% Check on [], because if for some reason there would be no alternatives
+%% there would be an endless loop.
+documentAlternatives(#model{tps = [#type{nm = '_document', 
+                                         els = [#el{alts = Alternatives}]} |
+                                                 _]}) when Alternatives /= [] ->
+  Alternatives.
 
 %% this is a hack, see erlsom_compile
 %% remove the type-prefix from the name

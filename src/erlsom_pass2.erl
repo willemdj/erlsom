@@ -706,16 +706,22 @@ pass5Alternative(Alternative = #alt{tag = Name, anyInfo = AnyInfo}, Types, NextE
   case Name of
     '#any' ->  
       %% #anyInfo{prCont = Pc}  = AnyInfo, 
-      Pc = case AnyInfo of
-             #anyInfo{} -> AnyInfo#anyInfo.prCont;
-             undefined -> undefined
-           end,
+      {Ns, Pc} = case AnyInfo of
+                  #anyInfo{} -> {AnyInfo#anyInfo.ns, AnyInfo#anyInfo.prCont};
+                  undefined -> {undefined, undefined}
+                end,
 
       case Pc of
         "lax" ->
-          [Alternative#alt{nxt=getNextTags(NextElements)} | getDocumentAlternatives(AnyInfo, Types, Info, Tns)];
-        %% undefined ->
-          %% [Alternative#alt{nxt=getNextTags(NextElements), anyInfo = xxx}];
+          case Ns of
+            "##other" ->
+              [Alternative#alt{nxt=getNextTags(NextElements)} | getDocumentAlternatives(AnyInfo, Types, Info, Tns)];
+            _ ->
+              %% in this case we look for the top-level alternatives in the model when 
+              %% required during the parsing. This to prevent the model from becoming very large
+              %% if there are a lot of "Any" extension points (like in the eBay WSDL, for example).
+              [Alternative#alt{nxt=getNextTags(NextElements)}]
+          end;
         _ ->
           [Alternative | getDocumentAlternatives(AnyInfo, Types, Info, Tns)]
       end;
