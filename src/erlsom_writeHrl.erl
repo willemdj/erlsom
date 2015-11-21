@@ -173,7 +173,7 @@ writeAlternatives([#alt{tag = Tag, tp = Tp, rl=Rl} = Alt], Min, Max, Nillable, H
   LabelAtom = case Rl of
     true ->
       %% erlsom_lib:nameWithoutPrefix(atom_to_list(Tag));
-      Tag;
+      baseName(Tag);
     _ when Rl == false; Rl == simple ->
       case Tp of 
         {'#PCDATA', _} ->
@@ -225,8 +225,18 @@ writeAttributes(Attributes) ->
 writeAttribute(#att{nm = Name, opt = Optional, tp = Type}) -> 
     OptOrReq = if Optional -> " | undefined"; true -> "" end,
     Format = "~n\t~p :: ~s~s",
-    lists:flatten(io_lib:format(Format, [Name, makeType(Type), OptOrReq])).
+    lists:flatten(io_lib:format(Format, [baseName(Name), makeType(Type), OptOrReq])).
 
+%% the names of the fields should not have the prefix
+baseName(Atom) when is_atom(Atom) ->
+  String = atom_to_list(Atom),
+  String_no_prefix = case string:tokens(String, ":") of
+    [_Prefix, Name] ->
+      Name;
+    _ ->
+      String
+  end,
+  list_to_atom(String_no_prefix).
 
 formatSimpleType(Tp1, Tp2, Min, Max, Max2, Nullable) ->
   Type = simpleType(Tp1, Tp2),
