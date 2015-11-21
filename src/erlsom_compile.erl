@@ -169,6 +169,12 @@ compile_internal(Xsd, Options, Parsed) ->
                    {value, {_, Files}} -> Files;
                    _ -> Namespaces %% the two options are mutually exclusive
                  end,
+  %% the 'already_imported' option is necessary in case the imports
+  %% are in separate XSDs that refer to each other. This happens 
+  %% for example in the Salesforce WSDL.
+  %% Since we still need to know the prefix, this is a list
+  %% [{Uri, Prefix}].
+  AlreadyImported = proplists:get_value('already_imported', Options, []),
   put(erlsom_typePrefix, TypePrefix),
   put(erlsom_groupPrefix, GroupPrefix),
   put(erlsom_elementPrefix, ElementPrefix),
@@ -182,7 +188,7 @@ compile_internal(Xsd, Options, Parsed) ->
   case ParsingResult of
     {error, _Message} -> ParsingResult;
     ParsedXsd -> compile_parsed_xsd(ParsedXsd, Prefix, Ns, IncludeFun, IncludeDirs, IncludeFiles,
-                                   IncludeAnyAttribs, ValueFun)
+                                   IncludeAnyAttribs, ValueFun, AlreadyImported)
   end.
 
 defaultValueFun() ->
@@ -191,10 +197,10 @@ defaultValueFun() ->
       
 %% obsolete
 compile_parsed_xsd(ParsedXsd, Prefix, Namespaces) ->
-  compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, fun erlsom_lib:findFile/4, ["."], [], true, defaultValueFun()).
+  compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, fun erlsom_lib:findFile/4, ["."], [], true, defaultValueFun(), []).
 
 compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, IncludeFiles,
-                  IncludeAnyAttribs, ValueFun) ->
+                  IncludeAnyAttribs, ValueFun, AlreadyImported) ->
   %% InfoRecord will contain some information required along the way
   TargetNs = ParsedXsd#schemaType.targetNamespace,
   case Prefix of
@@ -219,6 +225,8 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
           Nss = Namespaces 
       end
   end,
+  ImportedNs = [Uri || {Uri, _} <- AlreadyImported],
+  ImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P} <- AlreadyImported],
   Acc = #p1acc{tns = TargetNs,
                includeFun = IncludeFun,
                includeDirs = IncludeDirs,
@@ -226,7 +234,8 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
 	       efd = ParsedXsd#schemaType.elementFormDefault, 
 	       afd = ParsedXsd#schemaType.attributeFormDefault, 
 	       nsp = Nsp,
-	       nss = Nss},
+	       nss = ImportedNsMapping ++ Nss,
+               imported = ImportedNs},
   case catch transform(ParsedXsd, Acc) of
     {error, Message} -> {error, Message};
     {'EXIT', Message} -> throw({'EXIT', Message});

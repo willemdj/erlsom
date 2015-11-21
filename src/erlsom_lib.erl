@@ -48,8 +48,10 @@
          emptyListIfUndefined/1,
          searchBase/2,
          makeQname/1, localName/1, 
+         getUriFromQname/1,
          getTargetNamespaceFromXsd/1,
-         removePrefixes/1, unique/1]).
+         removePrefixes/1, unique/1,
+         getPrefixFromModel/2]).
 
 -include("erlsom_compile.hrl").
 -include("erlsom_sax.hrl").
@@ -931,9 +933,23 @@ makeQname(LocalName) ->
 localName(#qname{localPart = LocalName}) ->
   LocalName.
 
+%%% hides the definition of #qname{}
+getUriFromQname(#qname{uri = Uri}) ->
+  Uri.
+
 %%% hides the definition of #schemaType{}
 getTargetNamespaceFromXsd(#schemaType{targetNamespace = TNS}) ->
   TNS.
+
+%%% hides the definition of #model{}
+getPrefixFromModel(#model{nss = Namespaces}, Uri) ->
+  case lists:keyfind(Uri, #ns.uri, Namespaces) of
+    false ->
+      "";
+    #ns{prefix = Prefix} ->
+      Prefix
+  end.
+
 
 %% these are the top-level elements. They can occur in an '#any' type.
 %% Check on [], because if for some reason there would be no alternatives
