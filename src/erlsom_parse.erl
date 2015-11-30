@@ -170,6 +170,7 @@
 -module(erlsom_parse).
 -export([xml2StructCallback/2]).
 -export([new_state/1]).
+-export([new_state/2]).
 -include("erlsom.hrl").
 -include("erlsom_sax.hrl").
 -include("erlsom_parse.hrl"). %% the record definitions
@@ -285,8 +286,11 @@ newRecord(#type{nm = Type, nr = NrOfElements}, false) ->
 
 %% to make it possible to use the callback without having 
 %% knowledge about the #state{} and #model{} records.
-new_state(#model{value_fun = ValFun} = Model) ->
-  #state{model=Model, namespaces=[], value_fun = ValFun}.
+new_state(Model) ->
+  new_state(Model, []).
+new_state(#model{value_fun = ValFun} = Model, Namespaces) ->
+  Nss = [#ns{prefix = Prefix, uri = Uri} || {Prefix, Uri} <- Namespaces],
+  #state{model=Model, namespaces=Nss, value_fun = ValFun}.
 
 %% This is the call-back function (called by the sax parser)
 %% Filters out some events and calls the state machine.
