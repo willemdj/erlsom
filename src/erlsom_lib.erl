@@ -1204,13 +1204,17 @@ printPf([]) ->
 printPf(Prefix) ->
   [Prefix, $:].
 
-%% - fixed an error that Anton Fedorov pointed out.
-%% TODO: Probably not the fastest way to do this
+%% mapping through escapeChar/1 accounts for a 85% time overhead and more than doubles memory consumption.
+%% erlsom_ucs:from_utf8/1 is even worse with 280% time overhead and memory consumption of 2 words per character (16x binary size on 64-bit).
 xmlString(String) when is_list(String) ->
   lists:map(fun(Char) -> escapeChar(Char) end, String);
 xmlString(String) when is_binary(String) ->
-  {String2, []} = erlsom_ucs:from_utf8(String),
-  xmlString(String2).
+  % check plus escape is 3% slower but check and skipping escape is 35x faster
+  % binary:match/2 is 10x faster than a naive recursive check
+  case binary:match(String, [<<$&>>, <<$">>, <<$<>>]) of
+    nomatch -> String;
+    _ -> escapeBinary(String, <<>>)
+  end.
 
 convert_integer({_, Subtype}, Value) ->
   check_int(Subtype, list_to_integer(strip(Value))).
@@ -1244,10 +1248,16 @@ check_int(short,V)
 check_int(byte,V)
   when V >= -128, V =< 255 -> V.
 
-escapeChar(38) -> "&amp;";
-escapeChar(34) -> "&quot;";
-escapeChar(60) -> "&lt;";
+escapeChar($&) -> "&amp;";
+escapeChar($") -> "&quot;";
+escapeChar($<) -> "&lt;";
 escapeChar(Char) -> Char.
+
+escapeBinary(<<>>, Acc) -> Acc;
+escapeBinary(<<$&,   Rest/binary>>, Acc) -> escapeBinary(Rest, <<Acc/binary, "&amp;">>);
+escapeBinary(<<$",   Rest/binary>>, Acc) -> escapeBinary(Rest, <<Acc/binary, "&quot;">>);
+escapeBinary(<<$<,   Rest/binary>>, Acc) -> escapeBinary(Rest, <<Acc/binary, "&lt;">>);
+escapeBinary(<<Char, Rest/binary>>, Acc) -> escapeBinary(Rest, <<Acc/binary, Char>>).
 
 %% remove all whitespace at the beginning and the end.
 strip(String) ->
