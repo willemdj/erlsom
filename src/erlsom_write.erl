@@ -352,17 +352,17 @@ findAlternative(RecordType, Alternatives, #model{th = TypeHierarchy} = Model, Ab
   case lists:keysearch(RecordType, #alt.tp, Alternatives) of
     {value, Alternative} -> {Alternative, Abstract};
     _ ->  
-        %% see whether an ancestor in the type hierarchy is among the alternatives
-        case erlsom_lib:getAncestor(RecordType, TypeHierarchy) of
-          {value, Ancestor} -> 
-            findAlternative(Ancestor, Alternatives, Model, true);
-          _ -> 
-            %% see whether this is an '#any' type
-            case Alternatives of
-              [#alt{tag='#any', anyInfo = #anyInfo{ns = AltNs}}] when AltNs /= "##other" ->
-                AnyAlternatives = Alternatives ++ erlsom_lib:documentAlternatives(Model),
-                findAlternative(RecordType, AnyAlternatives, Model, Abstract);
-              _ ->
+        %% see whether this is an '#any' type
+        case Alternatives of
+          [#alt{tag='#any', anyInfo = #anyInfo{ns = AltNs}}] when AltNs /= "##other" ->
+            AnyAlternatives = Alternatives ++ erlsom_lib:documentAlternatives(Model),
+            findAlternative(RecordType, AnyAlternatives, Model, Abstract);
+          _ ->
+            %% see whether an ancestor in the type hierarchy is among the alternatives
+            case erlsom_lib:getAncestor(RecordType, TypeHierarchy) of
+              {value, Ancestor} -> 
+                findAlternative(Ancestor, Alternatives, Model, true);
+              _ -> 
                 throw({error, "Struct doesn't match model: recordtype not expected: " ++ atom_to_list(RecordType)})
             end
         end
