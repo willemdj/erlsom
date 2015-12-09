@@ -480,20 +480,28 @@ transformTypes([#globalElementType{name=Name, type=Type, simpleOrComplex=undefin
 transformTypes([#globalComplexTypeType{name=Name, model=Model, attributes=Attributes, anyAttribute=AnyAttr, mixed = Mixed} |
                 Tail],
                 Acc = #p1acc{nsp = Prefix, tns = Tns}) ->
-   Path = Name ++ "/",
-   {Type, Acc2} = translateComplexTypeModel(Model, Acc#p1acc{path = Path}),
-   TheAttributes = Type#typeInfo.attributes ++ translateAttributes(Attributes, Acc2),
-   AnyAttrValue = if 
-                     AnyAttr /= undefined -> translateAnyAttrValue(AnyAttr, Tns);
-		     true -> Type#typeInfo.anyAttr
-		  end,
-   ResultSoFar = Acc2#p1acc.tps,
-   Type2 = Type#typeInfo{typeName= erlsom_lib:makeTypeName(Name, Prefix), global = true, 
-                         attributes=TheAttributes,
-			 anyAttr = AnyAttrValue,
-                         mixed = if Mixed -> Mixed; true -> Type#typeInfo.mixed end, 
-                         typeType = type},
-   transformTypes(Tail, Acc2#p1acc{path = [], tps = [Type2 | ResultSoFar]});
+  Path = Name ++ "/",
+  if 
+    (Model == undefined) and (Mixed == true) ->
+      Element = #elementInfo{alternatives=[#alternative{tag="#text", type="##string", real=false}], min=0, max=1}, 
+      Type = #typeInfo{elements = [Element], seqOrAll = text}, 
+      Acc2 = Acc#p1acc{path = Path};
+    true ->
+      {Type, Acc2} = translateComplexTypeModel(Model, Acc#p1acc{path = Path})
+  end,
+  %{Type, Acc2} = translateComplexTypeModel(Model, Acc#p1acc{path = Path}),
+  TheAttributes = Type#typeInfo.attributes ++ translateAttributes(Attributes, Acc2),
+  AnyAttrValue = if 
+                    AnyAttr /= undefined -> translateAnyAttrValue(AnyAttr, Tns);
+	            true -> Type#typeInfo.anyAttr
+		 end,
+  ResultSoFar = Acc2#p1acc.tps,
+  Type2 = Type#typeInfo{typeName= erlsom_lib:makeTypeName(Name, Prefix), global = true, 
+                        attributes=TheAttributes,
+			anyAttr = AnyAttrValue,
+                        mixed = if Mixed -> Mixed; true -> Type#typeInfo.mixed end, 
+                        typeType = type},
+  transformTypes(Tail, Acc2#p1acc{path = [], tps = [Type2 | ResultSoFar]});
 
 %%-record(globalSimpleTypeType, {name, annotation, model}).
 %% TODO: better would be to avoid getting the 'any' stuff in the 
