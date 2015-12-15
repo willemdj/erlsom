@@ -46,6 +46,9 @@
 -include("erlsom.hrl").
 -include("erlsom_parse.hrl").
 
+-opaque model() :: #model{}.
+-export_type([model/0]).
+
   
 %%----------------------------------------------------------------------
 %% Function: compile_xsd/2

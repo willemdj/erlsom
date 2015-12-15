@@ -74,7 +74,7 @@
                 includeFun,     %% function to find included XSDs
                 includeDirs,    %% directories to look for XSDs
                 includeFiles,   %% tuples {Namespace, Prefix, Location}
-                                %% or {Namespace, Schema, Prefix}, where 
+                                %% or {Namespace, Prefix, Schema}, where 
                                 %% Schema is a parsed XSD (used to parse WSDLs
                                 %% with multiple XSDs).
                 imported = [],  %% a list of imported namespaces, to prevent
@@ -221,12 +221,16 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
           Nsp = Pf1,
           Nss = [#ns{prefix = Pf2, uri = TargetNs} | Namespaces];
         #ns{prefix = Pf} ->
-          Nsp = Pf ++ ":",
+          case Pf of 
+            undefined -> Nsp = "";
+            _ -> Nsp = Pf ++ ":"
+          end,
           Nss = Namespaces 
       end
   end,
   ImportedNs = [Uri || {Uri, _} <- AlreadyImported],
   ImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P} <- AlreadyImported],
+  ToBeImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P, _} <- IncludeFiles],
   Acc = #p1acc{tns = TargetNs,
                includeFun = IncludeFun,
                includeDirs = IncludeDirs,
@@ -234,7 +238,7 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
 	       efd = ParsedXsd#schemaType.elementFormDefault, 
 	       afd = ParsedXsd#schemaType.attributeFormDefault, 
 	       nsp = Nsp,
-	       nss = ImportedNsMapping ++ Nss,
+	       nss = Nss ++ ToBeImportedNsMapping ++ ImportedNsMapping,
                imported = ImportedNs},
   case catch transform(ParsedXsd, Acc) of
     {error, Message} -> {error, Message};
@@ -917,5 +921,7 @@ translateQuasiAlternative(#localElementType{name=Name, type=Type, ref=undefined,
 %% translateNs(#ns{prefix = Prefix, uri = Ns}) ->
 %%   {Ns, Prefix, undefined}.
 %% TODO: sort this out - what is correct? 
-translateNs(X) ->
+translateNs({Uri, Prefix}) ->
+  #ns{uri = Uri, prefix = Prefix};
+translateNs(#ns{} = X) ->
   X.

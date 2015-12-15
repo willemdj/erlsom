@@ -51,7 +51,7 @@
          getUriFromQname/1,
          getTargetNamespaceFromXsd/1,
          removePrefixes/1, unique/1,
-         getPrefixFromModel/2]).
+         getNamespacesFromModel/1, getPrefixFromModel/2]).
 
 -include("erlsom_compile.hrl").
 -include("erlsom_sax.hrl").
@@ -949,6 +949,10 @@ getPrefixFromModel(#model{nss = Namespaces}, Uri) ->
     #ns{prefix = Prefix} ->
       Prefix
   end.
+
+%%% hides the definition of #model{}
+getNamespacesFromModel(#model{nss = Namespaces}) ->
+  [{Uri, Prefix} || #ns{prefix = Prefix, uri = Uri} <- Namespaces].
 
 
 %% these are the top-level elements. They can occur in an '#any' type.
