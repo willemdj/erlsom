@@ -179,12 +179,14 @@ getOptions(Options) ->
   getOptions(Options, #erlsom_sax_state{}).
 
 getOptions([], S) ->
-  case S#erlsom_sax_state.continuation_fun of
-    undefined -> 
+  case {S#erlsom_sax_state.continuation_fun, S#erlsom_sax_state.is_pull} of
+     {undefined, false} -> 
       S#erlsom_sax_state{continuation_fun = fun(T, St) -> {T, St} end};
-    _ -> 
+    _ ->
       S
   end;
+getOptions([pull | T], S) ->
+  getOptions(T, S#erlsom_sax_state{is_pull = true});
 getOptions([expand_entities | T], S) ->
   getOptions(T, S#erlsom_sax_state{expand_entities = true});
 getOptions([{expand_entities, V} | T], S) when is_boolean(V) ->
