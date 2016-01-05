@@ -26,6 +26,9 @@
 
 -include("erlsom_sax.hrl").
 
+-type attribute() :: #attribute{}.
+-export_type([attribute/0]).
+
 -export([parseDocument/3]).
 -export([parseDocument/4]).
 

@@ -46,9 +46,23 @@
 -include("erlsom.hrl").
 -include("erlsom_parse.hrl").
 
+-type characters() :: string() | binary().
+-type prefix() :: string().
+-type uri() :: string().
+-type local_name() :: string().
+-type attribute() :: erlsom_sax:attribute().
+
 -opaque model() :: #model{}.
 -export_type([model/0]).
-
+-opaque sax_event() :: startDocument | endDocument | 
+  {startPrefixMapping, prefix(), uri()} | {endPrefixMapping, prefix()} | 
+  {startElement, uri(), local_name(), prefix(), [attribute()]} |
+  {endElement, uri(), local_name(), prefix()} |
+  {characters, characters()} |
+  {ignorableWhitespace, characters()} |
+  {error, any()} |
+  {internalError, any()}.
+-export_type([sax_event/0]).
   
 %%----------------------------------------------------------------------
 %% Function: compile_xsd/2

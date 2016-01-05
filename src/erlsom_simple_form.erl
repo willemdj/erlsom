@@ -24,6 +24,7 @@
 %% user interface
 -export([scan/2]).
 -export([callback/2]).
+-export([new_state/1]).
 
 -include("erlsom_sax.hrl").
 
@@ -41,6 +42,11 @@ scan(Xml, Options) ->
     #sState{stack = [], nameFun = Fun},
     fun callback/2, Options2).
 
+
+new_state(Namefun) ->
+  #sState{stack = [], nameFun = Namefun, options = []}.
+
+%%
 %% It is also possible to call erlsom_simple_form:callback from within
 %% another callback function (to parse a part of an xml document).
 callback(Event, State) ->
@@ -56,9 +62,9 @@ callback(Event, State) ->
           %% could be more options in the future, but for now there
           %% is just 1
           [{name_function, NameFun}] ->
-            #sState{stack = [], nameFun = NameFun, options = []};
+            new_state(NameFun);
           _ ->
-            #sState{stack = [], nameFun = fun nameFun/3, options = []}
+            new_state(fun nameFun/3)
         end;
       {startElement, _Uri, _LocalName, _Prefix, _Attributes} ->
         %% debug(Event),
@@ -75,9 +81,8 @@ callback(Event, State) ->
         State;
       endDocument -> 
         case State of 
-          #sState{stack = [Root]} ->
-	    %% debug(Result),
-	    Root;
+          {result, Document} ->
+	    Document;
 	  _Else ->
 	    %% debug(State),
             throw({error, "unexpected end"})
@@ -122,8 +127,12 @@ startElement({startElement, Uri, LocalName, Prefix, Attributes},
   State#sState{stack = [{Name, processAttributes(Attributes, State), []} | Stack]}.
 
 endElement({endElement, _Uri, _LocalName, _Prefix},
-           State = #sState{stack = [{Name, Attributes, Elements}]}) ->
-  State#sState{stack = [{Name, Attributes, lists:reverse(Elements)}]};
+           #sState{stack = [{Name, Attributes, Elements}]}) ->
+  Document = {Name, Attributes, lists:reverse(Elements)},
+  %% {result, Document} is a special value that signals to the calling function that 
+  %% the parsing is done. This can be useful when parsing a part of a larger 
+  %% document.
+  {result, Document};
 
 endElement({endElement, _Uri, _LocalName, _Prefix},
            State) ->
