@@ -322,10 +322,10 @@ processAlternativeValue(Value, Count,
      end,
 
       %% deal with namespaces (that is, see if they have to be declared here)
-      {NamespacesString, NewDeclaredNamespaces4} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces3),
+      {NamespacesString, NewDeclaredNamespaces4, Extra_prefix} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces3),
       ResultForThisElement = struct2xml(Value, Elements, [], Model, NewDeclaredNamespaces4, Mixed),
       AllAttrs = NamespacesString ++ AttributesString ++ AnyAttrPlusXsiTypeString,
-      printTag(TagAsText, AllAttrs, ResultForThisElement);
+      printTag([Extra_prefix, TagAsText], AllAttrs, ResultForThisElement);
     true -> 
       struct2xml(Value, Elements, [], Model, DeclaredNamespaces, Mixed)
   end.
@@ -378,7 +378,7 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
                                              opt = Optional, 
                                              tp = Type} | Rest], Namespaces, DeclaredNamespaces) ->
   NameAsString = atom_to_list(Name),
-  {NamespacesString, NewDeclaredNamespaces} = processNamespaces(NameAsString, Namespaces, DeclaredNamespaces),
+  {NamespacesString, NewDeclaredNamespaces, _Extra_prefix} = processNamespaces(NameAsString, Namespaces, DeclaredNamespaces),
   AttributeValue = element(SequenceNr, Struct),
   case AttributeValue of
     undefined ->
@@ -520,24 +520,43 @@ processNamespaces(Tag, Namespaces, DeclaredNamespaces = {NamespacesList, Counter
              _ ->
                throw({error, "Tag " ++ Tag ++ " is not of form [prefix:]localName"})
            end,
+ 
+  %% IF 
+  %%     prefix is 'undefined' AND 
+  %%     namespace for 'undefined' exists AND
+  %%     elementFormDefault (efd) for this ns is 'unqualified' AND 
+  %%     the namespace has not be been declared at a higher level
+  %% THEN 
+  %%     put a prefix anyway - make one up. (for now: use "erlsom").
+
 
   %% declaredNamespaces = [{Prefix, Uri}]
   case lists:keysearch(Prefix, 1, NamespacesList) of
     {value, _} -> %% already declared
-      {[], DeclaredNamespaces};
+      {[], DeclaredNamespaces, ""};
     _Else ->
       %% find prefix in Model
       case lists:keysearch(Prefix, 3, lists:reverse(Namespaces)) of
-	{value, #ns{uri = Uri}} ->
+	{value, #ns{uri = Uri, efd = qualified}} ->
 	  Xmlns = case Prefix of
 	           undefined -> " xmlns";
 		   _ -> " xmlns:" ++ Prefix
 		 end,
-	  {Xmlns  ++ "=\"" ++ Uri ++ "\"", {[{Prefix, Uri} | NamespacesList], Counter}};
+	  {Xmlns  ++ "=\"" ++ Uri ++ "\"", {[{Prefix, Uri} | NamespacesList], Counter}, ""};
+	{value, #ns{uri = Uri, efd = unqualified}} ->
+	  case Prefix of
+	    undefined -> 
+              Xmlns = " xmlns:erlsom",
+              Additional_pf = "erlsom:";
+            _ ->
+              Xmlns = " xmlns:" ++ Prefix,
+              Additional_pf = ""
+	  end,
+	  {Xmlns  ++ "=\"" ++ Uri ++ "\"", {[{Prefix, Uri} | NamespacesList], Counter}, Additional_pf};
 	_ ->
 	  case Prefix of
-	    undefined -> {[], DeclaredNamespaces};
-	    "xml" -> {[], DeclaredNamespaces};
+	    undefined -> {[], DeclaredNamespaces, ""};
+	    "xml" -> {[], DeclaredNamespaces, ""};
 	    _ -> throw({error, "Inconsistency in model: namespace is not declared - " ++ Prefix})
 	  end
       end
@@ -664,9 +683,9 @@ printNilValue([#alt{tag=Tag, tp = RecordType}], Value, #model{tps = Types, any_a
 
   %% deal with namespaces (that is, see if they have to be declared here)
   TagAsText = atom_to_list(Tag),
-  {NamespacesString, _DeclaredNamespaces3} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces2),
+  {NamespacesString, _DeclaredNamespaces3, Extra_prefix} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces2),
   %% print startTag
-  StartTag = ["<", TagAsText, NamespacesString, AttributesString, AnyAttributesString,
+  StartTag = [$<, Extra_prefix, TagAsText, NamespacesString, AttributesString, AnyAttributesString,
               " xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">"],
   %% print end tag
   EndTag = ["</", atom_to_list(Tag), ">"],
@@ -701,8 +720,8 @@ printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces, QnameN
        %% this function is only used in 'leaves' of the struct, so we don't need to store the 
        %% new declared namespaces (since those would apply only to child-elements, of 
        %% which there are none)
-       {NamespacesString, _} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces),
-       "<" ++ TagAsText ++ NamespacesString ++ QnameNs ++ ">" ++ TextValue ++ "</" ++ TagAsText ++ ">";
+       {NamespacesString, _, Extra_prefix} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces),
+       [$<, Extra_prefix, TagAsText, NamespacesString, QnameNs, $>,  TextValue, "</", TagAsText, $>];
     true -> 
        TextValue
   end.

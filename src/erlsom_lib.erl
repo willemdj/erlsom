@@ -1072,7 +1072,6 @@ prettyPrint(String) ->
           {[[Indent, "</", printPf(Prefix), LocalName, ">\n"] | Acc], NewIndentLevel, [], Event, false};
         {_, _} ->
           %% ignore
-          io:format("ignore~n"),
           In
       end
     end,
