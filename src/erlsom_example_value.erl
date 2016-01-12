@@ -15,6 +15,7 @@
 -include("erlsom_parse.hrl").
 
 -export([from_model/2]).
+-export([from_model/3]).
 -export([test/1]).
 
 -type options() :: [option()].
