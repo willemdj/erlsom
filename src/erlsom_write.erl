@@ -446,6 +446,7 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
       processAttributes(Struct, ResultWithThisAttribute, Rest, Namespaces, DeclaredNamespaces2)
   end.
 
+
 %% returns:
 %% {AttributeValue, NamespacesString, NewDeclaredNamespaces}
 %% -record(qname, {uri, localPart, prefix, mappedPrefix}).
@@ -536,7 +537,7 @@ processNamespaces(Tag, Namespaces, DeclaredNamespaces = {NamespacesList, Counter
       {[], DeclaredNamespaces, ""};
     _Else ->
       %% find prefix in Model
-      case lists:keysearch(Prefix, 3, lists:reverse(Namespaces)) of
+      case lists:keysearch(Prefix, #ns.prefix, lists:reverse(Namespaces)) of
 	{value, #ns{uri = Uri, efd = qualified}} ->
 	  Xmlns = case Prefix of
 	           undefined -> " xmlns";

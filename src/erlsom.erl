@@ -52,9 +52,9 @@
 -type local_name() :: string().
 -type attribute() :: erlsom_sax:attribute().
 
--opaque model() :: #model{}.
+-type model() :: #model{}.
 -export_type([model/0]).
--opaque sax_event() :: startDocument | endDocument | 
+-type sax_event() :: startDocument | endDocument | 
   {startPrefixMapping, prefix(), uri()} | {endPrefixMapping, prefix()} | 
   {startElement, uri(), local_name(), prefix(), [attribute()]} |
   {endElement, uri(), local_name(), prefix()} |
