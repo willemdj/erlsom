@@ -171,7 +171,7 @@ compile_internal(Xsd, Options, Parsed) ->
                  end,
   %% the 'already_imported' option is necessary in case the imports
   %% are in separate XSDs that refer to each other. This happens 
-  %% for example in the Salesforce WSDL.
+  %% for example in the Salesforce WSDL (in a circular way).
   %% Since we still need to know the prefix, this is a list
   %% [{Uri, Prefix}].
   AlreadyImported = proplists:get_value('already_imported', Options, []),
@@ -229,7 +229,9 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
       end
   end,
   ImportedNs = [Uri || {Uri, _} <- AlreadyImported],
-  %ImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P} <- AlreadyImported],
+  %% Here we are introducing #ns{} records with no value for efd. They 
+  %% will be removed later on... (clean_up fucntion, see below).
+  ImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P} <- AlreadyImported],
   %ToBeImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P, _} <- IncludeFiles],
   Acc = #p1acc{tns = TargetNs,
                includeFun = IncludeFun,
@@ -238,7 +240,7 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
 	       efd = ParsedXsd#schemaType.elementFormDefault, 
 	       afd = ParsedXsd#schemaType.attributeFormDefault, 
 	       nsp = Nsp,
-	       nss = Nss, %  ++ ToBeImportedNsMapping, %  ++ ImportedNsMapping,
+	       nss = Nss ++ ImportedNsMapping, %  ++ ToBeImportedNsMapping
                imported = ImportedNs},
   case catch transform(ParsedXsd, Acc) of
     {error, Message} -> {error, Message};
@@ -246,7 +248,7 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
     IntermediateResult -> 
       case catch erlsom_pass2:secondPass(IntermediateResult#p1acc.tps,
 					 #schemaInfo{targetNamespace = IntermediateResult#p1acc.tns,
-						     namespaces = IntermediateResult#p1acc.nss,
+						     namespaces = clean_up(IntermediateResult#p1acc.nss),
 						     atts = IntermediateResult#p1acc.atts,
 						     attGrps = IntermediateResult#p1acc.attGrps,
                                                      include_any_attrs = IncludeAnyAttribs,
@@ -256,6 +258,11 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
 	 FinalResult -> {ok, FinalResult}
       end
   end.
+
+clean_up(Namespaces) ->
+  %% filter out namespace records that do not heva efd set. 
+  [Ns || #ns{efd = Efd} = Ns <- Namespaces, Efd /= undefined].
+
 
 %% -record(schemaType, {targetNamespace, elementFormDefault, elements}).
 transform(#schemaType{elements=Elements, imports=Impts}, 

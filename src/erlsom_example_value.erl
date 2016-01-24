@@ -192,7 +192,17 @@ from_alternative(#alt{tag = Tag, tp = Type, rl = Real, mn = _Min2, mx = _Max2},
   Value = default_value(Type, Model, State),
   Field = case (Max > 1) of %% unbound > 1
             true ->
-              io_lib:format("    ~p = [~s~s]", [Field_name, Newline, Value]);
+              case Type of 
+                any ->
+                  %% Note: this is not correct if MinOccurs > 0,
+                  %% but that is rare, and it would be difficult
+                  %% to figure out what to put in such a case.
+                  io_lib:format("    ~p = ~s[]", 
+                                [Field_name, Newline]);
+                _ ->
+                  io_lib:format("    ~p = [~s~s]", 
+                                [Field_name, Newline, Value])
+              end;
             false ->
               io_lib:format("    ~p = ~s~s", [Field_name, Newline, Value])
           end,

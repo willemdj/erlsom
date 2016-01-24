@@ -51,6 +51,7 @@
          getUriFromQname/1,
          getTargetNamespaceFromXsd/1,
          removePrefixes/1, unique/1,
+         getTypeFromElement/2,
          getNamespacesFromModel/1, getPrefixFromModel/2]).
 
 -include("erlsom_compile.hrl").
@@ -951,6 +952,13 @@ getPrefixFromModel(#model{nss = Namespaces}, Uri) ->
   end.
 
 %%% hides the definition of #model{}
+getTypeFromElement(Element, Model) ->
+  Alternatives = documentAlternatives(Model),
+  case lists:keyfind(Element, #alt.tag, Alternatives) of
+    #alt{tp = Type} ->
+      Type
+  end.
+
 getNamespacesFromModel(#model{nss = Namespaces}) ->
   [{Uri, Prefix} || #ns{prefix = Prefix, uri = Uri} <- Namespaces].
 
