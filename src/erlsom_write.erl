@@ -414,7 +414,7 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
         float ->
           DeclaredNamespaces2 = NewDeclaredNamespaces,
           NamespacesString2 = NamespacesString,
-          CharValue = try float_to_list(AttributeValue) 
+          CharValue = try float_to_xml(AttributeValue) 
           catch 
             _AnyClass:_Any ->
               throw({error, "Wrong Type in attribute  " ++ atom_to_list(Name) ++ ", expected Float"})
@@ -435,6 +435,16 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
               throw({error, "Wrong Type in attribute " ++ atom_to_list(Name) ++ ", expected qname, got " ++
                      lists:flatten(io_lib:format("~p",[AttributeValue]))})
           end;
+        {integer, Subtype} ->
+          DeclaredNamespaces2 = NewDeclaredNamespaces,
+          NamespacesString2 = NamespacesString,
+          CharValue = try 
+                        erlsom_lib:check_int(Subtype, AttributeValue),
+                        integer_to_list(AttributeValue) 
+                      catch 
+                        _AnyClass:_Any ->
+                          throw({error, "Wrong Type in attribute " ++ atom_to_list(Name) ++ ", expected " ++ atom_to_list(Subtype)})
+                      end;
         _Else ->
           throw({error, "unknown type in model: " ++lists:flatten(io_lib:format("~p",[Type]))}),
           DeclaredNamespaces2 = NewDeclaredNamespaces,
@@ -604,14 +614,26 @@ printValue(CurrentValue, Alternatives, Namespaces,
           end,
 	  printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
 	_Else -> 
-          throw({error, "Type of value (integer) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
+          try convert_int_subtype(CurrentValue, Alternatives) of
+            {ok, #alt{tag = Tag, rl = RealElement}, Converted} ->
+	      printElement(Converted, Tag, RealElement, Namespaces, DeclaredNamespaces);
+            _ ->
+              throw({error, "Type of value (integer) does not match model"++
+                     lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
+          catch
+            _AnyClass:_Any ->
+              throw({error, "Wrong Type"})
+          end
       end;
 
-    _D when is_float(CurrentValue) ->
+    _D when is_float(CurrentValue); 
+            CurrentValue =:= 'NaN'; 
+            CurrentValue =:= 'INF';
+            CurrentValue =:= '-INF'  ->
       %% is an integer also a float?
       case lists:keysearch({'#PCDATA', float}, #alt.tp, Alternatives) of
         {value, #alt{tag = Tag, rl = RealElement}} ->
-          TextValue = try float_to_list(CurrentValue) 
+          TextValue = try float_to_xml(CurrentValue) 
           catch 
             _AnyClass:_Any ->
               throw({error, "Wrong Type"})
@@ -636,9 +658,18 @@ printValue(CurrentValue, Alternatives, Namespaces,
 
     _Else -> 
       throw({error, "Type of value not valid for XML structure"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
-
   end.
 
+%% see if there is an {integer, subtype} alternative,
+%% test the value
+convert_int_subtype(_Value, []) ->
+  error;
+convert_int_subtype(Value, [#alt{tp = {'#PCDATA', {integer, Subtype}}} = Alt | _T]) ->
+  erlsom_lib:check_int(Subtype, Value),
+  Converted = integer_to_list(Value),
+  {ok, Alt, Converted};
+convert_int_subtype(Value, [_H | T]) ->
+  convert_int_subtype(Value, T).
 
 printNilValue([#alt{tag= Tag}], Namespaces, DeclaredNamespaces) ->
   printElement("", Tag, true, Namespaces, DeclaredNamespaces, 
@@ -714,3 +745,10 @@ decodeIfRequired(Text) when is_binary(Text) ->
   erlsom_ucs:decode_utf8(Text);
 decodeIfRequired(Text) ->
   Text.
+
+float_to_xml('NaN') -> "NaN";
+float_to_xml('INF') -> "INF";
+float_to_xml('-INF') -> "-INF";
+float_to_xml(Float) -> 
+  io_lib:format("~e", [Float]).
+

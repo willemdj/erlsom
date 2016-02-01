@@ -292,8 +292,18 @@ simpleType(_, Type) -> makeType(Type).
 
 makeType(char) -> "string()";
 makeType(integer) -> "integer()";
+makeType({integer, negativeInteger}) -> "neg_integer()";
+makeType({integer, positiveInteger}) -> "pos_integer()";
+makeType({integer, nonPositiveInteger}) -> "neg_integer() | 0";
+makeType({integer, Non_neg}) 
+  when Non_neg == nonNegativeInteger;
+       Non_neg == unsignedLong;
+       Non_neg == unsignedInt;
+       Non_neg == unsignedShort;
+       Non_neg == unsignedByte -> "non_neg_integer()";
+makeType({integer, _}) -> "integer()";
 makeType(bool) -> "boolean()";
-makeType(float) -> "float()";
+makeType(float) -> "float() | 'NaN' | 'INF' | '-INF'";
 makeType(qname) -> "#qname{}".
 
 formatListType(Type, Min, Max, Max2, Nullable) ->

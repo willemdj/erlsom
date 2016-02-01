@@ -62,25 +62,27 @@
 %% used as 'root' of the XML document.
 
 -module(erlsom_compile).
--record(p1acc, {tps = [],       %% types
-                attGrps = [],   %% attributeGroups
-                atts = [],      %% global Attributes
-                seqCnt = 0,     %% sequence counter, make unique names
-                tns,            %% target namespace
-                efd,            %% element form default
-                afd,            %% attribute form default
-                nsp,            %% namespacePrefix
-                nss,            %% namespaces ([#namespace{}])
-                includeFun,     %% function to find included XSDs
-                includeDirs,    %% directories to look for XSDs
-                includeFiles,   %% tuples {Namespace, Prefix, Location}
-                                %% or {Namespace, Prefix, Schema}, where 
-                                %% Schema is a parsed XSD (used to parse WSDLs
-                                %% with multiple XSDs).
-                imported = [],  %% a list of imported namespaces, to prevent
-                                %% getting into a loop when there are circular 
-                                %% refernces.
-                path = []}).    %% path
+-record(p1acc, {
+   tps = [],       %% types
+   attGrps = [],   %% attributeGroups
+   atts = [],      %% global Attributes
+   seqCnt = 0,     %% sequence counter, make unique names
+   tns,            %% target namespace
+   efd,            %% element form default
+   afd,            %% attribute form default
+   nsp,            %% namespacePrefix
+   nss,            %% namespaces ([#namespace{}])
+   strict = true :: boolean(), %% additional type checking/conversion
+   includeFun,     %% function to find included XSDs
+   includeDirs,    %% directories to look for XSDs
+   includeFiles,   %% tuples {Namespace, Prefix, Location}
+   %% or {Namespace, Prefix, Schema}, where 
+   %% Schema is a parsed XSD (used to parse WSDLs
+   %% with multiple XSDs).
+   imported = [],  %% a list of imported namespaces, to prevent
+   %% getting into a loop when there are circular 
+   %% refernces.
+   path = []}).    %% path
 
 
 -export([compile/2]).
@@ -169,6 +171,8 @@ compile_internal(Xsd, Options, Parsed) ->
                    {value, {_, Files}} -> Files;
                    _ -> Namespaces %% the two options are mutually exclusive
                  end,
+
+  Strict = proplists:get_value(strict, Options, true),
   %% the 'already_imported' option is necessary in case the imports
   %% are in separate XSDs that refer to each other. This happens 
   %% for example in the Salesforce WSDL.
@@ -188,7 +192,7 @@ compile_internal(Xsd, Options, Parsed) ->
   case ParsingResult of
     {error, _Message} -> ParsingResult;
     ParsedXsd -> compile_parsed_xsd(ParsedXsd, Prefix, Ns, IncludeFun, IncludeDirs, IncludeFiles,
-                                   IncludeAnyAttribs, ValueFun, AlreadyImported)
+                                   IncludeAnyAttribs, ValueFun, AlreadyImported, Strict)
   end.
 
 defaultValueFun() ->
@@ -197,10 +201,10 @@ defaultValueFun() ->
       
 %% obsolete
 compile_parsed_xsd(ParsedXsd, Prefix, Namespaces) ->
-  compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, fun erlsom_lib:findFile/4, ["."], [], true, defaultValueFun(), []).
+  compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, fun erlsom_lib:findFile/4, ["."], [], true, defaultValueFun(), [], false).
 
 compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, IncludeFiles,
-                  IncludeAnyAttribs, ValueFun, AlreadyImported) ->
+                  IncludeAnyAttribs, ValueFun, AlreadyImported, Strict) ->
   %% InfoRecord will contain some information required along the way
   TargetNs = ParsedXsd#schemaType.targetNamespace,
   case Prefix of
@@ -235,6 +239,7 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
                includeFun = IncludeFun,
                includeDirs = IncludeDirs,
 	       includeFiles = IncludeFiles,
+               strict = Strict,
 	       efd = ParsedXsd#schemaType.elementFormDefault, 
 	       afd = ParsedXsd#schemaType.attributeFormDefault, 
 	       nsp = Nsp,
@@ -249,6 +254,7 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
 						     namespaces = IntermediateResult#p1acc.nss,
 						     atts = IntermediateResult#p1acc.atts,
 						     attGrps = IntermediateResult#p1acc.attGrps,
+                                                     strict = Strict,
                                                      include_any_attrs = IncludeAnyAttribs,
                                                      value_fun = ValueFun}) of
 	 {error, Message} -> {error, Message};
@@ -378,24 +384,25 @@ replaceElements(ImportedTypes, Types, TypesToRedefine, Namespaces) ->
 replaceElements(_ImportedTypes, [], _Elements, Acc, _Namespaces) ->
   Acc;
 replaceElements(ImportedTypes, [Original = #typeInfo{typeName= Name, typeType = TypeT} | Tail], 
-                TypesToRedefine, Acc, Namespaces)
+                TypesToRedefine, #p1acc{strict=Strict} = Acc, Namespaces)
   when TypeT /= globalElementRefOnly ->
   case lists:keysearch(Name, #typeInfo.typeName, TypesToRedefine) of
     {value, RedefinedType = #typeInfo{extends = undefined}} -> 
       replaceElements(ImportedTypes, Tail, TypesToRedefine, [RedefinedType | Acc], Namespaces);
     {value, Redefined = #typeInfo{base = Base, anyAttr = AnyAttr, elements = Elemts, attributes = Attrs}} -> 
-      RedefinedType = case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, Namespaces), ImportedTypes) of
-                        {value, #typeInfo{elements = BaseEls, attributes = BaseAttrs, 
-                                          anyAttr = BaseAnyAttr, extends = Base2}} ->
-                          NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
-                          Redefined#typeInfo{elements = erlsom_lib:emptyListIfUndefined(BaseEls) ++ 
-                                                        erlsom_lib:emptyListIfUndefined(Elemts), 
-                                             attributes = BaseAttrs ++ Attrs,  
-                                             anyAttr = NewAnyAttr,
-                                             extends = Base2};
-                        _Else ->
-                          throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, Namespaces)})
-                      end,
+      RedefinedType = 
+        case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, Namespaces, Strict), ImportedTypes) of
+          {value, #typeInfo{elements = BaseEls, attributes = BaseAttrs, 
+                            anyAttr = BaseAnyAttr, extends = Base2}} ->
+            NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
+            Redefined#typeInfo{elements = erlsom_lib:emptyListIfUndefined(BaseEls) ++ 
+                                            erlsom_lib:emptyListIfUndefined(Elemts), 
+                               attributes = BaseAttrs ++ Attrs,  
+                               anyAttr = NewAnyAttr,
+                               extends = Base2};
+          _Else ->
+            throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, Namespaces, Strict)})
+        end,
       replaceElements(ImportedTypes, Tail, TypesToRedefine, [RedefinedType | Acc], Namespaces);
     _ ->
       replaceElements(ImportedTypes, Tail, TypesToRedefine, [Original | Acc], Namespaces)
@@ -471,9 +478,9 @@ transformTypes(undefined, Acc) ->
 
 transformTypes([#globalElementType{name=Name, type=Type, simpleOrComplex=undefined,
                                    substitutionGroup = SubstGroup}| Tail],
-                Acc = #p1acc{tps = ResultSoFar, nsp = Prefix, nss = Nss}) ->
+                Acc = #p1acc{tps = ResultSoFar, nsp = Prefix, nss = Nss, strict=Strict}) ->
    ThisType = #typeInfo{typeName= erlsom_lib:makeElementName(Name, Prefix), global = true
-              ,         typeRef = erlsom_lib:makeTypeRef(Type, Nss)
+              ,         typeRef = erlsom_lib:makeTypeRef(Type, Nss, Strict)
               ,         substitutionGroup = case SubstGroup of 
                                               undefined -> undefined;
                                               _ -> erlsom_lib:makeElementRef(SubstGroup, Nss)
@@ -847,9 +854,9 @@ translateAlternative(#localElementType{name=Name, type=undefined, ref=undefined,
 
 translateAlternative(#localElementType{name=Name, type=Type, ref=undefined, simpleOrComplex=undefined,
                                        minOccurs=Min, maxOccurs = Max, form = Form}, 
-                     Acc = #p1acc{efd = Efd, nsp = Prefix, nss = Nss}) ->
+                     Acc = #p1acc{efd = Efd, nsp = Prefix, nss = Nss, strict=Strict}) ->
    Form2 = case Form of undefined -> Efd; _ -> Form end,
-   {#alternative{tag=erlsom_lib:makeTag(Name, Prefix, Form2), type=erlsom_lib:makeTypeRef(Type, Nss), 
+   {#alternative{tag=erlsom_lib:makeTag(Name, Prefix, Form2), type=erlsom_lib:makeTypeRef(Type, Nss, Strict), 
                  real = true, min=minMax(Min), max=minMax(Max)}, Acc};
 %% -record(groupRefType, {ref, minOccurs, maxOccurs}).
 translateAlternative(#groupRefType{ref=Ref, minOccurs=Min, maxOccurs=Max}, Acc = #p1acc{nss = Nss}) ->
@@ -909,9 +916,9 @@ translateQuasiAlternative(#localElementType{name=Name, type=undefined, ref=undef
    end,
    {#alternative{tag=erlsom_lib:makeTag(Name, Prefix, Efd), type=TypeRef, real = true}, Acc3#p1acc{path=Path}};
 translateQuasiAlternative(#localElementType{name=Name, type=Type, ref=undefined, simpleOrComplex=undefined, form = Form}, 
-                          Acc = #p1acc{efd = Efd, nsp = Prefix, nss = Nss}) ->
+                          Acc = #p1acc{efd = Efd, nsp = Prefix, nss = Nss, strict=Strict}) ->
    Form2 = case Form of undefined -> Efd; _ -> Form end,
-   {#alternative{tag=erlsom_lib:makeTag(Name, Prefix, Form2), type=erlsom_lib:makeTypeRef(Type, Nss), real = true}, Acc}.
+   {#alternative{tag=erlsom_lib:makeTag(Name, Prefix, Form2), type=erlsom_lib:makeTypeRef(Type, Nss, Strict), real = true}, Acc}.
 %% %% -record(groupRefType, {ref, minOccurs, maxOccurs}).
 %% translateQuasiAlternative(#groupRefType{ref=Ref}, Acc = #p1acc{nss = Nss}) ->
 %%   {#alternative{tag="##TODO", type=erlsom_lib:makeGroupRef(Ref, Nss), real=false}, Acc}.

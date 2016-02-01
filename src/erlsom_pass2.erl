@@ -237,9 +237,9 @@ translateType(Type = #typeInfo{elements = Elemts, attributes = Attrs,
                               extends = undefined, 
                               restricts = undefined}, Types, Info);
 translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base, anyAttr = AnyAttr, mixed = Mixed}, 
-              Types, Info = #schemaInfo{namespaces=NS})
+              Types, Info = #schemaInfo{namespaces=NS, strict = Strict})
   when Base /= undefined ->
-  case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS), Types) of
+  case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS, Strict), Types) of
     {value, #typeInfo{elements = BaseEls, attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2, restricts = Base3, mixed = Mixed2}} ->
       %% debug(Elemts),
       %% debug(BaseEls),
@@ -252,7 +252,7 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base
                                   mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,
                                   extends = Base2, restricts = Base3}, Types, Info);
     _Else ->
-      throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, NS)})
+      throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, NS, Strict)})
   end;
 
 %% resolve 'restricted' types: look up the base and add its attributes (actually: replace the 
@@ -274,9 +274,9 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs,
 
 %% resolve 'restricted' types: look up the base and merge attributes
 translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, restricts = Base, anyAttr = AnyAttr, mixed = Mixed}, 
-              Types, Info = #schemaInfo{namespaces=NS})
+              Types, Info = #schemaInfo{namespaces=NS, strict=Strict})
   when Base /= undefined ->
-  case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS), Types) of
+  case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS, Strict), Types) of
     {value, #typeInfo{attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2, 
                       restricts = Base3, mixed = Mixed2}} ->
       %% debug(Elemts),
@@ -292,7 +292,7 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, restricts = Ba
 				  restricts = Base3}, Types, Info);
     _Else ->
       %% debug(Base),
-      throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, NS)})
+      throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, NS, Strict)})
   end;
 
 %% this corresponds with simple types. They don't have to be included in the model,
@@ -841,16 +841,19 @@ list_to_type(List) ->
 %% -record(attribute, {name, optional, type}).
 %% Attribute is a tuple {Name, SequenceNr, Optional, Type}
 translateAttribute(#attrib{name=Name, optional=Optional, type = Type, ref = undefined}, 
-                   Pos, _Info, _Count) ->
-  {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional), tp = attributeType(Type)}], undefined};
+                   Pos, #schemaInfo{strict=Strict}, _Count) ->
+  {[#att{nm = list_to_atom(Name), nr = Pos, 
+         opt = trueFalse(Optional), tp = attributeType(Type, Strict)}], undefined};
 
-translateAttribute(#attrib{ref = Ref, optional = Optional}, Pos, Info= #schemaInfo{namespaces=NS}, _Count) ->
+translateAttribute(#attrib{ref = Ref, optional = Optional}, Pos, 
+                   Info= #schemaInfo{namespaces=NS, strict=Strict}, _Count) ->
   Name = erlsom_lib:makeAttrRef(Ref, NS),
   %% debug(Info#schemaInfo.atts),
   case lists:keysearch(Name, #attrib.name, Info#schemaInfo.atts) of
     {value, #attrib{name = Name, type=Type, optional=Optional2}} ->
       Optional3 = if Optional == undefined -> Optional2; true -> Optional end,
-      {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional3), tp = attributeType(Type)}], undefined};
+      {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional3), 
+             tp = attributeType(Type, Strict)}], undefined};
     _ ->
       if 
         Name == "xml:lang" ->
@@ -881,11 +884,11 @@ translateAttribute(#attributeGroupRefType{ref=Ref}, Pos, Info = #schemaInfo{name
       throw({error, "Attribute group not found: " ++ erlsom_lib:makeAttrRef(Ref, NS)})
   end.
 
-attributeType(undefined) -> 'char';
-attributeType(#qname{uri = NS, localPart = Local}) -> 
+attributeType(undefined, _) -> 'char';
+attributeType(#qname{uri = NS, localPart = Local}, Strict) -> 
   case NS of
     "http://www.w3.org/2001/XMLSchema" ->
-      erlsom_lib:translateType(Local);
+      erlsom_lib:translateType(Local, Strict);
     _Else ->
       'char'
   end.

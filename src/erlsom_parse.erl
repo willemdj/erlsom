@@ -686,7 +686,7 @@ stateMachine(Event, State = #state{currentState = {'#PCDATA', Type, TextSoFar},
       ConvertedValue = try convertPCData(TextSoFar, Type, Namespaces, NamespaceMapping) 
       catch 
         _AnyClass:_Any ->
-          throw({error, pp("Wrong Type: ~s/~s", [TextSoFar, Type])})
+          throw({error, pp("Type mismatch: ~s/~p", [TextSoFar, Type])})
       end,
       NewCurrentState = insertValue(ConvertedValue, Head), 
       %% debugFormat("new current state: ~p~n", [NewCurrentState]),

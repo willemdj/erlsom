@@ -71,6 +71,7 @@
 %%     XSD  = string(): the XSD.
 %%     Options = [Option]
 %%     Option = {prefix, Prefix} |
+%%              {strict, boolean()} |
 %%              {include_fun, Include_fun} |
 %%              {include_dirs, Include_dirs} |
 %%              {include_files, Include_list}
@@ -101,6 +102,20 @@
 %%       It defaults to ["."].
 %%           
 %%     'Include_files' is a list of tuples {Namespace, Prefix, Location}. 
+%%
+%%      'strict' - this enforces type checking of a number of additional
+%%         types. If strict is false, the following types are checked and 
+%%         converted:
+%%         - integer - converted to and from erlang integer
+%%         - boolean - converted to an from an erlang boolean
+%%         - qname   - converted to and from a #qname{} record
+%%         All other types are treated as strings.
+%%
+%%         If strict is true (this is the default), additionally the 
+%%         following types are checked and converted:
+%%         - positiveInteger, ..TODO - all translated to integer
+%%         - float - translated to/from a float or the atoms 'NaN', 
+%%           ..TODO
 %%
 %% Behaviour for includes:
 %% 
@@ -354,7 +369,8 @@ write(Struct, Model) ->
 %%         the next invocation of EventFun.
 %%
 %%     Options - [Option]
-%%     Option - {output_encoding, Encoding} This determines the encoding of 
+%%     Option 
+%%       - {output_encoding, Encoding} This determines the encoding of 
 %%         the 'character data': element values and attribute values. The 
 %%         only supported encoding at this moment is 'utf8'. The default is
 %%         string().

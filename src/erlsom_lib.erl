@@ -27,12 +27,12 @@
 -export([convertPCData/4,
          makeName/2, makeName/4, nameWithoutPrefix/1,
          makeAttrName/2, makeTypeName/4, makeTypeName/2,
-         makeElementName/2, makeGroupName/2, makeTypeRef/2,
+         makeElementName/2, makeGroupName/2, makeTypeRef/3,
          makeTypeRefAtom/2, makeGroupRef/2, makeElementRef/2,
          makeAttrRef/2, makeTagFromRef/2,
          makeTag/2, makeTag/3,
          findPrefix/2, findPrefix2/2,
-         translateType/1,
+         translateType/2,
          minMax/1, multMinMax/2,
          tagNamespace/2,
          listLength/1,
@@ -51,6 +51,7 @@
          getUriFromQname/1,
          getTargetNamespaceFromXsd/1,
          removePrefixes/1, unique/1,
+         check_int/2,
          getNamespacesFromModel/1, getPrefixFromModel/2]).
 
 -include("erlsom_compile.hrl").
@@ -67,11 +68,20 @@
 
 
 %% Convert text to the indicated type.
-convertPCData(Text, char, _Namespaces, _NamespaceMapping) when is_binary(Text) ->
-  Text;
-convertPCData(Text, Type, Namespaces, NamespaceMapping) when is_binary(Text) ->
-  convertPCData(erlsom_ucs:decode_utf8(Text), Type, Namespaces, NamespaceMapping);
 convertPCData(Text, Type, Namespaces, NamespaceMapping) ->
+  try 
+    convertPCData2(Text, Type, Namespaces, NamespaceMapping)
+  catch
+    _:_ ->
+      throw({error, 
+             lists:flatten(io_lib:format("Invalid value for type ~p : ~p", [Type, Text]))})
+  end.
+
+convertPCData2(Text, char, _Namespaces, _NamespaceMapping) when is_binary(Text) ->
+  Text;
+convertPCData2(Text, Type, Namespaces, NamespaceMapping) when is_binary(Text) ->
+  convertPCData2(erlsom_ucs:decode_utf8(Text), Type, Namespaces, NamespaceMapping);
+convertPCData2(Text, Type, Namespaces, NamespaceMapping) ->
   case Type of
     char ->
       Text;
@@ -97,7 +107,7 @@ convertPCData(Text, Type, Namespaces, NamespaceMapping) ->
         _ -> throw({error, "invalid value for boolean: " ++ Text})
       end;
     float ->
-      list_to_float(Text);
+      xml_to_float(Text);
     qname ->
       %% qname has form prefix:localname (or, if there is no prefix: localname)
       %% split the two parts, look up the prefix to find the uri, and put it into 
@@ -108,7 +118,8 @@ convertPCData(Text, Type, Namespaces, NamespaceMapping) ->
           %% this is namespace qualified - now see whether a mapping applies
           case lists:keysearch(URI, 2, NamespaceMapping) of
             {value, #ns{prefix = MappedPrefix}}  ->
-              #qname{localPart = LocalName, uri = URI, prefix = Prefix, mappedPrefix = MappedPrefix};
+              #qname{localPart = LocalName, uri = URI, prefix = Prefix, 
+                     mappedPrefix = MappedPrefix};
             _Else ->
               #qname{localPart = LocalName, uri = URI, prefix = Prefix, mappedPrefix = Prefix}
           end;
@@ -120,10 +131,41 @@ convertPCData(Text, Type, Namespaces, NamespaceMapping) ->
               #qname{localPart = LocalName, uri = "http://www.w3.org/XML/1998/namespace", 
                      prefix = Prefix, mappedPrefix = Prefix};
             true ->
-              throw({error, "Invalid Qname: " ++ Text})
+              throw({error, invalid})
+          end
+      end;
+    {integer, _} ->
+      convert_integer(Type, Text)
+  end.
+
+
+xml_to_float("NaN") ->
+  'NaN';
+xml_to_float("INF") ->
+  'INF';
+xml_to_float("+INF") ->
+  'INF';
+xml_to_float("-INF") ->
+  '-INF';
+xml_to_float(Float) ->
+  try 
+    list_to_float(Float)
+  catch
+    %% "10" is a problem
+    error:badarg ->
+      try 
+        list_to_integer(Float) * 1.0
+      catch
+        %% "10E3" is also a problem
+        error:badarg ->
+          case string:tokens(Float, "Ee") of
+            [Mantissa, Exponent] ->
+              list_to_integer(Mantissa) * 
+                math:pow(10, list_to_integer(Exponent))
           end
       end
   end.
+
 
 %% Tree is a data structure used to find out the relations between types.
 %% It is actually a forest, in the sense that there doesn't have to be 
@@ -234,7 +276,8 @@ nameWithoutPrefix([Char | Tail], Acc) ->
 nameWithoutPrefix([], Acc) ->
   lists:reverse(Acc).
 
-translateType(String) ->
+%% 'strict' == false
+translateType(String, false) ->
   case String of
     "integer" ->
        'integer';
@@ -245,6 +288,46 @@ translateType(String) ->
     "boolean" ->
        'bool';
     _Else ->
+       'char' 
+  end;
+%% strict == true
+translateType(String, true) ->
+  case String of
+    "integer" ->
+       integer;
+    "long" ->               % -9223372036854775807 =<  X =< 9223372036854775808 
+       {integer, long};
+    "int" ->                % -2147483648 =<  X =< 2147483647  
+       {integer, int}; 
+    "short" ->              % -32768 =< X =< 32767
+       {integer, short};
+    "byte" ->
+       {integer, byte};                % -128 =< X =< 127
+    "QName" ->
+       qname;
+    "boolean" ->
+       bool;
+    "nonNegativeInteger" -> % X >= 0
+      {integer, nonNegativeInteger};
+    "positiveInteger" ->    % X > 0
+      {integer, positiveInteger};
+    "unsignedLong" ->       % 0 =< X =< 18446744073709551615
+      {integer, unsignedLong};
+    "unsignedInt" ->        % 0 =< X =<  4294967295
+      {integer, unsignedInt};
+    "unsignedShort" ->      % 0 =< X =<  65535
+      {integer, unsignedShort};
+    "unsignedByte" ->       % 0 =< X =<  255
+      {integer, unsignedByte};
+    "nonPositiveInteger" -> % X =< 0
+      {integer, nonPositiveInteger};
+    "negativeInteger" ->    % X < 0
+      {integer, negativeInteger};
+    "float" ->
+      float;
+    % TODO: add things like PositiveInteger here
+    _Else ->
+      io:format("Else: ~p~n", [_Else]),
        'char' 
   end.
 
@@ -367,13 +450,14 @@ makeName(NameInXsd, #schemaInfo{targetNamespace=TNS, namespaces=NS, path=Path}) 
       end
   end.
 
-
 %% -record(schemaInfo, {targetNamespace, elementFormDefault, namespacePrefix, namespaces}).
 makeAttrName(NameInXsd, _Info) ->
   NameInXsd.
 
 makeTypeRefAtom(Qname, Namespaces) ->
-  TypeRef = makeTypeRef(Qname, Namespaces),
+  %% This is only used when building the type-hierarchy. In that 
+  %% context 'strict' is not relevant (so we can simply put 'false').
+  TypeRef = makeTypeRef(Qname, Namespaces, false),
   case TypeRef of
     {_, _} -> TypeRef;
     _ -> list_to_atom(TypeRef)
@@ -391,18 +475,18 @@ makeTypeRefAtom(Qname, Namespaces) ->
 %% The 'type-prefix' is taken from a proces-variable (not very nice, sorry).
 
 %% TODO: should return an atom (or {'PCDATA', ...})?
-makeTypeRef(undefined, _) ->
+makeTypeRef(undefined, _, _) ->
   %% the 'ur-type': any type (and any attibute).
    {'#PCDATA', 'char'};
   
-makeTypeRef(Qname = #qname{uri = NS, localPart = Local}, Namespaces) ->
+makeTypeRef(Qname = #qname{uri = NS, localPart = Local}, Namespaces, Strict) ->
   TypePrefix = case get(erlsom_typePrefix) of
                  undefined -> "";
                  Value -> Value
                end,
   case NS of
     "http://www.w3.org/2001/XMLSchema" ->
-      {'#PCDATA', translateType(Local)};
+      {'#PCDATA', translateType(Local, Strict)};
     _Else ->
       makeRef(Qname, Namespaces, TypePrefix)
   end.
@@ -1104,6 +1188,38 @@ xmlString(String) when is_list(String) ->
 xmlString(String) when is_binary(String) ->
   {String2, []} = erlsom_ucs:from_utf8(String),
   xmlString(String2).
+
+convert_integer({_, Subtype}, Value) ->
+  check_int(Subtype, list_to_integer(Value)).
+
+check_int(nonNegativeInteger, V)
+  when V >= 0 -> V;
+check_int(negativeInteger,V)
+  when V < 0 -> V;
+check_int(positiveInteger,V)
+  when V > 0 -> V;
+check_int(unsignedLong,V)
+  when V >= 0, V =< 18446744073709551615 -> V;
+check_int(unsignedInt,V)
+  when V >= 0, V =< 4294967295 -> V;
+check_int(unsignedShort,V)
+  when V >= 0, V =< 65535 -> V;
+check_int(unsignedByte,V)
+  when V >= 0, V =< 255 -> V;
+check_int(unsignedLong,V)
+  when V >= 0, V =< 18446744073709551615 -> V;
+check_int(nonPositiveInteger,V)
+  when V =< 0 -> V;
+check_int(negativeInteger,V)
+  when V < 0 -> V;
+check_int(long,V)
+  when V >= -9223372036854775807, V =< 9223372036854775808-> V;
+check_int(int,V)
+  when V >= -2147483648, V =< 2147483647 -> V;
+check_int(short,V)
+  when V >= -32768, V =< 32767 -> V;
+check_int(byte,V)
+  when V >= -128, V =< 255 -> V.
 
 escapeChar(38) -> "&amp;";
 escapeChar(34) -> "&quot;";
