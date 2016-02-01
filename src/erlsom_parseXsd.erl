@@ -600,7 +600,7 @@ xsdModel(Namespaces) ->
 	     atts = [#att{nm = ref, nr = 3, opt = true, tp = qname}, 
 	             #att{nm = id, nr = 4, opt = true, tp = char}],
              nr = 3}], 
-       nss = [#ns{prefix = "xsd", uri = "http://www.w3.org/2001/XMLSchema"} | Namespaces],
+       nss = [#ns{prefix = "xsd", uri = "http://www.w3.org/2001/XMLSchema", efd = qualified} | Namespaces],
        th = [],
        any_attribs = true,
        value_fun = fun(Value, _Acc) -> {Value, Value} end}.

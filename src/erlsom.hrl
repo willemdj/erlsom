@@ -23,5 +23,8 @@
 %%% ====================================================================
 
 %% prefix=the prefix that will be used in the result
--record(ns, {uri, prefix}).
+-record(ns, {uri, 
+             prefix, 
+             efd :: qualified | unqualified % elementFormDefault
+            }).
 -record(qname, {uri, localPart, prefix, mappedPrefix}).

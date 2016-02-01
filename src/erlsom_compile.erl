@@ -169,13 +169,13 @@ compile_internal(Xsd, Options, Parsed) ->
                 end,
   IncludeFiles = case lists:keysearch('include_files', 1, Options) of
                    {value, {_, Files}} -> Files;
-                   _ -> Namespaces %% the two options are mutually exclusive
+                   _ -> []
                  end,
 
   Strict = proplists:get_value(strict, Options, true),
   %% the 'already_imported' option is necessary in case the imports
   %% are in separate XSDs that refer to each other. This happens 
-  %% for example in the Salesforce WSDL.
+  %% for example in the Salesforce WSDL (in a circular way).
   %% Since we still need to know the prefix, this is a list
   %% [{Uri, Prefix}].
   AlreadyImported = proplists:get_value('already_imported', Options, []),
@@ -184,7 +184,7 @@ compile_internal(Xsd, Options, Parsed) ->
   put(erlsom_elementPrefix, ElementPrefix),
   %% first we translate to an intermediate format, in a final pass we will add
   %% things like sequence numbers and element counts.
-  Ns = [#ns{prefix="xsd", uri="http://www.w3.org/2001/XMLSchema"} | Namespaces],
+  Ns = [#ns{prefix="xsd", uri="http://www.w3.org/2001/XMLSchema", efd = qualified} | Namespaces],
   ParsingResult = case Parsed of
                     false -> erlsom_parseXsd:parseXsd(Xsd, Ns);
                     _ -> Xsd
@@ -205,8 +205,8 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces) ->
 
 compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, IncludeFiles,
                   IncludeAnyAttribs, ValueFun, AlreadyImported, Strict) ->
-  %% InfoRecord will contain some information required along the way
   TargetNs = ParsedXsd#schemaType.targetNamespace,
+  Efd = map_efd(ParsedXsd#schemaType.elementFormDefault),
   case Prefix of
     undefined -> 
       Pf1 = "",
@@ -223,18 +223,20 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
       case lists:keyfind(TargetNs, #ns.uri, Namespaces) of
         false ->
           Nsp = Pf1,
-          Nss = [#ns{prefix = Pf2, uri = TargetNs} | Namespaces];
-        #ns{prefix = Pf} ->
+          Nss = [#ns{prefix = Pf2, uri = TargetNs, efd = Efd} | Namespaces];
+        #ns{prefix = Pf} = KnownNs ->
           case Pf of 
             undefined -> Nsp = "";
             _ -> Nsp = Pf ++ ":"
           end,
-          Nss = Namespaces 
+          Nss = lists:keystore(TargetNs, #ns.uri, Namespaces,  KnownNs#ns{efd = Efd})
       end
   end,
   ImportedNs = [Uri || {Uri, _} <- AlreadyImported],
+  %% Here we are introducing #ns{} records with no value for efd. They 
+  %% will be removed later on... (clean_up fucntion, see below).
   ImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P} <- AlreadyImported],
-  ToBeImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P, _} <- IncludeFiles],
+  %ToBeImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P, _} <- IncludeFiles],
   Acc = #p1acc{tns = TargetNs,
                includeFun = IncludeFun,
                includeDirs = IncludeDirs,
@@ -243,7 +245,7 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
 	       efd = ParsedXsd#schemaType.elementFormDefault, 
 	       afd = ParsedXsd#schemaType.attributeFormDefault, 
 	       nsp = Nsp,
-	       nss = Nss ++ ToBeImportedNsMapping ++ ImportedNsMapping,
+	       nss = Nss ++ ImportedNsMapping, %  ++ ToBeImportedNsMapping
                imported = ImportedNs},
   case catch transform(ParsedXsd, Acc) of
     {error, Message} -> {error, Message};
@@ -251,7 +253,7 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
     IntermediateResult -> 
       case catch erlsom_pass2:secondPass(IntermediateResult#p1acc.tps,
 					 #schemaInfo{targetNamespace = IntermediateResult#p1acc.tns,
-						     namespaces = IntermediateResult#p1acc.nss,
+						     namespaces = clean_up(IntermediateResult#p1acc.nss),
 						     atts = IntermediateResult#p1acc.atts,
 						     attGrps = IntermediateResult#p1acc.attGrps,
                                                      strict = Strict,
@@ -262,6 +264,11 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
 	 FinalResult -> {ok, FinalResult}
       end
   end.
+
+clean_up(Namespaces) ->
+  %% filter out namespace records that do not heva efd set. 
+  [Ns || #ns{efd = Efd} = Ns <- Namespaces, Efd /= undefined].
+
 
 %% -record(schemaType, {targetNamespace, elementFormDefault, elements}).
 transform(#schemaType{elements=Elements, imports=Impts}, 
@@ -435,8 +442,18 @@ combineInfo(#schemaType{targetNamespace=Tns, elementFormDefault=Efd,
              nss = if 
                       Tns == undefined -> Namespaces;
                       true -> 
-                        [#ns{prefix=Prefix, uri=Tns} | Namespaces]
+                        set_efd(Namespaces, Tns, map_efd(Efd), Prefix)
                    end}.
+
+%% set the efd element (elementFormDefault)
+%% This is messy - the point is not to overwrite the Prefix if it exists.
+set_efd(Namespaces, Uri, Efd, Prefix) ->
+  case lists:keyfind(Uri, #ns.uri, Namespaces) of
+    #ns{} = Record ->
+      lists:keyreplace(Uri, #ns.uri, Namespaces, Record#ns{efd = Efd});
+    false ->
+      lists:keystore(Uri, #ns.uri, Namespaces,  #ns{prefix=Prefix, uri=Uri, efd = Efd})
+  end.
 
 %% globalElementType
 %% -record(globalElementType, {name, type, simpleOrComplex}).
@@ -932,3 +949,7 @@ translateNs({Uri, Prefix}) ->
   #ns{uri = Uri, prefix = Prefix};
 translateNs(#ns{} = X) ->
   X.
+
+map_efd(undefined) -> unqualified;
+map_efd("unqualified") -> unqualified;
+map_efd("qualified") -> qualified.
