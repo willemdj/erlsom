@@ -14,8 +14,10 @@
 
 run() ->
   %% compile xsd
-  {ok, ModelIn} = erlsom:compile_xsd_file(example_in_xsd(), [{prefix, "in"}]),
-  {ok, ModelOut} = erlsom:compile_xsd_file(example_out_xsd(),[{prefix, "out"}]),
+  {ok, ModelIn} = erlsom:compile_xsd_file(example_in_xsd(), [{prefix, "in"},
+                                                             {strict, false}]),
+  {ok, ModelOut} = erlsom:compile_xsd_file(example_out_xsd(),[{prefix, "out"},
+                                                              {strict, false}]),
 
   %% parse xml
   {ok, Input, _} = erlsom:scan_file(example_in_xml(), ModelIn),

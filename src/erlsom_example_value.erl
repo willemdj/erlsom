@@ -307,8 +307,36 @@ default_value(bool, _, _) ->
   "true";
 default_value(any, _, _) ->
   "undefined";
+default_value(qname, _, _) ->
+  "qname";
 default_value(integer, _, _) ->
   "42";
+default_value({integer, long}, _, _) ->
+  "42000";
+default_value({integer, int}, _, _) ->
+  "4200";
+default_value({integer, short}, _, _) ->
+  "420";
+default_value({integer, byte}, _, _) ->
+  "42";
+default_value({integer, unsignedLong}, _, _) ->
+  "43000";
+default_value({integer, unsignedInt}, _, _) ->
+  "4300";
+default_value({integer, unsignedShort}, _, _) ->
+  "430";
+default_value({integer, unsignedByte}, _, _) ->
+  "43";
+default_value({integer, nonPositiveInteger}, _, _) ->
+  "0";
+default_value({integer, positiveInteger}, _, _) ->
+  "42";
+default_value({integer, negativeInteger}, _, _) ->
+  "-42";
+default_value({integer, nonNegativeInteger}, _, _) ->
+  "0";
+default_value(float, _, _) ->
+  "3.1415927";
 default_value(char, _, _) ->
   "\"?\"";
 default_value(Type, Model, State) ->

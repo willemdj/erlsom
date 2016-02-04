@@ -72,7 +72,7 @@
    afd,            %% attribute form default
    nsp,            %% namespacePrefix
    nss,            %% namespaces ([#namespace{}])
-   strict = true :: boolean(), %% additional type checking/conversion
+   strict :: boolean(), %% additional type checking/conversion
    includeFun,     %% function to find included XSDs
    includeDirs,    %% directories to look for XSDs
    includeFiles,   %% tuples {Namespace, Prefix, Location}
@@ -172,7 +172,7 @@ compile_internal(Xsd, Options, Parsed) ->
                    _ -> []
                  end,
 
-  Strict = proplists:get_value(strict, Options, true),
+  Strict = proplists:get_value(strict, Options, false),
   %% the 'already_imported' option is necessary in case the imports
   %% are in separate XSDs that refer to each other. This happens 
   %% for example in the Salesforce WSDL (in a circular way).
@@ -363,7 +363,8 @@ processImports([Impt = #includeType{} | Tail], Acc = #p1acc{includeDirs = Dirs,
   processImports(Tail, Acc4);
 processImports([#redefineType{schemaLocation = Location,
                                      elements = Redefines} | Tail], 
-               Acc = #p1acc{includeDirs = Dirs, includeFun = InclFun, nsp = Prefix, nss = Namespaces}) ->
+               Acc = #p1acc{includeDirs = Dirs, includeFun = InclFun, nsp = Prefix, 
+                            nss = Namespaces, strict = Strict}) ->
   {Xsd, _Prefix} = InclFun(undefined,
                           Location,
 			  [],
@@ -375,7 +376,7 @@ processImports([#redefineType{schemaLocation = Location,
   Acc3 = (#p1acc{tps = ImportedTypes} = transform(ParsedGrammar, Acc2)),
   #p1acc{tps = TypesToRedefine} = transformTypes(Redefines, Acc2),
   %% TODO : deal with attribute groups
-  Types2 = replaceElements(ImportedTypes, ImportedTypes, TypesToRedefine, Namespaces),
+  Types2 = replaceElements(ImportedTypes, ImportedTypes, TypesToRedefine, Namespaces, Strict),
   Acc4 = Acc#p1acc{tps = Acc#p1acc.tps ++ Types2,
                    nsp = Prefix,
                    seqCnt = Acc#p1acc.seqCnt,
@@ -384,18 +385,18 @@ processImports([#redefineType{schemaLocation = Location,
   %% debugTypes(Acc4#p1acc.tps),
   processImports(Tail, Acc4).
 
-replaceElements(ImportedTypes, Types, TypesToRedefine, Namespaces) ->
+replaceElements(ImportedTypes, Types, TypesToRedefine, Namespaces, Strict) ->
   %% returns the imported types with redefinitions applied
-  replaceElements(ImportedTypes, Types, TypesToRedefine, [], Namespaces).
+  replaceElements(ImportedTypes, Types, TypesToRedefine, [], Namespaces, Strict).
 
-replaceElements(_ImportedTypes, [], _Elements, Acc, _Namespaces) ->
+replaceElements(_ImportedTypes, [], _Elements, Acc, _Namespaces, _Strict) ->
   Acc;
 replaceElements(ImportedTypes, [Original = #typeInfo{typeName= Name, typeType = TypeT} | Tail], 
-                TypesToRedefine, #p1acc{strict=Strict} = Acc, Namespaces)
+                TypesToRedefine, Acc, Namespaces, Strict)
   when TypeT /= globalElementRefOnly ->
   case lists:keysearch(Name, #typeInfo.typeName, TypesToRedefine) of
     {value, RedefinedType = #typeInfo{extends = undefined}} -> 
-      replaceElements(ImportedTypes, Tail, TypesToRedefine, [RedefinedType | Acc], Namespaces);
+      replaceElements(ImportedTypes, Tail, TypesToRedefine, [RedefinedType | Acc], Namespaces, Strict);
     {value, Redefined = #typeInfo{base = Base, anyAttr = AnyAttr, elements = Elemts, attributes = Attrs}} -> 
       RedefinedType = 
         case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, Namespaces, Strict), ImportedTypes) of
@@ -410,13 +411,13 @@ replaceElements(ImportedTypes, [Original = #typeInfo{typeName= Name, typeType = 
           _Else ->
             throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, Namespaces, Strict)})
         end,
-      replaceElements(ImportedTypes, Tail, TypesToRedefine, [RedefinedType | Acc], Namespaces);
+      replaceElements(ImportedTypes, Tail, TypesToRedefine, [RedefinedType | Acc], Namespaces, Strict);
     _ ->
-      replaceElements(ImportedTypes, Tail, TypesToRedefine, [Original | Acc], Namespaces)
+      replaceElements(ImportedTypes, Tail, TypesToRedefine, [Original | Acc], Namespaces, Strict)
   end;
 replaceElements(ImportedTypes, [Original = #typeInfo{} | Tail], 
-                TypesToRedefine, Acc, Namespaces) ->
-  replaceElements(ImportedTypes, Tail, TypesToRedefine, [Original | Acc], Namespaces).
+                TypesToRedefine, Acc, Namespaces, Strict) ->
+  replaceElements(ImportedTypes, Tail, TypesToRedefine, [Original | Acc], Namespaces, Strict).
     
 %% Deals with targetNamespace and 'elementFormDefault' setting. 
 %% information from this schema is combined with info from a potential 'parent' XSD. 

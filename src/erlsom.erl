@@ -111,7 +111,7 @@
 %%         - qname   - converted to and from a #qname{} record
 %%         All other types are treated as strings.
 %%
-%%         If strict is true (this is the default), additionally the 
+%%         If strict is true, additionally the 
 %%         following types are checked and converted:
 %%         - positiveInteger, ..TODO - all translated to integer
 %%         - float - translated to/from a float or the atoms 'NaN', 

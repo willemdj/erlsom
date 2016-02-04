@@ -753,7 +753,7 @@ printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces, QnameN
        %% new declared namespaces (since those would apply only to child-elements, of 
        %% which there are none)
        {NamespacesString, _, Extra_prefix} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces),
-       [$<, Extra_prefix, TagAsText, NamespacesString, QnameNs, $>,  TextValue, "</", TagAsText, $>];
+       [$<, Extra_prefix, TagAsText, NamespacesString, QnameNs, $>,  TextValue, "</", Extra_prefix, TagAsText, $>];
     true -> 
        TextValue
   end.

@@ -328,7 +328,6 @@ translateType(String, true) ->
       float;
     % TODO: add things like PositiveInteger here
     _Else ->
-      io:format("Else: ~p~n", [_Else]),
        'char' 
   end.
 
@@ -1205,7 +1204,7 @@ xmlString(String) when is_binary(String) ->
   xmlString(String2).
 
 convert_integer({_, Subtype}, Value) ->
-  check_int(Subtype, list_to_integer(Value)).
+  check_int(Subtype, list_to_integer(string:strip(Value))).
 
 check_int(nonNegativeInteger, V)
   when V >= 0 -> V;

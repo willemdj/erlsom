@@ -43,6 +43,7 @@ xsdModel(Namespaces) ->
        #type{nm  = '_document',
 	     els = [#el{alts = [#alt{tag = 'xsd:schema', tp = 'schemaType'}, 
                                 #alt{tag = 'xsd:element', tp = 'globalElementType'},
+                                #alt{tag = 'xsd:import', tp = 'importType'},
                                 #alt{tag = 'xsd:complexType', tp = 'globalComplexTypeType'},
                                 #alt{tag = 'xsd:simpleType', tp = 'globalSimpleTypeType'},
                                 #alt{tag = 'xsd:attribute', tp = 'globalAttributeType'},

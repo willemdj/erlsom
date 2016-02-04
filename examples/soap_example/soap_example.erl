@@ -67,9 +67,9 @@ compileXSDs() ->
   EnvelopeXsd = filename:join([codeDir(), "soap-envelope.xsd"]),
   BodyXsd = filename:join([codeDir(), "example_in.xsd"]),
   ResultXsd = filename:join([codeDir(), "example_out.xsd"]),
-  {ok, SoapModel} = erlsom:compile_xsd_file(EnvelopeXsd, [{prefix, "sp"}]),
-  {ok, ModelIn} = erlsom:add_xsd_file(BodyXsd, [{prefix, "in"}], SoapModel),
-  {ok, ModelOut} = erlsom:add_xsd_file(ResultXsd, [{prefix, "out"}], SoapModel),
+  {ok, SoapModel} = erlsom:compile_xsd_file(EnvelopeXsd, [{prefix, "sp"}, {strict, false}]),
+  {ok, ModelIn} = erlsom:add_xsd_file(BodyXsd, [{prefix, "in"}, {strict, false}], SoapModel),
+  {ok, ModelOut} = erlsom:add_xsd_file(ResultXsd, [{prefix, "out"}, {strict, false}], SoapModel),
   {ModelIn, ModelOut}.
 
 calcAverage(List, Precision) ->
