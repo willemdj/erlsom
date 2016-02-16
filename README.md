@@ -75,7 +75,7 @@ This document is stored in a file called "minimal.xml", and read into a
 variable called Xml by the following commands in the shell:
 
 ```
-1> {ok, Xml} = file:read\_file("minimal.xml").
+1> {ok, Xml} = file:read_file("minimal.xml").
 {ok,<<"<foo attr=\"baz\"><bar>x</bar><bar>y</bar></foo>\r\n">>}
 ``` 
 
@@ -126,7 +126,7 @@ The next example does something slightly more meaningful: it counts the number o
 {ok,2,"\r\n"}
 ```
 
-To describe it in a rather formal way: `parse\_sax(Xml, Acc0, Fun)` calls Fun(Event, AccIn) on successive ‘XML events’ that result from parsing Xml, starting with AccIn == Acc0. Fun/2 must return a new accumulator which is passed to the next call. The function returns {ok, AccOut, Tail}, where AccOut is the final value of the accumulator and Tail the list of characters that follow after the last tag of the XML document. In this example AccOut == 2, since the tag occurs twice.
+To describe it in a rather formal way: `parse_sax(Xml, Acc0, Fun)` calls Fun(Event, AccIn) on successive ‘XML events’ that result from parsing Xml, starting with AccIn == Acc0. Fun/2 must return a new accumulator which is passed to the next call. The function returns {ok, AccOut, Tail}, where AccOut is the final value of the accumulator and Tail the list of characters that follow after the last tag of the XML document. In this example AccOut == 2, since the tag occurs twice.
 (Notice how similar this is to lists:foldl(Fun, Acc0, Sax\_events), assuming that Sax\_events is the list of Sax events - I more or less copied this description from the documentation of the lists module.)
 
 It may still not be very clear to you how this SAX parser can be used to produce useful results. There are some additional examples in the examples directory of the Erlsom distribution. If you are still not convinced you can try to decipher the source code for the ‘data binder’ mode (erlsom_parse.erl) - this was also built on top of the SAX parser.
@@ -416,8 +416,26 @@ As can be seen from the example:
    ‘anyAttributes’, and if these are present in the XML document, then the 
    values will be found here (as a list of attribute-value pairs). Note 
    that this can be avoided by passing the option {include_any_attribs, 
-   false} erlsom:compile_xsd_file: in that case the ‘anyAttribs’ element 
+   false} to erlsom:compile_xsd_file: in that case the ‘anyAttribs’ element 
    will not be there.
+ 
+It should be noted that there is quite a bit of information in po.xsd that is not used by erlsom:
+ 
+-  Only in a limited number of situations does erlsom do type checking and 
+   translation: only if an element is defined as integer, int, boolean or QName 
+   without any further restrictions or extensions. The ‘quantity’ element doesn’t 
+   meet these conditions, since (a) it is a positiveInteger, and (b) it is 
+   restricted. A value for the quantity element of Ten or -1 would not result in 
+   an error or warning, and the string value is not translated to an Erlang 
+   integer. This also applies for the user defined simpleTypes, like SKU in the 
+   example.
+
+   Note that this  behaviour can be modified by passing the option `{strict,
+   true}` to erlsom:compile_xsd_file: in that case more types will be
+   checked and mapped to Erlang types, for example `float` and `long`. This
+   also applies to `positiveInteger`, but since the limitation that this
+   only works for types without restrictions or extensions still holds, it would not
+   make any difference for the value of ‘quantity’.
  
 It should be noted that there is quite a bit of information in po.xsd that is not used by erlsom:
  
@@ -589,7 +607,7 @@ The easiest way to install Erlsom is probably to use rebar.
  
 Klacke (Claes Wickstrom) has provided a makefile. This should enable Unix users to install Erlsom easily. 
  
-Anyway,  even for Windows users and without rebar, installing erlsom should be straightforward. One way to do it would is described below.
+Anyway,  even for Windows users and without rebar, installing erlsom should be straightforward. One way to do it is described below.
  
 - Put all the files into the directory `ROOT/lib/erlsom-1.2.1/src`, where ROOT 
   is the directory that contains Erlang (C:\Program Files\erl5.6.1 on my Windows system).
@@ -700,6 +718,12 @@ Some checks/validity constraints are accepted in the XSD, but not enforced durin
   types (float, positiveInteger, gYear etc), and also to types that are 
   restricted (using 'facets') or extended (for example 'union' types). The only 
   exceptions are Integer, Boolean and QName, these are translated.
+
+  If the option `{strict, true}` is used when compiling the XSD, a number
+  of additional types will be translated (and checked): Float, Double and
+  all types that are derived from the Integer type, such as
+  positiveInteger, nonNegativeInteger, Long, unsignedLong etc.
+
 - Key, Unique etc. are not supported - if these elements occur in the XSD, they 
   are simply ignored.
  
@@ -718,7 +742,7 @@ The data binder has the following additional limitation:
 <table width="100%" border="1" cellspacing="0" cellpadding="2">
 <tr><td valign="top">All</td><td>Supported. The parser puts the elements into the resulting record in a fixed place (independent of the order in which they are received).</td></tr>
 <tr><td valign="top">Annotation</td><td>Ignored (anything enclosed in <documentation></documentation> is ignored).</td></tr>
-<tr><td valign="top">Any</td><td>Supported. However, only elements that are included in the model will show up in the result. Elements are part of the model if they are included in the XSD that was compiled, or if they have been added using erlsom:add\_file().</td></tr>
+<tr><td valign="top">Any</td><td>Supported. However, only elements that are included in the model will show up in the result. Elements are part of the model if they are included in the XSD that was compiled, or if they have been added using erlsom:add_file().</td></tr>
 <tr><td valign="top">anyAttribute</td><td>Supported</td></tr>
 <tr><td valign="top">Appinfo</td><td>Ignored (anything enclosed in <documentation></documentation> is ignored. </td></tr>
 <tr><td valign="top">Attribute</td><td>Supported</td></tr>
@@ -732,8 +756,8 @@ The data binder has the following additional limitation:
 <tr><td valign="top">Extension</td><td>Supported</td></tr>
 <tr><td valign="top">Field</td><td>Ignored (anything enclosed in <code><unique></unique></code> is ignored).</td></tr>
 <tr><td valign="top">Group</td><td>Supported.</td></tr>
-<tr><td valign="top">Import</td><td>Supported. However, the support for finding the imported files is limited. See (and modify, if necessary...) the function findFile in erlsom\_lib.erl. </td></tr>
-<tr><td valign="top">Include</td><td>Supported. However, the support for finding the included files is limited. See (and modify, if necessary...) the function findFile in erlsom\_lib.erl.</td></tr>
+<tr><td valign="top">Import</td><td>Supported. However, the support for finding the imported files is limited. See (and modify, if necessary...) the function findFile in erlsom_lib.erl. </td></tr>
+<tr><td valign="top">Include</td><td>Supported. However, the support for finding the included files is limited. See (and modify, if necessary...) the function findFile in erlsom_lib.erl.</td></tr>
 <tr><td valign="top">Key</td><td>Ignored.</td></tr>
 <tr><td valign="top">Keyref</td><td>Ignored</td></tr>
 <tr><td valign="top">Length</td><td>Ignored (all restrictions on simple types are ignored - those types are treated as ‘string’)</td></tr>
@@ -743,7 +767,7 @@ The data binder has the following additional limitation:
 <tr><td valign="top">minInclusive</td><td>(see maxInclusive) </td></tr>
 <tr><td valign="top">minLength</td><td>(see maxInclusive) </td></tr>
 <tr><td valign="top">Pattern</td><td>(see maxInclusive) </td></tr>
-<tr><td valign="top">Redefine</td><td>Supported. However, the support for finding the imported files is limited. See (and modify, if necessary...) the function findFile in erlsom\_lib.erl.</td></tr>
+<tr><td valign="top">Redefine</td><td>Supported. However, the support for finding the imported files is limited. See (and modify, if necessary...) the function findFile in erlsom_lib.erl.</td></tr>
 <tr><td valign="top">Restriction</td><td>Supported as a way to create a derived complex type (but it is not checked whether this is really a restriction of the base type). Ignored on simpleTypes (all restrictions on simple types are ignored - those types are treated as ‘string’)</td></tr>
 <tr><td valign="top">Schema</td><td>Supported</td></tr>
 <tr><td valign="top">Selector</td><td>Ignored (anything enclosed in <code><unique></unique></code> is ignored).</td></tr>
