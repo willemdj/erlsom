@@ -858,6 +858,8 @@ translateAttribute(#attrib{ref = Ref, optional = Optional}, Pos,
       if 
         Name == "xml:lang" ->
           {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional), tp = 'char'}], undefined};
+        Name == "xml:base" ->
+          {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional), tp = 'char'}], undefined};
         true ->
           throw({error, "Attribute not found: " ++ erlsom_lib:makeAttrRef(Ref, NS)})
       end

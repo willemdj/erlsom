@@ -318,13 +318,13 @@ processAlternativeValue(Value, Count,
           false -> {AnyAttributesString, DeclaredNamespaces2};
           _ -> 
             XsiType = " xsi:type=\"" ++ atom_to_list(Name) ++ "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", 
-            {AnyAttributesString ++ XsiType, DeclaredNamespaces2}
+            {[AnyAttributesString, XsiType], DeclaredNamespaces2}
      end,
 
       %% deal with namespaces (that is, see if they have to be declared here)
       {NamespacesString, NewDeclaredNamespaces4, Extra_prefix} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces3),
       ResultForThisElement = struct2xml(Value, Elements, [], Model, NewDeclaredNamespaces4, Mixed),
-      AllAttrs = NamespacesString ++ AttributesString ++ AnyAttrPlusXsiTypeString,
+      AllAttrs = [NamespacesString, AttributesString, AnyAttrPlusXsiTypeString,
       printTag([Extra_prefix, TagAsText], AllAttrs, ResultForThisElement);
     true -> 
       struct2xml(Value, Elements, [], Model, DeclaredNamespaces, Mixed)
@@ -355,7 +355,7 @@ findAlternative(RecordType, Alternatives, #model{th = TypeHierarchy} = Model, Ab
         %% see whether this is an '#any' type
         case Alternatives of
           [#alt{tag='#any', anyInfo = #anyInfo{ns = AltNs}}] when AltNs /= "##other" ->
-            AnyAlternatives = Alternatives ++ erlsom_lib:documentAlternatives(Model),
+            AnyAlternatives = [Alternatives, erlsom_lib:documentAlternatives(Model)],
             findAlternative(RecordType, AnyAlternatives, Model, Abstract);
           _ ->
             %% see whether an ancestor in the type hierarchy is among the alternatives

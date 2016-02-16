@@ -38,6 +38,7 @@
          listLength/1,
          prettyPrint/1,
          xmlString/1,
+         strip/1,
          toUnicode/1, detect_encoding/1, detectEncoding/3,
          findFile/4, find_xsd/4, findType/6,
          readImportFile/1,
@@ -108,7 +109,7 @@ convertPCData2(Text, Type, Namespaces, NamespaceMapping) ->
         _ -> throw({error, "invalid value for boolean: " ++ Text})
       end;
     float ->
-      xml_to_float(Text);
+      xml_to_float(strip(Text));
     qname ->
       %% qname has form prefix:localname (or, if there is no prefix: localname)
       %% split the two parts, look up the prefix to find the uri, and put it into 
@@ -326,7 +327,10 @@ translateType(String, true) ->
       {integer, negativeInteger};
     "float" ->
       float;
-    % TODO: add things like PositiveInteger here
+    % no disctinction between double and float - both are mapped to 
+    % erlang float, no chcecks on size will be performed
+    "double" ->  
+      float;
     _Else ->
        'char' 
   end.
@@ -531,6 +535,8 @@ makeRef(#qname{uri = NS, localPart = Local}, Namespaces, ExtraPrefix) ->
             %% weird cases
             {"http://www.w3.org/XML/1998/namespace", "lang"} -> "xml:lang";
             {"http://www.w3.org/XML/1998/namespace", "space"} -> "xml:space";
+            {"http://www.w3.org/XML/1998/namespace", "base"} -> "xml:base";
+            {"http://www.w3.org/XML/1998/namespace", "id"} -> "xml:id";
             _ -> 
               throw({error, "Namespace not found " ++ NS})
           end
@@ -1204,7 +1210,7 @@ xmlString(String) when is_binary(String) ->
   xmlString(String2).
 
 convert_integer({_, Subtype}, Value) ->
-  check_int(Subtype, list_to_integer(string:strip(Value))).
+  check_int(Subtype, list_to_integer(strip(Value))).
 
 check_int(nonNegativeInteger, V)
   when V >= 0 -> V;
@@ -1239,3 +1245,18 @@ escapeChar(38) -> "&amp;";
 escapeChar(34) -> "&quot;";
 escapeChar(60) -> "&lt;";
 escapeChar(Char) -> Char.
+
+%% remove all whitespace at the beginning and the end.
+strip(String) ->
+  strip_right(strip_left(String)).
+
+strip_left([Sc|S]) when ?is_whitespace(Sc) ->
+  strip_left(S);
+strip_left([_|_] = S) -> lists:reverse(S);
+strip_left([]) -> [].
+
+%% Note that this assumes that the string is in reverse order.
+strip_right([Sc|S]) when ?is_whitespace(Sc) ->
+  strip_right(S);
+strip_right([_|_] = S) -> lists:reverse(S);
+strip_right([]) -> [].
