@@ -317,14 +317,14 @@ processAlternativeValue(Value, Count,
         case Abstract of 
           false -> {AnyAttributesString, DeclaredNamespaces2};
           _ -> 
-            XsiType = " xsi:type=\"" ++ atom_to_list(Name) ++ "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", 
+            XsiType = [" xsi:type=\"", atom_to_list(Name), "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""], 
             {[AnyAttributesString, XsiType], DeclaredNamespaces2}
      end,
 
       %% deal with namespaces (that is, see if they have to be declared here)
       {NamespacesString, NewDeclaredNamespaces4, Extra_prefix} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces3),
       ResultForThisElement = struct2xml(Value, Elements, [], Model, NewDeclaredNamespaces4, Mixed),
-      AllAttrs = [NamespacesString, AttributesString, AnyAttrPlusXsiTypeString,
+      AllAttrs = [NamespacesString, AttributesString, AnyAttrPlusXsiTypeString],
       printTag([Extra_prefix, TagAsText], AllAttrs, ResultForThisElement);
     true -> 
       struct2xml(Value, Elements, [], Model, DeclaredNamespaces, Mixed)
@@ -355,7 +355,7 @@ findAlternative(RecordType, Alternatives, #model{th = TypeHierarchy} = Model, Ab
         %% see whether this is an '#any' type
         case Alternatives of
           [#alt{tag='#any', anyInfo = #anyInfo{ns = AltNs}}] when AltNs /= "##other" ->
-            AnyAlternatives = [Alternatives, erlsom_lib:documentAlternatives(Model)],
+            AnyAlternatives = Alternatives ++ erlsom_lib:documentAlternatives(Model),
             findAlternative(RecordType, AnyAlternatives, Model, Abstract);
           _ ->
             %% see whether an ancestor in the type hierarchy is among the alternatives
@@ -452,7 +452,7 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
           CharValue = []
       end,
       %% NamespacesString is "" or " xmlns...".
-      ResultWithThisAttribute = ResultSoFar ++ NamespacesString2 ++ " " ++ NameAsString ++ "=\"" ++ CharValue ++ "\"",
+      ResultWithThisAttribute = [ResultSoFar, NamespacesString2, " ", NameAsString, "=\"", CharValue, "\""],
       processAttributes(Struct, ResultWithThisAttribute, Rest, Namespaces, DeclaredNamespaces2)
   end.
 
@@ -469,15 +469,15 @@ writeQnameAttValue(#qname{uri = Uri, localPart = LP, mappedPrefix = MP}, Namespa
       %% see whether the namespace has been defined. If not, then this has to be done.
       case lists:keysearch(Uri, 2, NamespacesList) of
         {value, {Prefix, _Uri}} -> %% already declared
-          {Prefix ++ ":" ++ LP, NamespacesString, DeclaredNamespaces};
+          {[Prefix, ":", LP], NamespacesString, DeclaredNamespaces};
         _ ->
           %% see whether a prefix was specified
           case lists:keysearch(Uri, #ns.uri, Namespaces) of
             {value, #ns{prefix = Prefix2}} ->
-              {Prefix2 ++ ":" ++ LP, NamespacesString ++ " xmlns:" ++  Prefix2 ++ "=\"" ++ Uri ++ "\"", 
+              {[Prefix2, ":", LP], [NamespacesString, " xmlns:", Prefix2, "=\"", Uri, "\""], 
                {[{Prefix2, Uri} | NamespacesList], Counter}};
             _ ->
-              {MP ++ ":" ++ LP, NamespacesString ++ " xmlns:" ++  MP ++ "=\"" ++ Uri ++ "\"", 
+              {[MP, ":", LP], [NamespacesString, " xmlns:", MP, "=\"", Uri, "\""], 
                {[{MP, Uri} | NamespacesList], Counter}}
           end
       end
@@ -491,7 +491,7 @@ processAnyAttributes([], Acc, _Namespaces, DeclaredNamespaces) ->
 processAnyAttributes([{{Name, Uri}, Value} | Tail], Acc, Namespaces, DeclaredNamespaces) ->
   case Uri of
     [] -> 
-      processAnyAttributes(Tail, Acc ++ " " ++ Name ++ "=\"" ++ decodeIfRequired(Value) ++ "\"", 
+      processAnyAttributes(Tail, [Acc, " ", Name, "=\"", decodeIfRequired(Value), "\""], 
         Namespaces, DeclaredNamespaces);
     _Other ->
       %% the "xsi:nil=true" is not written, because it is inserted in another way.
@@ -503,7 +503,7 @@ processAnyAttributes([{{Name, Uri}, Value} | Tail], Acc, Namespaces, DeclaredNam
         _ -> 
           %% get prefix +, if relevant, NS declaration text
           {PrefixedName, DeclaredNamespaces2} = processAnyNamespaces(Name, Uri, Namespaces, DeclaredNamespaces),
-          processAnyAttributes(Tail, Acc ++ " " ++ PrefixedName ++ "=\"" ++ decodeIfRequired(Value) ++ "\"", 
+          processAnyAttributes(Tail, [Acc, " ", PrefixedName, "=\"", decodeIfRequired(Value), "\""], 
                                Namespaces, DeclaredNamespaces2)
       end
   end.
@@ -551,19 +551,19 @@ processNamespaces(Tag, Namespaces, DeclaredNamespaces = {NamespacesList, Counter
 	{value, #ns{uri = Uri, efd = qualified}} ->
 	  Xmlns = case Prefix of
 	           undefined -> " xmlns";
-		   _ -> " xmlns:" ++ Prefix
+		   _ -> [" xmlns:", Prefix]
 		 end,
-	  {Xmlns  ++ "=\"" ++ Uri ++ "\"", {[{Prefix, Uri} | NamespacesList], Counter}, ""};
+	  {[Xmlns, "=\"", Uri, "\""], {[{Prefix, Uri} | NamespacesList], Counter}, ""};
 	{value, #ns{uri = Uri, efd = unqualified}} ->
 	  case Prefix of
 	    undefined -> 
               Xmlns = " xmlns:erlsom",
               Additional_pf = "erlsom:";
             _ ->
-              Xmlns = " xmlns:" ++ Prefix,
+              Xmlns = [" xmlns:", Prefix],
               Additional_pf = ""
 	  end,
-	  {Xmlns  ++ "=\"" ++ Uri ++ "\"", {[{Prefix, Uri} | NamespacesList], Counter}, Additional_pf};
+	  {[Xmlns, "=\"", Uri, "\""], {[{Prefix, Uri} | NamespacesList], Counter}, Additional_pf};
 	_ ->
 	  case Prefix of
 	    undefined -> {[], DeclaredNamespaces, ""};
@@ -576,7 +576,7 @@ processNamespaces(Tag, Namespaces, DeclaredNamespaces = {NamespacesList, Counter
 processAnyNamespaces(Name, Uri, Namespaces, {NamespacesList, Counter} = DeclaredNamespaces ) ->
   case lists:keysearch(Uri, 2, NamespacesList) of
     {value, {Prefix, _}} -> %% already declared
-      {Prefix ++ ":" ++ Name, DeclaredNamespaces};
+      {[Prefix, ":", Name], DeclaredNamespaces};
     _Else ->
       %% find Uri in Model
       case lists:keysearch(Uri, #ns.uri, Namespaces) of
@@ -586,7 +586,7 @@ processAnyNamespaces(Name, Uri, Namespaces, {NamespacesList, Counter} = Declared
           %% make up a prefix, using counter
           ThePrefix = "pre" ++ integer_to_list(Counter +1)
       end,
-      PrefixName = " xmlns:" ++  ThePrefix ++ "=\"" ++ Uri ++ "\" " ++ ThePrefix ++ ":" ++ Name,
+      PrefixName = [" xmlns:", ThePrefix, "=\"", Uri, "\" ", ThePrefix, ":", Name],
       {PrefixName, 
           {[{ThePrefix, Uri} | NamespacesList], Counter + 1}}
   end.
@@ -740,9 +740,9 @@ printPrefix(Uri, Prefix, NamespacesList, Namespaces) ->
                       end,
       Xmlns = case PrintedPrefix of
 	        undefined -> " xmlns";
-                _ -> " xmlns:" ++ Prefix
+                _ -> [" xmlns:", Prefix]
               end,
-      {PrintedPrefix, Xmlns ++ "=\"" ++ Uri ++ "\""}
+      {PrintedPrefix, [Xmlns, "=\"", Uri, "\""]}
   end. 
 
 printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces, QnameNs) ->

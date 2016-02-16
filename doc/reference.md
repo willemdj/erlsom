@@ -41,6 +41,7 @@ Option  = {prefix, Prefix} |
           {include_fun, Include_fun} |
           {include_dirs, Include_dirs} |
           {include_files, Include_files} |
+          {strict, boolean()} |
           {include_any_attribs, boolean()}
 
 Model   = the internal representation of the XSD
@@ -74,7 +75,7 @@ XSD can be an encoded binary (see section on character encoding) or a decoded li
   definitions in the XSD. It should be a string. See the explanation provided 
   above for the TypePrefix option for the background of this option.
 
-- `Include\_fun` is a function that finds the files that are included or 
+- `Include_fun` is a function that finds the files that are included or 
   imported in the XSD. It should be a function that takes 4 arguments: 
 
     - Namespace (from the XSD). This is a string or 'undefined'
@@ -108,6 +109,19 @@ XSD can be an encoded binary (see section on character encoding) or a decoded li
   If the 'include_files' option is not present, or if the namespace is not found, then
   the file will be searched for in the include_dirs (based on the 'location'
   attribute). No prefix will be used.
+
+- If `strict` == `false` (this is the default), then only the XML Schema
+  data types `integer`, `int`, `boolean` and `qname` are mapped to the
+  corresponding Erlang data type. All other data types are mapped to
+  `string()`.
+
+  If `strict` == `true`, also the XML Schema data types `float` and `double`
+  as well as all data types derived from integer (nonPositiveInteger,
+  negativeInteger, long, short, byte, nonNegativeInteger, unsignedLong,
+  unsignedInt, unsignedShort, unsignedByte, positiveInteger) are mapped to
+  erlang float() (for float and double) or integer(). For the integer types
+  it will also be checked whether they are within the range specified for
+  the XML Schema type.
 
 - If `include_any_attribs` == `true` (this is the default), then the second element of each
   of the records that are created by `erlsom:scan(Xml, Model)` will be a list that contains
