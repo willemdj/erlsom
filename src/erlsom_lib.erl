@@ -828,8 +828,21 @@ findFile(Namespace, Location, IncludeFiles, IncludeDirs) ->
       {getFile(Location, IncludeDirs), undefined}
   end.
 
+getFile("http://"++_ = URL, _) ->
+  httpGetFile(URL);
 getFile("https://"++_ = URL, _) ->
-	case httpc:request(URL) of
+  httpGetFile(URL);
+getFile(Location, IncludeDirs) ->
+  case filelib:is_file(Location) of
+    true ->
+      readImportFile(Location);
+    _ ->
+      %% debug(IncludeDirs),
+      findFileInDirs(Location, IncludeDirs)
+  end.
+
+httpGetFile(URL) ->
+  case httpc:request(get, {URL, [{"user-agent", "erlsom"}]}, [], []) of
 		{ok,{{_HTTP,200,_OK}, _Headers, Body}} ->
 			toUnicode(Body);
 		{ok,{{_HTTP,RC,Emsg}, _Headers, _Body}} ->
@@ -840,17 +853,7 @@ getFile("https://"++_ = URL, _) ->
 			error_logger:error_msg("~p: http-request failed: ~p~n",
 				[?MODULE, Reason]),
 			{error, "failed to retrieve: "++URL}
-	end;
-getFile(Location, IncludeDirs) -> 
-  case filelib:is_file(Location) of
-    true -> 
-      readImportFile(Location);
-    _ -> 
-      %% debug(IncludeDirs),
-      findFileInDirs(Location, IncludeDirs)
   end.
-
-
 
 findFileInDirs(undefined, []) ->
   throw({error, "Include file not found (undefined)"});
