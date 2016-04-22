@@ -1,4 +1,4 @@
-ERLSOM_VSN=1.4.0
+ERLSOM_VSN=1.4.1
 
 
 
