@@ -12,7 +12,7 @@
 %%
 %%- It shows how 11 different schemas (names "abb1.xsd" through "abb11.xsd") can
 %%  describe the same XML document (named "abb.xml"), and it shows the output
-%%  that results from running Erlsom on this file using these schema’s.  To run
+%%  that results from running Erlsom on this file using these schemaâ€™s.  To run
 %%  the example for XSD abb1.xsd, use the command  example1:test_erlsom("abb1").
 
 

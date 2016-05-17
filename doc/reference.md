@@ -80,13 +80,13 @@ XSD can be an encoded binary (see section on character encoding) or a decoded li
 
     - Namespace (from the XSD). This is a string or 'undefined'
     - SchemaLocation (from the XSD). This is a string or 'undefined'
-    - Include\_files. This is the value of the ‘include_files’ option if this 
+    - Include\_files. This is the value of the â€˜include_filesâ€™ option if this 
       option was passed to compile_xsd(); [] otherwise.
-    - Include_dirs. This is the value of the ‘include_dirs’ option if this 
+    - Include_dirs. This is the value of the â€˜include_dirsâ€™ option if this 
       option was passed to compile_xsd(); 'undefined' otherwise.
  
   Include_fun should return {XSD, Prefix}, where XSD is a XSD = string(), 
-  Prefix = string or 'undefined' - if the value is undefined, ‘P’ will be used.
+  Prefix = string or 'undefined' - if the value is undefined, â€˜Pâ€™ will be used.
  
   Include_fun defaults to a function that uses the Include_dirs and Include_list options as specified below.
  
@@ -148,7 +148,7 @@ As [compile_xsd()](#compile_xsd), but taking its input from a file.
 add_xsd_file(FileName, Options, Model) -> {ok, Model}
 ```
 
-Compiles an XSD file (FileName), and adds the elements defined by this XSD to Model. The purpose is to add elements (namespaces) to a model that uses the XML Schema ‘any’  construct. Only elements that are part of the model will be part of the output of ‘parse()’! See the soap example for an example where this is used.
+Compiles an XSD file (FileName), and adds the elements defined by this XSD to Model. The purpose is to add elements (namespaces) to a model that uses the XML Schema â€˜anyâ€™  construct. Only elements that are part of the model will be part of the output of â€˜parse()â€™! See the soap example for an example where this is used.
  
 See [compile_xsd()](#compile_xsd) for a description of the options.
  
@@ -187,9 +187,9 @@ Returns `{ok, Struct, Rest}` or `{error, Error}`.
 - `Stack` is a representation of the 'stack' that is maintained by erlsom. 
 - `Event` is the sax event that erlsom was processing when it ran into problems.
  
-If specified, the continuation function is called whenever the end of the input XML document is reached before the parsing of the XML has finished. The function should have 1 argument (Continuation_state). It should return a tuple `{NewData, NewState}`, where NewData should be the next block of data (again a list of unicode code points or binary data - but the data type has to be the same for each invocation, and it has to match the data type of XML), and NewState is the information that is passed to the next invocation. Note: if the encoding of the document supports multi-byte characters (UTF8, UTF16) you don’t have to ensure that each block of data contains only complete characters - but in case of UTF16 encoding you do have to ensure that you return an odd number of bytes.
+If specified, the continuation function is called whenever the end of the input XML document is reached before the parsing of the XML has finished. The function should have 1 argument (Continuation_state). It should return a tuple `{NewData, NewState}`, where NewData should be the next block of data (again a list of unicode code points or binary data - but the data type has to be the same for each invocation, and it has to match the data type of XML), and NewState is the information that is passed to the next invocation. Note: if the encoding of the document supports multi-byte characters (UTF8, UTF16) you donâ€™t have to ensure that each block of data contains only complete characters - but in case of UTF16 encoding you do have to ensure that you return an odd number of bytes.
 
-If the ‘output_encoding’ option is used, the text values will be binary encoded - but the values that are specified as integer in the XSD will still be integers.
+If the â€˜output_encodingâ€™ option is used, the text values will be binary encoded - but the values that are specified as integer in the XSD will still be integers.
  
  
 ### <a name="scan_file">scan_file/2</a> ###
@@ -267,9 +267,9 @@ EventFun should return AccOut, a term() that will be passed back to the next inv
 
 CFunction returns `{NewData, NewState}`, where NewData is a list of characters/unicode code points/binary, and NewState the new value for the State. NewData has to be in the same type of encoding as the first part of the document.  
 
-Note: if the encoding of the document supports multi-byte characters (UTF8, UTF16) you don’t have to ensure that each block of data contains only complete characters - but in case of UTF16 you do have to ensure that you return an odd number of bytes.
+Note: if the encoding of the document supports multi-byte characters (UTF8, UTF16) you donâ€™t have to ensure that each block of data contains only complete characters - but in case of UTF16 you do have to ensure that you return an odd number of bytes.
 
-The ‘output_encoding’ option determines the encoding of the 'character data': element values and attribute values. The only supported encoding at this moment is 'utf8'. The default is string().
+The â€˜output_encodingâ€™ option determines the encoding of the 'character data': element values and attribute values. The only supported encoding at this moment is 'utf8'. The default is string().
 
 There is a number of options to protect against malicious entities, such as the 'billion laughs' attack. An attempt has been made to use defaults that allow most "bona fide" use of entities, but block malicious cases. Depending on the situation it may make sense to select settings that are more or less restrictive.
 - expand_entities: if set to 'false', entities will not be expanded. Default: true
@@ -324,7 +324,7 @@ Include_dirs: This is the value of the Include_dirs option if this option was pa
 Include_list: This is the value of the Include_list option if this option was passed to compile_xsd(); 'undefined' otherwise.
 ```
  
-The function `erlsom_lib:find_xsd` can be passed to compile_xsd as the value for the 'include_fun' option. It will attempt to get imported XSDs from the internet (if the import, include or redefine statement includes a ‘location’ attribute in the form of a URL). 
+The function `erlsom_lib:find_xsd` can be passed to compile_xsd as the value for the 'include_fun' option. It will attempt to get imported XSDs from the internet (if the import, include or redefine statement includes a â€˜locationâ€™ attribute in the form of a URL). 
  
 If `find_xsd cannot` find the file on the internet, it will attempt to find the file using the standard function, see the description provided above with the compile_xsd function. 
  
@@ -368,7 +368,7 @@ These functions are based on the corresponding functions in xmerl_ucs, but they 
  
 Note on performance: the functions work on lists, not binaries! If the input is a binary, this is translated to a list in a first step, since the functions are faster that way. If you are reading the xml document from a file, it is probably fastest to use pread() in such a way that it returns a list, and not a binary.
  
-See the ‘continuation’ example for an example of how this can be used to deal with very large documents (or streams of data).
+See the â€˜continuationâ€™ example for an example of how this can be used to deal with very large documents (or streams of data).
 
 ### <a name="from_utf16le">erlsom_ucs:from_utf16le/1</a> ###
 
