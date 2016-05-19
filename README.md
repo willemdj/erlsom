@@ -33,11 +33,11 @@ Erlsom can be used in a couple of very different modes:
   choice to use a SAX parser as the basis for the rest of Erlsom).
 
 - As a simple sort of [DOM parser](#DOM). Erlsom can translate your XML to 
-  the ‘simple form’ that is used by Xmerl. This is a form that is easy to 
+  the â€˜simple formâ€™ that is used by Xmerl. This is a form that is easy to 
   understand, but you have to search your way through the output to get to 
   the information that you need.
 
-- As a [‘data binder’](#binder) Erlsom can translate the XML document to an 
+- As a [â€˜data binderâ€™](#binder) Erlsom can translate the XML document to an 
   Erlang data structure that corresponds to an XML Schema. It has the 
   advantage over the SAX parser that it validates the XML document, and 
   that you know exactly what the layout of the output will be. This makes 
@@ -114,7 +114,7 @@ endDocument
 {ok,[],"\r\n"}
 ```
 
-The function erlsom:parse_sax takes as its arguments: the XML document, an accumulator value and an ‘event processing function’. This function will process the parts of the XML documents that have been parsed. In this example, this function simply prints these events.
+The function erlsom:parse_sax takes as its arguments: the XML document, an accumulator value and an â€˜event processing functionâ€™. This function will process the parts of the XML documents that have been parsed. In this example, this function simply prints these events.
 
 The next example does something slightly more meaningful: it counts the number of times the "bar" element occurs in the XML document. Ok, maybe not very useful, but at least this example will produce a result, not only side effects.
 
@@ -126,10 +126,10 @@ The next example does something slightly more meaningful: it counts the number o
 {ok,2,"\r\n"}
 ```
 
-To describe it in a rather formal way: `parse_sax(Xml, Acc0, Fun)` calls Fun(Event, AccIn) on successive ‘XML events’ that result from parsing Xml, starting with AccIn == Acc0. Fun/2 must return a new accumulator which is passed to the next call. The function returns {ok, AccOut, Tail}, where AccOut is the final value of the accumulator and Tail the list of characters that follow after the last tag of the XML document. In this example AccOut == 2, since the tag occurs twice.
+To describe it in a rather formal way: `parse_sax(Xml, Acc0, Fun)` calls Fun(Event, AccIn) on successive â€˜XML eventsâ€™ that result from parsing Xml, starting with AccIn == Acc0. Fun/2 must return a new accumulator which is passed to the next call. The function returns {ok, AccOut, Tail}, where AccOut is the final value of the accumulator and Tail the list of characters that follow after the last tag of the XML document. In this example AccOut == 2, since the tag occurs twice.
 (Notice how similar this is to lists:foldl(Fun, Acc0, Sax\_events), assuming that Sax\_events is the list of Sax events - I more or less copied this description from the documentation of the lists module.)
 
-It may still not be very clear to you how this SAX parser can be used to produce useful results. There are some additional examples in the examples directory of the Erlsom distribution. If you are still not convinced you can try to decipher the source code for the ‘data binder’ mode (erlsom_parse.erl) - this was also built on top of the SAX parser.
+It may still not be very clear to you how this SAX parser can be used to produce useful results. There are some additional examples in the examples directory of the Erlsom distribution. If you are still not convinced you can try to decipher the source code for the â€˜data binderâ€™ mode (erlsom_parse.erl) - this was also built on top of the SAX parser.
 
 ### <a name="sax_events">SAX Events</a> ##
 
@@ -181,7 +181,7 @@ reported as ignorableWhitespace.
 #### {internalError, Description}
  
 ## <a name="DOM">Simple DOM Mode</a> ##
-This mode translates the XML document to a generic data structure. It doesn’t really follow the DOM standard, but in stead it provides a very simple format. In fact, it is very similar to format that is defined as the ‘simple-form’ in the Xmerl documentation.
+This mode translates the XML document to a generic data structure. It doesnâ€™t really follow the DOM standard, but in stead it provides a very simple format. In fact, it is very similar to format that is defined as the â€˜simple-formâ€™ in the Xmerl documentation.
 
 An example will probably be sufficient to explain it:
 
@@ -198,11 +198,11 @@ Result = {ok, Element, Tail}, where Element = {Tag, Attributes, Content}, Tag is
 ## <a name="binder">Data Binder Mode</a> ##
 In this mode, Erlsom parses XML documents that are associated with an XSD (or Schema). It checks whether the XML document conforms to the Schema, and it translates the document to an Erlang structure that is based on the types defined in the Schema. This section tries to explain the relation between the Schema and the Erlang data structure that is produced by Erlsom.
 
-First a quick example using the same XML that was used for the other modes. Before we can parse the document we need to ‘compile’ the XML Schema (similar to how you might compile a regular expression). 
+First a quick example using the same XML that was used for the other modes. Before we can parse the document we need to â€˜compileâ€™ the XML Schema (similar to how you might compile a regular expression). 
 
 ```
 10> {ok, Model} = erlsom:compile_xsd_file("minimal.xsd").
-{ok,{model,[{typ…
+{ok,{model,[{typâ€¦
 ```
 
 Now you can use this compiled model:
@@ -212,7 +212,7 @@ Now you can use this compiled model:
 {ok,{foo_type,[],"baz",["x","y"]},"\r\n"}
 ```
 
-Assuming that you have defined a suitable record #foo\_type{} (erlsom:write\_xsd\_hrl\_file() can do it for you), you can use in your program (won’t work in the shell):
+Assuming that you have defined a suitable record #foo\_type{} (erlsom:write\_xsd\_hrl\_file() can do it for you), you can use in your program (wonâ€™t work in the shell):
 
 ```
 BarValues = Result#foo_type.bar,
@@ -412,18 +412,18 @@ As can be seen from the example:
    get the value undefined (comment, shipDate).
 -  elements that can occur more than once (maxOccurs > 0 or unbounded) are 
    translated to a list (listOfItem).
--  every record has ‘anyAttribs’ as its first element. If the Schema allows 
-   ‘anyAttributes’, and if these are present in the XML document, then the 
+-  every record has â€˜anyAttribsâ€™ as its first element. If the Schema allows 
+   â€˜anyAttributesâ€™, and if these are present in the XML document, then the 
    values will be found here (as a list of attribute-value pairs). Note 
    that this can be avoided by passing the option {include_any_attribs, 
-   false} to erlsom:compile_xsd_file: in that case the ‘anyAttribs’ element 
+   false} to erlsom:compile_xsd_file: in that case the â€˜anyAttribsâ€™ element 
    will not be there.
  
 It should be noted that there is quite a bit of information in po.xsd that is not used by erlsom:
  
 -  Only in a limited number of situations does erlsom do type checking and 
    translation: only if an element is defined as integer, int, boolean or QName 
-   without any further restrictions or extensions. The ‘quantity’ element doesn’t 
+   without any further restrictions or extensions. The â€˜quantityâ€™ element doesnâ€™t 
    meet these conditions, since (a) it is a positiveInteger, and (b) it is 
    restricted. A value for the quantity element of Ten or -1 would not result in 
    an error or warning, and the string value is not translated to an Erlang 
@@ -435,13 +435,13 @@ It should be noted that there is quite a bit of information in po.xsd that is no
    checked and mapped to Erlang types, for example `float` and `long`. This
    also applies to `positiveInteger`, but since the limitation that this
    only works for types without restrictions or extensions still holds, it would not
-   make any difference for the value of ‘quantity’.
+   make any difference for the value of â€˜quantityâ€™.
  
 It should be noted that there is quite a bit of information in po.xsd that is not used by erlsom:
  
 -  Only in a limited number of situations does erlsom do type checking and 
    translation: only if an element is defined as integer, int, boolean or QName 
-   without any further restrictions or extensions. The ‘quantity’ element doesn’t 
+   without any further restrictions or extensions. The â€˜quantityâ€™ element doesnâ€™t 
    meet these conditions, since (a) it is a positiveInteger, and (b) it is 
    restricted. A value for the quantity element of Ten or -1 would not result in 
    an error or warning, and the string value is not translated to an Erlang 
@@ -455,9 +455,9 @@ In example 5 a number of additional features is illustrated:
  
 -  elements that belong to a namespace are prefixed in the result. The prefix 
    is determined by a parameter of the function that compiles the XSD.
--  anonymous types (in the example: spouse) get a name that include the ‘path’, 
+-  anonymous types (in the example: spouse) get a name that include the â€˜pathâ€™, 
    in order to avoid name conflicts.
--  types (‘records’) are created for choices - the type indicates which 
+-  types (â€˜recordsâ€™) are created for choices - the type indicates which 
    alternative was selected (the record b:personType-hobby shows that "Mowing the lawn" is a hobby, not a profession). 
  
 ```xml
@@ -675,14 +675,14 @@ The distribution includes 7 examples:
 
    - It shows how 11 different schemas (names "abb1.xsd" through "abb11.xsd") 
      can describe the same XML document (named "abb.xml"), and it shows the output 
-     that results from running Erlsom on this file using these schema’s.
+     that results from running Erlsom on this file using these schemaâ€™s.
      To run the example for XSD abb1.xsd, use the command `example1:test_erlsom("abb1").`
  
 - soap\_example: this shows how to use the `erlsom:add_xsd_file()` function, 
   and it gives an example how you might parse and generate SOAP messages. 
  
 - continuation: this shows how to use the sax parser with a 
-  ‘continuation-function’. This can be used for parsing of very big files or 
+  â€˜continuation-functionâ€™. This can be used for parsing of very big files or 
   streams. The continuation function should return a block of data; this will be 
   parsed (calling the sax callback function when appropriate) and after that the 
   function is called again to get the next block of data. The example shows how a 
@@ -700,7 +700,7 @@ The distribution includes 7 examples:
 ## <a name="encoding">Character encoding</a>
 The sax parser accepts binaries as input. It will recognize UTF-8 and UTF-16 encoding by looking at the byte order mark and the first character of the document. Additionally ISO-8859-1 and ISO-8859-15 encoding is recognized if this is indicated by the XML declaration. If the XML declaration specifies another character set, an error will be thrown. It should not be very difficult to add support for other character sets, however.
 
-As specified by the XML standard, the default encoding is UTF-8. If the first byte of the document is a ‘&lt;’ ASCII character and if the XML declaration does not specify anything else, it will be assumed that the encoding is UTF-8.
+As specified by the XML standard, the default encoding is UTF-8. If the first byte of the document is a â€˜&lt;â€™ ASCII character and if the XML declaration does not specify anything else, it will be assumed that the encoding is UTF-8.
 
 The result of erlsom:write is a list of Unicode code points. Normally this will have to be encoded before it can be used. The function erlsom\_ucs:to\_utf8/1 can be used to do this.
 
@@ -709,7 +709,7 @@ Especially in the context of internet applications, it may be a problem if new a
  
 Erlsom:scan/2 does not create new atoms. It uses string\_to\_existing\_atom to create the atoms that are used in the records.
  
-Erlsom:compile\_xsd does create atoms. However, usually this function won’t be called with arbitrary end user input as its argument, so normally this should not be a problem.  
+Erlsom:compile\_xsd does create atoms. However, usually this function wonâ€™t be called with arbitrary end user input as its argument, so normally this should not be a problem.  
 
 ## <a name="limitations">Limitations</a>
 Some checks/validity constraints are accepted in the XSD, but not enforced during parsing:
@@ -729,8 +729,8 @@ Some checks/validity constraints are accepted in the XSD, but not enforced durin
  
 The SAX parser has the following limitations:
  
-- It doesn’t support external entities.
-- It doesn’t do any validation: if the XML includes a DTD, this is simply 
+- It doesnâ€™t support external entities.
+- It doesnâ€™t do any validation: if the XML includes a DTD, this is simply 
   ignored.
 
 The data binder has the following additional limitation:
@@ -752,7 +752,7 @@ The data binder has the following additional limitation:
 <tr><td valign="top">complexType</td><td>Supported</td></tr>
 <tr><td valign="top">Documentation</td><td>Accepted, but ignored. Anything enclosed in <code><documentation></documentation></code> is ignored (as long as it is valid XML).</td></tr>
 <tr><td valign="top">Element</td><td>Supported</td></tr>
-<tr><td valign="top">Enumeration</td><td>Ignored (all restrictions on simple types are ignored - those types are treated as ‘string’)</td></tr>
+<tr><td valign="top">Enumeration</td><td>Ignored (all restrictions on simple types are ignored - those types are treated as â€˜stringâ€™)</td></tr>
 <tr><td valign="top">Extension</td><td>Supported</td></tr>
 <tr><td valign="top">Field</td><td>Ignored (anything enclosed in <code><unique></unique></code> is ignored).</td></tr>
 <tr><td valign="top">Group</td><td>Supported.</td></tr>
@@ -760,21 +760,21 @@ The data binder has the following additional limitation:
 <tr><td valign="top">Include</td><td>Supported. However, the support for finding the included files is limited. See (and modify, if necessary...) the function findFile in erlsom_lib.erl.</td></tr>
 <tr><td valign="top">Key</td><td>Ignored.</td></tr>
 <tr><td valign="top">Keyref</td><td>Ignored</td></tr>
-<tr><td valign="top">Length</td><td>Ignored (all restrictions on simple types are ignored - those types are treated as ‘string’)</td></tr>
-<tr><td valign="top">List</td><td>Ignored (all restrictions on simple types are ignored - those types are treated as ‘string’)</td></tr>
-<tr><td valign="top">maxInclusive</td><td>(all restrictions on simple types are ignored - those types are treated as ‘string’)</td></tr>
+<tr><td valign="top">Length</td><td>Ignored (all restrictions on simple types are ignored - those types are treated as â€˜stringâ€™)</td></tr>
+<tr><td valign="top">List</td><td>Ignored (all restrictions on simple types are ignored - those types are treated as â€˜stringâ€™)</td></tr>
+<tr><td valign="top">maxInclusive</td><td>(all restrictions on simple types are ignored - those types are treated as â€˜stringâ€™)</td></tr>
 <tr><td valign="top">maxLength</td><td>(see maxInclusive) </td></tr>
 <tr><td valign="top">minInclusive</td><td>(see maxInclusive) </td></tr>
 <tr><td valign="top">minLength</td><td>(see maxInclusive) </td></tr>
 <tr><td valign="top">Pattern</td><td>(see maxInclusive) </td></tr>
 <tr><td valign="top">Redefine</td><td>Supported. However, the support for finding the imported files is limited. See (and modify, if necessary...) the function findFile in erlsom_lib.erl.</td></tr>
-<tr><td valign="top">Restriction</td><td>Supported as a way to create a derived complex type (but it is not checked whether this is really a restriction of the base type). Ignored on simpleTypes (all restrictions on simple types are ignored - those types are treated as ‘string’)</td></tr>
+<tr><td valign="top">Restriction</td><td>Supported as a way to create a derived complex type (but it is not checked whether this is really a restriction of the base type). Ignored on simpleTypes (all restrictions on simple types are ignored - those types are treated as â€˜stringâ€™)</td></tr>
 <tr><td valign="top">Schema</td><td>Supported</td></tr>
 <tr><td valign="top">Selector</td><td>Ignored (anything enclosed in <code><unique></unique></code> is ignored).</td></tr>
 <tr><td valign="top">Sequence</td><td>Supported</td></tr>
 <tr><td valign="top">simpleContent</td><td>Supported</td></tr>
 <tr><td valign="top">simpleType</td><td>Supported</td></tr>
-<tr><td valign="top">Union</td><td>Ignored (all restrictions on simple types are ignored - those types are treated as ‘string’)</td></tr>
+<tr><td valign="top">Union</td><td>Ignored (all restrictions on simple types are ignored - those types are treated as â€˜stringâ€™)</td></tr>
 <tr><td valign="top">Unique</td><td>Ignored</td></tr>
 </table>
 

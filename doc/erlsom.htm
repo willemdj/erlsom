@@ -386,11 +386,11 @@ lang=EN-GB style='mso-ansi-language:EN-GB'>http://www.saxproject.org/apidoc/org/
 lang=EN-US style='mso-ansi-language:EN-US'>) for parsing XML. Every time the
 parser has processed a meaningful part of the XML document (such as a start
 tag)<span class=GramE>,</span> it will tell your application about this. The
-application can process this information – potentially in parallel – while the
+application can process this information â€“ potentially in parallel â€“ while the
 parser continues to parse the rest of the document. The SAX parser will allow
 you to efficiently parse XML documents of arbitrary size, but it may take some
 time to get used to it. If you invest some effort, you may find that it fits
-very well with the <span class=SpellE>Erlang</span> programming model –
+very well with the <span class=SpellE>Erlang</span> programming model â€“
 personally I have always been very happy about my choice to use a SAX parser as
 the basis for the rest of <span class=SpellE>Erlsom</span>. You will find a
 couple of examples how the SAX parser can be used below.<o:p></o:p></span></p>
@@ -401,28 +401,28 @@ Arial;mso-ansi-language:EN-US'><span style='mso-list:Ignore'>-<span
 style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 </span></span></span><![endif]><span lang=EN-US style='mso-ansi-language:EN-US'>As
 a simple sort of DOM parser. <br>
-<span class=SpellE>Erlsom</span> can translate your XML to the ‘simple form’
+<span class=SpellE>Erlsom</span> can translate your XML to the â€˜simple formâ€™
 that is used by <span class=SpellE>Xmerl</span>. This is a form that is easy to
 understand, but you have to search your way through the output to get to the
-information that you need. Section … provides an example.<span
-style='mso-spacerun:yes'>  </span>(Note: in the examples directory you will
+information that you need. Section â€¦ provides an example.<span
+style='mso-spacerun:yes'>Â  </span>(Note: in the examples directory you will
 also find an example that translates the XML to the more complex output format
 that is produced by <span class=SpellE>Xmerl</span>. On this output you can use
 the <span class=SpellE>Xpath</span> functions that come with <span
-class=SpellE>Xmerl</span> – but I haven’t tested this extensively).<o:p></o:p></span></p>
+class=SpellE>Xmerl</span> â€“ but I havenâ€™t tested this extensively).<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:36.0pt;text-indent:-18.0pt;mso-list:l0 level1 lfo2;
 tab-stops:list 36.0pt'><![if !supportLists]><span lang=EN-US style='mso-fareast-font-family:
 Arial;mso-ansi-language:EN-US'><span style='mso-list:Ignore'>-<span
 style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 </span></span></span><![endif]><span lang=EN-US style='mso-ansi-language:EN-US'>As
-a ‘data binder’ <br>
+a â€˜data binderâ€™ <br>
 <span class=SpellE>Erlsom</span> can translate the XML document to an <span
 class=SpellE>Erlang</span> data structure that corresponds to an XML Schema. It
 has the advantage over the SAX parser that it validates the XML document, and
 that you know exactly what the layout of the output will be. This makes it easy
 to access the elements that you need in a very direct way. <span class=GramE>Section<span
-style='mso-spacerun:yes'>  </span>…</span> gives more information. (See <a
+style='mso-spacerun:yes'>Â  </span>â€¦</span> gives more information. (See <a
 href="http://www.rpbourret.com/xml/XMLDataBinding.htm">http://www.rpbourret.com/xml/XMLDataBinding.htm</a>
 for a general description of XML data binding.)<o:p></o:p></span></p>
 
@@ -448,7 +448,7 @@ style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 parser can work directly on binaries. There is no need to transform binaries to
 lists before passing the data to <span class=SpellE>Erlsom</span>. Using binaries
 as input has a positive effect on the memory usage and on the speed (provided
-that you are using <span class=SpellE>Erlang</span> 12B or later – if you are
+that you are using <span class=SpellE>Erlang</span> 12B or later â€“ if you are
 using an older <span class=SpellE>Erlang</span> version the speed will be
 better if you transform binaries to lists). The binaries can be latin-1, utf-8
 or utf-16 encoded. <o:p></o:p></span></p>
@@ -464,7 +464,7 @@ you want to minimize the memory usage, and/or if you need the result in binary
 format for further processing. Note that it will slow down the parser slightly.
 If you select this option the encoding of the result will be utf-8
 (irrespective of the encoding of the input document).<span
-style='mso-spacerun:yes'>  </span><o:p></o:p></span></p>
+style='mso-spacerun:yes'>Â  </span><o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
 
@@ -487,7 +487,7 @@ EN-US'><o:p></o:p></span></p>
 EN-US'><o:p>&nbsp;</o:p></span></p>
 
 <p class=MsoNormal style='tab-stops:229.5pt'><span lang=EN-US style='mso-ansi-language:
-EN-US'>This document is stored in a file called “<span class=SpellE>minimal.xml</span>”,
+EN-US'>This document is stored in a file called â€œ<span class=SpellE>minimal.xml</span>â€,
 and read into a variable called Xml by the following commands in the shell:<o:p></o:p></span></p>
 
 <p class=MsoNormal style='tab-stops:229.5pt'><span lang=EN-US style='mso-ansi-language:
@@ -508,7 +508,7 @@ class=SpellE>foo</span>&gt;\r\n&quot;&gt;&gt;}<o:p></o:p></span></span></p>
 EN-US'><o:p>&nbsp;</o:p></span></p>
 
 <p class=MsoNormal style='tab-stops:229.5pt'><span lang=EN-US style='mso-ansi-language:
-EN-US'>The following, corresponding XSD (“<span class=SpellE>minimal.xsd</span>”)
+EN-US'>The following, corresponding XSD (â€œ<span class=SpellE>minimal.xsd</span>â€)
 is used in the first example for the data binder:<o:p></o:p></span></p>
 
 <p class=MsoNormal style='tab-stops:229.5pt'><span lang=EN-US style='mso-ansi-language:
@@ -524,46 +524,46 @@ style='mso-ansi-language:DE'>&lt;<span class=SpellE>xsd:schema</span>
 xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span lang=DE
-style='mso-ansi-language:DE'><span style='mso-spacerun:yes'>    </span></span></span><span
+style='mso-ansi-language:DE'><span style='mso-spacerun:yes'>Â Â Â  </span></span></span><span
 class=code><span lang=EN-GB style='mso-ansi-language:EN-GB'>&lt;<span
 class=SpellE>xsd<span class=GramE>:element</span></span> name=&quot;<span
 class=SpellE>foo</span>&quot; type=&quot;<span class=SpellE>foo_type</span>&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>   
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â 
 </span>&lt;<span class=SpellE>xsd<span class=GramE>:complexType</span></span>
 name=&quot;<span class=SpellE>foo_type</span>&quot;&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>         </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:sequence</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'> </span><span style='mso-spacerun:yes'>           
+style='mso-spacerun:yes'>Â </span><span style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â 
 </span>&lt;<span class=SpellE>xsd<span class=GramE>:element</span></span>
 name=&quot;bar&quot; <o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>                          </span>type=&quot;<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  </span>type=&quot;<span
 class=SpellE>xsd<span class=GramE>:string</span></span>&quot; <span
 class=SpellE>maxOccurs</span>=&quot;unbounded&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>         </span>&lt;/<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â  </span>&lt;/<span class=SpellE>xsd<span
 class=GramE>:sequence</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>         </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:attribute</span></span> name=&quot;<span class=SpellE>attr</span>&quot;
 type=&quot;<span class=SpellE>xsd:string</span>&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>    
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â Â 
 </span>&lt;/<span class=SpellE>xsd<span class=GramE>:complexType</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
@@ -571,7 +571,7 @@ lang=EN-GB style='mso-ansi-language:EN-GB'>&lt;/<span class=SpellE>xsd<span
 class=GramE>:schema</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='tab-stops:229.5pt'><span lang=EN-GB style='mso-ansi-language:
-EN-US'><span style='mso-spacerun:yes'> </span></span><span lang=EN-US
+EN-US'><span style='mso-spacerun:yes'>Â </span></span><span lang=EN-US
 style='mso-ansi-language:EN-US'><o:p></o:p></span></p>
 
 <h1><a name="sax_mode"><span lang=EN-US style='mso-ansi-language:EN-US'>SAX
@@ -636,8 +636,8 @@ lang=EN-GB style='mso-ansi-language:EN-GB'>{ok<span class=GramE>,[</span>],&quot
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>The
 function <span class=SpellE>erlsom<span class=GramE>:parse</span>_sax</span>
-takes as its arguments: the XML document, an accumulator value and an ‘event
-processing function’. This function will process the parts of the XML documents
+takes as its arguments: the XML document, an accumulator value and an â€˜event
+processing functionâ€™. This function will process the parts of the XML documents
 that have been parsed. In this example, this function simply prints these
 events.<o:p></o:p></span></p>
 
@@ -645,7 +645,7 @@ events.<o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>The next
 example does something slightly more meaningful: it counts the number of times
-the “bar” element occurs in the XML document. Ok, maybe not very useful, but at
+the â€œbarâ€ element occurs in the XML document. Ok, maybe not very useful, but at
 least this example will produce a result, not only side effects.<o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
@@ -665,7 +665,7 @@ lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></span></p>
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'>4&gt; <span class=SpellE>erlsom<span
 class=GramE>:parse</span>_sax</span>(Xml, 0, <span class=SpellE>CountBar</span>).<span
-style='mso-spacerun:yes'>                                         </span><o:p></o:p></span></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  </span><o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'>{ok<span class=GramE>,2</span>,&quot;\r\n&quot;}<o:p></o:p></span></span></p>
@@ -675,7 +675,7 @@ lang=EN-GB style='mso-ansi-language:EN-GB'>{ok<span class=GramE>,2</span>,&quot;
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>To describe
 it in a rather formal way: <span class=SpellE>parse_<span class=GramE>sax</span></span><span
 class=GramE>(</span>Xml, Acc0, Fun) calls Fun(Event, <span class=SpellE>AccIn</span>)
-on successive ‘XML events’ that result from parsing Xml, starting with <span
+on successive â€˜XML eventsâ€™ that result from parsing Xml, starting with <span
 class=SpellE>AccIn</span> == Acc0. Fun/2 must return a new accumulator which is
 passed to the next call. The function returns {ok, <span class=SpellE>AccOut</span>,
 Tail}, where <span class=SpellE>AccOut</span> is the final value of the
@@ -686,7 +686,7 @@ the tag occurs twice.<o:p></o:p></span></p>
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>(Notice how
 similar this is to <span class=SpellE>lists<span class=GramE>:foldl</span></span>(Fun,
 Acc0, <span class=SpellE>Sax_events</span>), assuming that <span class=SpellE>Sax_events</span>
-is the list of Sax events – I more or less copied this description from the
+is the list of Sax events â€“ I more or less copied this description from the
 documentation of the lists module.)<o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
@@ -695,8 +695,8 @@ documentation of the lists module.)<o:p></o:p></span></p>
 still not be very clear to you how this SAX parser can be used to produce
 useful results. There are some additional examples in the examples directory of
 the <span class=SpellE>Erlsom</span> distribution. If you are still not
-convinced you can try to decipher the source code for the ‘data <span
-class=SpellE>mapper</span>’ mode (<span class=SpellE>erlsom_parse.erl</span>) –
+convinced you can try to decipher the source code for the â€˜data <span
+class=SpellE>mapper</span>â€™ mode (<span class=SpellE>erlsom_parse.erl</span>) â€“
 this was also built on top of the SAX parser.<o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
@@ -709,7 +709,7 @@ EN-US'>startDocument</span></i></span><i><span lang=EN-US style='mso-ansi-langua
 EN-US'><o:p></o:p></span></i></p>
 
 <p class=MsoNormal><i><span lang=EN-US style='mso-ansi-language:EN-US'><span
-style='mso-tab-count:1'>            </span></span></i><span lang=EN-US
+style='mso-tab-count:1'>Â Â Â Â Â Â Â Â Â Â Â  </span></span></i><span lang=EN-US
 style='mso-ansi-language:EN-US'>&nbsp;</span><span lang=EN-GB style='mso-ansi-language:
 EN-GB'><o:p></o:p></span></p>
 
@@ -891,9 +891,9 @@ style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 name="#dom_mode"></a><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></h1>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>This mode
-translates the XML document to a generic data structure. It doesn’t really
+translates the XML document to a generic data structure. It doesnâ€™t really
 follow the DOM standard, but in stead it provides a very simple format. In
-fact, it is very similar to format that is defined as the ‘simple-form’ in the <span
+fact, it is very similar to format that is defined as the â€˜simple-formâ€™ in the <span
 class=SpellE>Xmerl</span> documentation.<o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
@@ -907,22 +907,22 @@ will probably be sufficient to explain it:<o:p></o:p></span></p>
 class=code><span lang=EN-GB style='mso-ansi-language:EN-GB'>erlsom<span
 class=GramE>:simple</span>_form</span></span></span><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'>(Xml).<span
-style='mso-spacerun:yes'>        </span><o:p></o:p></span></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â  </span><o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'>{ok<span class=GramE>,{</span>&quot;<span
 class=SpellE>foo</span>&quot;,<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>    
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â Â 
 </span>[{&quot;<span class=SpellE>attr&quot;,&quot;baz</span>&quot;}],<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>    
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â Â 
 </span>[{&quot;bar&quot;<span class=GramE>,[</span>],[&quot;x&quot;]},{&quot;bar&quot;,[],[&quot;y&quot;]}]},<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>   
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â 
 </span>&quot;\r\n&quot;}<o:p></o:p></span></span></p>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
@@ -950,7 +950,7 @@ lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 <p class=MsoNormal><span class=GramE><span lang=EN-GB style='mso-ansi-language:
 EN-GB'>First a quick example using the same XML that was used for the other
 modes.</span></span><span lang=EN-GB style='mso-ansi-language:EN-GB'> Before we
-can parse the document we need to ‘compile’ the XML Schema (similar to how you
+can parse the document we need to â€˜compileâ€™ the XML Schema (similar to how you
 might compile a regular expression). <o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
@@ -962,7 +962,7 @@ class=SpellE>minimal.xsd</span>&quot;).<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'>{ok<span class=GramE>,{</span>model,[{<span
-class=SpellE>typ</span>…<o:p></o:p></span></span></p>
+class=SpellE>typ</span>â€¦<o:p></o:p></span></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
@@ -985,7 +985,7 @@ class=SpellE>x&quot;,&quot;y</span>&quot;]},&quot;\r\n&quot;}<o:p></o:p></span><
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>Assuming
 that you have defined a suitable record #<span class=SpellE>foo_<span
 class=GramE>type</span></span><span class=GramE>{</span>} (<span class=SpellE>erlsom:write_xsd_hrl_file</span>()
-can do it for you), you can use in your program (won’t work in the shell):<o:p></o:p></span></p>
+can do it for you), you can use in your program (wonâ€™t work in the shell):<o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
@@ -1792,19 +1792,19 @@ class=SpellE>shipTo</span>, <span class=SpellE>billTo</span>, comment, items}).<
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-US
-style='mso-ansi-language:EN-US'>-<span class=GramE>record(</span>‘<span
-class=SpellE>USAddress</span>’, {<span class=SpellE>anyAttribs</span>, country,
+style='mso-ansi-language:EN-US'>-<span class=GramE>record(</span>â€˜<span
+class=SpellE>USAddress</span>â€™, {<span class=SpellE>anyAttribs</span>, country,
 name, city, state, zip}).</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-US
-style='mso-ansi-language:EN-US'>-<span class=GramE>record(</span>‘Items’, {<span
+style='mso-ansi-language:EN-US'>-<span class=GramE>record(</span>â€˜Itemsâ€™, {<span
 class=SpellE>anyAttribs</span>, <span class=SpellE>listOfItem</span>}).</span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-US
-style='mso-ansi-language:EN-US'>-<span class=GramE>record(</span>‘Items/item’,
+style='mso-ansi-language:EN-US'>-<span class=GramE>record(</span>â€˜Items/itemâ€™,
 {<span class=SpellE>anyAttribs</span>, <span class=SpellE>partNum</span>, <span
-class=SpellE>productName</span>, quantity, ‘<span class=SpellE>USPrice</span>’,
+class=SpellE>productName</span>, quantity, â€˜<span class=SpellE>USPrice</span>â€™,
 comment, <span class=SpellE>shipDate</span>}).</span><span lang=EN-GB
 style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
@@ -1859,9 +1859,9 @@ lang=EN-GB style='mso-ansi-language:EN-GB'>).<o:p></o:p></span></p>
 <p class=MsoNormal style='margin-left:36.0pt;text-indent:-18.0pt'><span
 lang=EN-US style='mso-ansi-language:EN-US'>-</span><span lang=EN-US
 style='font-size:7.0pt;font-family:"Times New Roman";mso-ansi-language:EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-</span><span lang=EN-GB style='mso-ansi-language:EN-GB'>every record has ‘<span
-class=SpellE>anyAttribs</span>’ as its first element. If the Schema allows ‘<span
-class=SpellE>anyAttributes</span>’, and if these are present in the XML
+</span><span lang=EN-GB style='mso-ansi-language:EN-GB'>every record has â€˜<span
+class=SpellE>anyAttribs</span>â€™ as its first element. If the Schema allows â€˜<span
+class=SpellE>anyAttributes</span>â€™, and if these are present in the XML
 document, then the values will be found here (as a list of attribute-value
 pairs) <o:p></o:p></span></p>
 
@@ -1886,7 +1886,7 @@ lang=EN-US style='mso-ansi-language:EN-US'>Only in a limited number of
 situations does <span class=SpellE>erlsom</span> do type checking and
 translation: only if an element is defined as integer, <span class=SpellE>int</span>,
 <span class=SpellE>boolean</span> or <span class=SpellE>QName</span> without
-any further restrictions or extensions. The ‘quantity’ element doesn’t meet
+any further restrictions or extensions. The â€˜quantityâ€™ element doesnâ€™t meet
 these conditions, since (a) it is a <span class=SpellE>positiveInteger</span>,
 and (b) it is restricted. A value for the </span><span class=code><span
 lang=EN-US style='mso-ansi-language:EN-US'>quantity</span></span><span
@@ -1949,19 +1949,19 @@ EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
 lang=EN-US style='mso-ansi-language:EN-US'>anonymous types (in the example: </span><span
 class=code><span lang=EN-US style='mso-ansi-language:EN-US'>spouse</span></span><span
 lang=EN-US style='mso-ansi-language:EN-US'>) get a name that include the
-‘path’, in order to avoid name conflicts.</span><span lang=EN-GB
+â€˜pathâ€™, in order to avoid name conflicts.</span><span lang=EN-GB
 style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:36.0pt;text-indent:-18.0pt'><span
 lang=EN-US style='font-family:"Times New Roman";mso-ansi-language:EN-US'>-</span><span
 lang=EN-US style='font-size:7.0pt;font-family:"Times New Roman";mso-ansi-language:
 EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
-lang=EN-US style='mso-ansi-language:EN-US'>types (‘records’) are created for
-choices – the type indicates which alternative was selected (the record </span><span
+lang=EN-US style='mso-ansi-language:EN-US'>types (â€˜recordsâ€™) are created for
+choices â€“ the type indicates which alternative was selected (the record </span><span
 class=SpellE><span class=code><span lang=EN-US style='mso-ansi-language:EN-US'>b<span
 class=GramE>:personType</span></span></span></span><span class=code><span
 lang=EN-US style='mso-ansi-language:EN-US'>-hobby </span></span><span
-lang=EN-US style='mso-ansi-language:EN-US'>shows that “Mowing the lawn” is a
+lang=EN-US style='mso-ansi-language:EN-US'>shows that â€œMowing the lawnâ€ is a
 hobby, not a profession). </span><span lang=EN-GB style='mso-ansi-language:
 EN-GB'><o:p></o:p></span></p>
 
@@ -1977,93 +1977,93 @@ style='mso-ansi-language:DE'>&lt;<span class=SpellE>xsd:schema</span>
 xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span lang=DE
-style='mso-ansi-language:DE'><span style='mso-spacerun:yes'>           
+style='mso-ansi-language:DE'><span style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â 
 </span>targetNamespace=&quot;http://www.example.org&quot;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span lang=DE
-style='mso-ansi-language:DE'><span style='mso-spacerun:yes'>           
+style='mso-ansi-language:DE'><span style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â 
 </span>xmlns=&quot;http://www.example.org&quot;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span lang=DE
-style='mso-ansi-language:DE'><span style='mso-spacerun:yes'>            </span><span
+style='mso-ansi-language:DE'><span style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â  </span><span
 class=SpellE>elementFormDefault=&quot;qualified</span>&quot;&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'> 
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â 
 </span>&lt;<span class=SpellE>xsd<span class=GramE>:element</span></span>
 name=&quot;person&quot; type=&quot;<span class=SpellE>personType</span>&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'> 
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â 
 </span>&lt;<span class=SpellE>xsd<span class=GramE>:complexType</span></span>
 name=&quot;<span class=SpellE>personType</span>&quot;&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>    
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â Â 
 </span>&lt;<span class=SpellE>xsd<span class=GramE>:sequence</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span><span class=GramE>&lt;!--</span> an
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span><span class=GramE>&lt;!--</span> an
 element with an attribute --&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:element</span></span> name = &quot;id&quot;&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>         </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:complexType</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>           </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:simpleContent</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>           </span><span
-style='mso-spacerun:yes'>  </span>&lt;<span class=SpellE>xsd<span class=GramE>:extension</span></span>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â  </span><span
+style='mso-spacerun:yes'>Â Â </span>&lt;<span class=SpellE>xsd<span class=GramE>:extension</span></span>
 base = &quot;<span class=SpellE>xsd:string</span>&quot;&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>             </span><span
-style='mso-spacerun:yes'>  </span>&lt;<span class=SpellE>xsd<span class=GramE>:attribute</span></span>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â Â  </span><span
+style='mso-spacerun:yes'>Â Â </span>&lt;<span class=SpellE>xsd<span class=GramE>:attribute</span></span>
 name = &quot;type&quot; type = &quot;<span class=SpellE>xsd:string</span>&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>             </span><span
-style='mso-spacerun:yes'>  </span><span class=GramE>&lt;!--</span> allow other
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â Â  </span><span
+style='mso-spacerun:yes'>Â Â </span><span class=GramE>&lt;!--</span> allow other
 attributes--&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>             </span><span
-style='mso-spacerun:yes'>  </span>&lt;<span class=SpellE>xsd<span class=GramE>:anyAttribute</span></span>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â Â  </span><span
+style='mso-spacerun:yes'>Â Â </span>&lt;<span class=SpellE>xsd<span class=GramE>:anyAttribute</span></span>
 namespace=&quot;##other&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>           </span><span
-style='mso-spacerun:yes'>  </span>&lt;/<span class=SpellE>xsd<span class=GramE>:extension</span></span>&gt;<o:p></o:p></span></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â  </span><span
+style='mso-spacerun:yes'>Â Â </span>&lt;/<span class=SpellE>xsd<span class=GramE>:extension</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>          </span><span
-style='mso-spacerun:yes'> </span>&lt;/<span class=SpellE>xsd<span class=GramE>:simpleContent</span></span>&gt;<o:p></o:p></span></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â  </span><span
+style='mso-spacerun:yes'>Â </span>&lt;/<span class=SpellE>xsd<span class=GramE>:simpleContent</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>         </span>&lt;/<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â  </span>&lt;/<span class=SpellE>xsd<span
 class=GramE>:complexType</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span>&lt;/<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span>&lt;/<span class=SpellE>xsd<span
 class=GramE>:element</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
@@ -2071,29 +2071,29 @@ lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span><span class=GramE>&lt;!--</span> choice
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span><span class=GramE>&lt;!--</span> choice
 --&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:choice</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>         </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:element</span></span> name=&quot;profession&quot; type=&quot;<span
 class=SpellE>xsd:string</span>&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>         </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:element</span></span> name=&quot;hobby&quot; type=&quot;<span
 class=SpellE>xsd:string</span>&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span>&lt;/<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span>&lt;/<span class=SpellE>xsd<span
 class=GramE>:choice</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
@@ -2101,116 +2101,116 @@ lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span><span class=GramE>&lt;!--</span> group --&gt;<o:p></o:p></span></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span><span class=GramE>&lt;!--</span> group --&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span>&lt;<span class=SpellE>xsd<span
-class=GramE>:group</span></span><span style='mso-spacerun:yes'> 
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
+class=GramE>:group</span></span><span style='mso-spacerun:yes'>Â 
 </span>ref=&quot;name&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span><o:p></o:p></span></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span><o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span><span class=GramE>&lt;!--</span> local
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span><span class=GramE>&lt;!--</span> local
 type --&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:element</span></span> name=&quot;spouse&quot; <span class=SpellE>xsi:nillable</span>=&quot;true&quot;&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>         </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:complexType</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>           </span>&lt;<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
 class=GramE>:sequence</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>             </span>&lt;<span class=SpellE>xsd<span
-class=GramE>:element</span></span><span style='mso-spacerun:yes'> 
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
+class=GramE>:element</span></span><span style='mso-spacerun:yes'>Â 
 </span>name=&quot;name&quot; type=&quot;<span class=SpellE>xsd:string</span>&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>             </span>&lt;<span class=SpellE>xsd<span
-class=GramE>:element</span></span><span style='mso-spacerun:yes'> 
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â Â  </span>&lt;<span class=SpellE>xsd<span
+class=GramE>:element</span></span><span style='mso-spacerun:yes'>Â 
 </span>name=&quot;age&quot; type=&quot;<span class=SpellE>xsd:string</span>&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>           </span>&lt;/<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â  </span>&lt;/<span class=SpellE>xsd<span
 class=GramE>:sequence</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>         </span>&lt;/<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â  </span>&lt;/<span class=SpellE>xsd<span
 class=GramE>:complexType</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>       </span>&lt;/<span class=SpellE>xsd<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â  </span>&lt;/<span class=SpellE>xsd<span
 class=GramE>:element</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>   
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â 
 </span>&lt;/<span class=SpellE>xsd<span class=GramE>:sequence</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'> 
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â 
 </span>&lt;/<span class=SpellE>xsd<span class=GramE>:complexType</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'> 
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â 
 </span>&lt;<span class=SpellE>xsd<span class=GramE>:group</span></span>
 name=&quot;name&quot;&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>   
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â 
 </span>&lt;<span class=SpellE>xsd<span class=GramE>:sequence</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>     
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â Â Â 
 </span><span class=GramE>&lt;!--</span> <span class=SpellE>nillable</span>
 element --&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>     
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â Â Â 
 </span>&lt;<span class=SpellE>xsd<span class=GramE>:element</span></span>
 name=&quot;<span class=SpellE>firstName</span>&quot; <o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>                   </span>type=&quot;<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  </span>type=&quot;<span
 class=SpellE>xsd<span class=GramE>:string</span></span>&quot; <span
 class=SpellE>nillable</span>=&quot;true&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>     
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â Â Â 
 </span>&lt;<span class=SpellE>xsd<span class=GramE>:element</span></span>
 name=&quot;<span class=SpellE>lastName</span>&quot; type=&quot;<span
 class=SpellE>xsd:string</span>&quot;/&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>   
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â Â Â 
 </span>&lt;/<span class=SpellE>xsd<span class=GramE>:sequence</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
-lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'> 
+lang=EN-GB style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â 
 </span>&lt;/<span class=SpellE>xsd<span class=GramE>:group</span></span>&gt;<o:p></o:p></span></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span class=code><span
@@ -2291,14 +2291,14 @@ be compiled by the command </span><span lang=EN-GB style='mso-ansi-language:
 EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal><span class=code><span lang=EN-US style='mso-ansi-language:
-EN-US'>&gt; {ok, Model} = <span class=SpellE>erlsom<span class=GramE>:compile</span>_xsd_file</span>(“<span
-class=SpellE>misc.xsd</span>”, </span></span><span lang=EN-GB style='mso-ansi-language:
+EN-US'>&gt; {ok, Model} = <span class=SpellE>erlsom<span class=GramE>:compile</span>_xsd_file</span>(â€œ<span
+class=SpellE>misc.xsd</span>â€, </span></span><span lang=EN-GB style='mso-ansi-language:
 EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal><span class=code><span lang=EN-US style='mso-ansi-language:
 EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 [{prefix, </span></span><span class=code><span lang=EN-GB style='mso-ansi-language:
-EN-GB'>“b”}]).</span></span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
+EN-GB'>â€œbâ€}]).</span></span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal><span class=code><span lang=EN-GB style='mso-ansi-language:
 EN-GB'>&nbsp;</span></span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
@@ -2308,8 +2308,8 @@ the XML can be parsed using the command </span><span lang=EN-GB
 style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal><span class=code><span lang=EN-US style='mso-ansi-language:
-EN-US'>&gt; {ok, Out, Rest} = <span class=SpellE>erlsom<span class=GramE>:scan</span>_file</span>(“<span
-class=SpellE>misc_example.xml</span>”, Model). </span></span><span lang=EN-GB
+EN-US'>&gt; {ok, Out, Rest} = <span class=SpellE>erlsom<span class=GramE>:scan</span>_file</span>(â€œ<span
+class=SpellE>misc_example.xml</span>â€, Model). </span></span><span lang=EN-GB
 style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-US style='font-family:"Courier New";
@@ -2377,35 +2377,35 @@ class=SpellE>xmlns</span>=&quot;http://www.example.org&quot; <o:p></o:p></span><
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>        </span><span class=SpellE>xmlns:xsi</span>=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;<o:p></o:p></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â  </span><span class=SpellE>xmlns:xsi</span>=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>        </span><span class=SpellE>xmlns<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â  </span><span class=SpellE>xmlns<span
 class=GramE>:passport</span></span>=&quot;<span class=SpellE>some_uri</span>&quot;&gt;<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>  </span>&lt;id type=&quot;passport&quot; <span
+style='mso-spacerun:yes'>Â  </span>&lt;id type=&quot;passport&quot; <span
 class=SpellE>passport<span class=GramE>:issued</span></span>=&quot;2011&quot;&gt;123&lt;/id&gt;<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>  </span>&lt;hobby&gt;mowing the lawn&lt;/hobby&gt;<o:p></o:p></span></p>
+style='mso-spacerun:yes'>Â  </span>&lt;hobby&gt;mowing the lawn&lt;/hobby&gt;<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>  </span>&lt;<span class=SpellE>firstName</span> <span
+style='mso-spacerun:yes'>Â  </span>&lt;<span class=SpellE>firstName</span> <span
 class=SpellE>xsi<span class=GramE>:nil</span></span>=&quot;true&quot;/&gt;<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>  </span>&lt;<span class=SpellE>lastName</span>&gt;<span
+style='mso-spacerun:yes'>Â  </span>&lt;<span class=SpellE>lastName</span>&gt;<span
 class=SpellE>Pietersen</span>&lt;/<span class=SpellE>lastName</span>&gt;<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>  </span>&lt;spouse <span class=SpellE>xsi<span
+style='mso-spacerun:yes'>Â  </span>&lt;spouse <span class=SpellE>xsi<span
 class=GramE>:nil</span></span>=&quot;true&quot;&gt;&lt;/spouse&gt;<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
@@ -2422,50 +2422,50 @@ class=GramE>:personType</span></span><span class=GramE>'</span>,<o:p></o:p></spa
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>   </span>[],<o:p></o:p></span></p>
+style='mso-spacerun:yes'>Â Â  </span>[],<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>   </span>{'<span class=SpellE>b<span class=GramE>:personType</span></span>/id',<o:p></o:p></span></p>
+style='mso-spacerun:yes'>Â Â  </span>{'<span class=SpellE>b<span class=GramE>:personType</span></span>/id',<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>     </span>[{{&quot;<span class=SpellE>issued&quot;,&quot;some_uri</span>&quot;},&quot;2011&quot;}],&quot;passport&quot;,&quot;123&quot;},<o:p></o:p></span></p>
+style='mso-spacerun:yes'>Â Â Â Â  </span>[{{&quot;<span class=SpellE>issued&quot;,&quot;some_uri</span>&quot;},&quot;2011&quot;}],&quot;passport&quot;,&quot;123&quot;},<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>      </span>{'<span class=SpellE>b<span class=GramE>:personType</span></span>-hobby',[],&quot;mowing
+style='mso-spacerun:yes'>Â Â Â Â Â  </span>{'<span class=SpellE>b<span class=GramE>:personType</span></span>-hobby',[],&quot;mowing
 the lawn&quot;},<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>      </span>{'<span class=SpellE>b<span class=GramE>:name</span></span><span
+style='mso-spacerun:yes'>Â Â Â Â Â  </span>{'<span class=SpellE>b<span class=GramE>:name</span></span><span
 class=GramE>'</span>,[],<span class=SpellE>nil,&quot;Pietersen</span>&quot;},<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>      </span>{nil<span class=GramE>,{</span>'<span
+style='mso-spacerun:yes'>Â Â Â Â Â  </span>{nil<span class=GramE>,{</span>'<span
 class=SpellE>b:personType</span>/spouse',<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>          </span><span
-style='mso-spacerun:yes'>  </span>[{{&quot;nil&quot;,&quot;http://www.w3.org/2001/XMLSchema-instance&quot;},<o:p></o:p></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â  </span><span
+style='mso-spacerun:yes'>Â Â </span>[{{&quot;nil&quot;,&quot;http://www.w3.org/2001/XMLSchema-instance&quot;},<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>           </span><span
-style='mso-spacerun:yes'> </span><span style='mso-spacerun:yes'>  </span>&quot;true&quot;}],<o:p></o:p></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â  </span><span
+style='mso-spacerun:yes'>Â </span><span style='mso-spacerun:yes'>Â Â </span>&quot;true&quot;}],<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>          </span><span
-style='mso-spacerun:yes'>  </span>undefined,<o:p></o:p></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â  </span><span
+style='mso-spacerun:yes'>Â Â </span>undefined,<o:p></o:p></span></p>
 
 <p class=MsoNormal style='background:#FFFF99'><span lang=EN-GB
 style='font-family:"Courier New";mso-ansi-language:EN-GB'><span
-style='mso-spacerun:yes'>          </span><span
-style='mso-spacerun:yes'>  </span>undefined}}}<o:p></o:p></span></p>
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â  </span><span
+style='mso-spacerun:yes'>Â Â </span>undefined}}}<o:p></o:p></span></p>
 
 <p class=MsoCaption><span lang=EN-GB style='mso-ansi-language:EN-GB'>example 9:
 output for misc_2.xml<o:p></o:p></span></p>
@@ -2473,8 +2473,8 @@ output for misc_2.xml<o:p></o:p></span></p>
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>It shows
-how “nil” values are represented – note that there are 2 different cases: for a
-simple type the value ‘nil’ is used, but for a complex type {‘nil’, Record} is
+how â€œnilâ€ values are represented â€“ note that there are 2 different cases: for a
+simple type the value â€˜nilâ€™ is used, but for a complex type {â€˜nilâ€™, Record} is
 used, where Record is a record of the same type that would be used if a non-nil
 value would have been provided. The reason for this slightly awkward pattern is
 that a nil-value may still have attributes.<o:p></o:p></span></p>
@@ -2482,7 +2482,7 @@ that a nil-value may still have attributes.<o:p></o:p></span></p>
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'>Example 9
-also shows what happens to “any-attributes” (“issued”, in this case): these are
+also shows what happens to â€œany-attributesâ€ (â€œissuedâ€, in this case): these are
 put into the first field of the record.<o:p></o:p></span></p>
 
 <h1><a name="_Toc181008877"><span lang=EN-US style='mso-ansi-language:EN-US'>Installation</span></a><span
@@ -2491,7 +2491,7 @@ EN-GB'><o:p></o:p></span></h1>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>The easiest
 way to install <span class=SpellE>Erlsom</span> is probably to get it from CEAN
-(http://cean.process-one.net). If you don’t want to do that, or if it doesn’t
+(http://cean.process-one.net). If you donâ€™t want to do that, or if it doesnâ€™t
 work for you, you can also install it from <span class=SpellE>Sourceforge</span>.</span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
@@ -2522,7 +2522,7 @@ lang=EN-US style='font-family:"Times New Roman";mso-ansi-language:EN-US'>-</span
 lang=EN-US style='font-size:7.0pt;font-family:"Times New Roman";mso-ansi-language:
 EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
 lang=EN-US style='mso-ansi-language:EN-US'>Put all the files into the directory
-‘ROOT/lib/erlsom-1.2.1/src’, where ROOT is the directory that contains <span
+â€˜ROOT/lib/erlsom-1.2.1/srcâ€™, where ROOT is the directory that contains <span
 class=SpellE>Erlang</span> (</span><span class=code><span lang=EN-US
 style='mso-ansi-language:EN-US'>C:\Program Files\erl5.6.1</span></span><span
 lang=EN-US style='mso-ansi-language:EN-US'> on my Windows system).</span><span
@@ -2540,7 +2540,7 @@ lang=EN-US style='font-family:"Times New Roman";mso-ansi-language:EN-US'>-</span
 lang=EN-US style='font-size:7.0pt;font-family:"Times New Roman";mso-ansi-language:
 EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
 lang=EN-US style='mso-ansi-language:EN-US'>Change the working directory to
-‘ROOT/lib/erlsom-1.2.1/src’:</span><span lang=EN-GB style='mso-ansi-language:
+â€˜ROOT/lib/erlsom-1.2.1/srcâ€™:</span><span lang=EN-GB style='mso-ansi-language:
 EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:70.8pt'><span lang=DE style='mso-ansi-language:
@@ -2640,7 +2640,7 @@ lang=EN-US style='font-family:"Times New Roman";mso-ansi-language:EN-US'>-</span
 lang=EN-US style='font-size:7.0pt;font-family:"Times New Roman";mso-ansi-language:
 EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
 lang=EN-US style='mso-ansi-language:EN-US'>Move the .beam files to
-‘ROOT/lib/erlsom-1.2.1/ebin’.</span><span lang=EN-GB style='mso-ansi-language:
+â€˜ROOT/lib/erlsom-1.2.1/ebinâ€™.</span><span lang=EN-GB style='mso-ansi-language:
 EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>&nbsp;</span><span
@@ -2725,8 +2725,8 @@ EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
 style='mso-ansi-language:EN-US'>It shows how easy <span class=SpellE>Erlsom</span>
 makes it for you to use an XML configuration file. The configuration file
 describes a set of 10 test cases, which are run by this example. The
-configuration file is described by “example1.xsd”. Compiling this XSD and then
-parsing the configuration file (“example1.xml”) gives you access to an <span
+configuration file is described by â€œexample1.xsdâ€. Compiling this XSD and then
+parsing the configuration file (â€œexample1.xmlâ€) gives you access to an <span
 class=SpellE>Erlang</span> structure of records that corresponds with the XML
 schema.</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
@@ -2735,13 +2735,13 @@ class=code><span lang=EN-US style='mso-ansi-language:EN-US'>o</span></span><span
 class=code><span lang=EN-US style='font-size:7.0pt;font-family:"Times New Roman";
 mso-ansi-language:EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></span><span
 lang=EN-US style='mso-ansi-language:EN-US'>It shows how 11 different schemas
-(names “abb1.xsd” through “abb11.xsd”) can describe the same XML document
-(named “<span class=SpellE>abb.xml</span>”), and it shows the output that
+(names â€œabb1.xsdâ€ through â€œabb11.xsdâ€) can describe the same XML document
+(named â€œ<span class=SpellE>abb.xml</span>â€), and it shows the output that
 results from running <span class=SpellE>Erlsom</span> on this file using these
-schema’s.<br>
+schemaâ€™s.<br>
 To run the example for XSD abb1.xsd, use the command<span class=GramE>&nbsp; <span
 class=code>example1:test</span></span></span><span class=code><span lang=EN-US
-style='mso-ansi-language:EN-US'>_erlsom(&quot;abb1”).</span></span><span
+style='mso-ansi-language:EN-US'>_erlsom(&quot;abb1â€).</span></span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal><span class=code><span lang=EN-US style='mso-ansi-language:
@@ -2768,7 +2768,7 @@ tab-stops:list 36.0pt'><![if !supportLists]><span lang=EN-US style='mso-fareast-
 Arial;mso-ansi-language:EN-US'><span style='mso-list:Ignore'>-<span
 style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 </span></span></span><![endif]><span lang=EN-US style='mso-ansi-language:EN-US'>continuation:
-this shows how to use the sax parser with a ‘continuation-function’. This can
+this shows how to use the sax parser with a â€˜continuation-functionâ€™. This can
 be used for parsing of very big files or streams. The continuation function
 should return a block of data; this will be parsed (calling the sax callback
 function when appropriate) and after that the function is called again to get
@@ -2819,7 +2819,7 @@ character sets, however.</span><span lang=EN-GB style='mso-ansi-language:EN-GB'>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>As
 specified by the XML standard, the default encoding is UTF-8. If the first byte
-of the document is a ‘&lt;’ ASCII character and if the XML declaration does not
+of the document is a â€˜&lt;â€™ ASCII character and if the XML declaration does not
 specify anything else, it will be assumed that the encoding is UTF-8.</span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
@@ -2859,7 +2859,7 @@ lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 <p class=MsoNormal><span class=SpellE><span lang=EN-US style='mso-ansi-language:
 EN-US'>Erlsom<span class=GramE>:compile</span>_xsd</span></span><span
 lang=EN-US style='mso-ansi-language:EN-US'> does create atoms. However, usually
-this function won’t be called with arbitrary end user input as its argument, so
+this function wonâ€™t be called with arbitrary end user input as its argument, so
 normally this should not be a problem.&nbsp; </span><span lang=EN-GB
 style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
@@ -2889,7 +2889,7 @@ style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 lang=EN-US style='font-family:"Times New Roman";mso-ansi-language:EN-US'>-</span><span
 lang=EN-US style='font-size:7.0pt;font-family:"Times New Roman";mso-ansi-language:
 EN-US'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US style='mso-ansi-language:
-EN-US'>Key, Unique etc. are not supported – if these elements occur in the XSD,
+EN-US'>Key, Unique etc. are not supported â€“ if these elements occur in the XSD,
 they are simply ignored.</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>&nbsp;</span><span
@@ -2907,14 +2907,14 @@ EN-GB'><o:p></o:p></span></p>
 lang=EN-US style='font-family:"Times New Roman";mso-ansi-language:EN-US'>-</span><span
 lang=EN-US style='font-size:7.0pt;font-family:"Times New Roman";mso-ansi-language:
 EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
-lang=EN-US style='mso-ansi-language:EN-US'>It doesn’t support external
+lang=EN-US style='mso-ansi-language:EN-US'>It doesnâ€™t support external
 entities.</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:36.0pt;text-indent:-18.0pt'><span
 lang=EN-US style='font-family:"Times New Roman";mso-ansi-language:EN-US'>-</span><span
 lang=EN-US style='font-size:7.0pt;font-family:"Times New Roman";mso-ansi-language:
 EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
-lang=EN-US style='mso-ansi-language:EN-US'>It doesn’t do any validation: if the
+lang=EN-US style='mso-ansi-language:EN-US'>It doesnâ€™t do any validation: if the
 XML includes a DTD, this is simply ignored.</span><span lang=EN-GB
 style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
@@ -3105,8 +3105,8 @@ Schema elements</span></a></h2>
   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>Ignored
-  (all restrictions on simple types are ignored – those types are treated as
-  ‘string’)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
+  (all restrictions on simple types are ignored â€“ those types are treated as
+  â€˜stringâ€™)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:13'>
@@ -3154,7 +3154,7 @@ Schema elements</span></a></h2>
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>Supported.
   However, the support for finding the imported files is limited. See (and
-  modify, if necessary…) the function <span class=SpellE>findFile</span> in <span
+  modify, if necessaryâ€¦) the function <span class=SpellE>findFile</span> in <span
   class=SpellE>erlsom_lib.erl</span>. </span><span lang=EN-GB style='mso-ansi-language:
   EN-GB'><o:p></o:p></span></p>
   </td>
@@ -3169,7 +3169,7 @@ Schema elements</span></a></h2>
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>Supported.
   However, the support for finding the included files is limited. See (and modify,
-  if necessary…) the function <span class=SpellE>findFile</span> in <span
+  if necessaryâ€¦) the function <span class=SpellE>findFile</span> in <span
   class=SpellE>erlsom_lib.erl</span>.</span><span lang=EN-GB style='mso-ansi-language:
   EN-GB'><o:p></o:p></span></p>
   </td>
@@ -3206,8 +3206,8 @@ Schema elements</span></a></h2>
   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>Ignored
-  (all restrictions on simple types are ignored – those types are treated as
-  ‘string’)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
+  (all restrictions on simple types are ignored â€“ those types are treated as
+  â€˜stringâ€™)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:21'>
@@ -3219,8 +3219,8 @@ Schema elements</span></a></h2>
   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>Ignored (all
-  restrictions on simple types are ignored – those types are treated as
-  ‘string’)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
+  restrictions on simple types are ignored â€“ those types are treated as
+  â€˜stringâ€™)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:22'>
@@ -3233,8 +3233,8 @@ Schema elements</span></a></h2>
   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>(all
-  restrictions on simple types are ignored – those types are treated as
-  ‘string’)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
+  restrictions on simple types are ignored â€“ those types are treated as
+  â€˜stringâ€™)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:23'>
@@ -3298,7 +3298,7 @@ Schema elements</span></a></h2>
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>Supported.
   However, the support for finding the imported files is limited. See (and
-  modify, if necessary…) the function <span class=SpellE>findFile</span> in <span
+  modify, if necessaryâ€¦) the function <span class=SpellE>findFile</span> in <span
   class=SpellE>erlsom_lib.erl</span>.</span><span lang=EN-GB style='mso-ansi-language:
   EN-GB'><o:p></o:p></span></p>
   </td>
@@ -3314,8 +3314,8 @@ Schema elements</span></a></h2>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>Supported
   as a way to create a derived complex type (but it is not checked whether this
   is really a restriction of the base type). Ignored on <span class=SpellE>simpleTypes</span>
-  (all restrictions on simple types are ignored – those types are treated as
-  ‘string’)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
+  (all restrictions on simple types are ignored â€“ those types are treated as
+  â€˜stringâ€™)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:29'>
@@ -3387,8 +3387,8 @@ Schema elements</span></a></h2>
   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>Ignored (all
-  restrictions on simple types are ignored – those types are treated as
-  ‘string’)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
+  restrictions on simple types are ignored â€“ those types are treated as
+  â€˜stringâ€™)</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:35;mso-yfti-lastrow:yes'>
@@ -3550,14 +3550,14 @@ Schema Attributes</span></a></h2>
   <td width=151 valign=top style='width:4.0cm;border:solid windowtext 1.0pt;
   border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>namespace
-  (for ‘any’)</span></p>
+  (for â€˜anyâ€™)</span></p>
   </td>
   <td width=444 valign=top style='width:333.0pt;border-top:none;border-left:
   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>supported,
   but lists of values are not supported (##any, ##local and ##other are
-  supported). A list of values is treated as ‘##any’.</span></p>
+  supported). A list of values is treated as â€˜##anyâ€™.</span></p>
   </td>
  </tr>
  <tr style='mso-yfti-irow:12'>
@@ -3570,7 +3570,7 @@ Schema Attributes</span></a></h2>
   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>supported
-  in a limited way, see ‘import’.</span><span lang=EN-GB style='mso-ansi-language:
+  in a limited way, see â€˜importâ€™.</span><span lang=EN-GB style='mso-ansi-language:
   EN-GB'><o:p></o:p></span></p>
   </td>
  </tr>
@@ -3622,7 +3622,7 @@ Schema Attributes</span></a></h2>
   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
   padding:0cm 5.4pt 0cm 5.4pt'>
   <p class=MsoNormal><span lang=EN-US style='mso-ansi-language:EN-US'>supported,
-  but ‘prohibited’ is ignored (treated as ‘optional’).</span><span lang=EN-GB
+  but â€˜prohibitedâ€™ is ignored (treated as â€˜optionalâ€™).</span><span lang=EN-GB
   style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
   </td>
  </tr>
@@ -3796,15 +3796,15 @@ lang=EN-US style='mso-ansi-language:EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 
 <p class=MsoNormal style='margin-left:70.9pt;text-indent:-35.45pt'><span
 lang=EN-US style='mso-ansi-language:EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-- <span class=SpellE>Include_files</span>. This is the value of the ‘<span
-class=SpellE>include_files</span>’ option if this option was passed to <span
+- <span class=SpellE>Include_files</span>. This is the value of the â€˜<span
+class=SpellE>include_files</span>â€™ option if this option was passed to <span
 class=SpellE>compile_<span class=GramE>xsd</span></span><span class=GramE>(</span>);
 [] otherwise.<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:70.9pt;text-indent:-35.45pt'><span
 lang=EN-US style='mso-ansi-language:EN-US'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-- <span class=SpellE>Include_dirs</span>. This is the value of the ‘<span
-class=SpellE>include_dirs</span>’ option if this option was passed to <span
+- <span class=SpellE>Include_dirs</span>. This is the value of the â€˜<span
+class=SpellE>include_dirs</span>â€™ option if this option was passed to <span
 class=SpellE>compile_<span class=GramE>xsd</span></span><span class=GramE>(</span>);
 'undefined' otherwise.</span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
@@ -3816,7 +3816,7 @@ EN-GB'><o:p></o:p></span></p>
 lang=EN-US style='mso-ansi-language:EN-US'>Include_fun</span></span><span
 lang=EN-US style='mso-ansi-language:EN-US'> should return {XSD, Prefix}, where
 XSD is a XSD = <span class=GramE>string(</span>), Prefix = string or
-'undefined' – if the value is undefined, ‘P’ will be used.</span><span
+'undefined' â€“ if the value is undefined, â€˜Pâ€™ will be used.</span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
@@ -3837,7 +3837,7 @@ EN-GB'><o:p></o:p></span></p>
 <p class=MsoNormal style='margin-left:63.8pt;text-indent:-1.0cm'><span
 class=SpellE><i><span lang=EN-US style='mso-ansi-language:EN-US'>Include_<span
 class=GramE>files</span></span></i></span><span class=GramE><i><span
-lang=EN-US style='mso-ansi-language:EN-US'><span style='mso-spacerun:yes'> 
+lang=EN-US style='mso-ansi-language:EN-US'><span style='mso-spacerun:yes'>Â 
 </span></span></i><span lang=EN-US style='mso-ansi-language:EN-US'>is</span></span><span
 lang=EN-US style='mso-ansi-language:EN-US'> a list of <span class=SpellE>tuples</span>
 {Namespace, Prefix, Location}. Default is [].</span><span lang=EN-GB
@@ -3943,7 +3943,7 @@ lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
 style='mso-ansi-language:EN-US'>As <span class=SpellE>compile_<span
-class=GramE>xsd</span></span><span class=GramE>(</span>), but taking it’s input
+class=GramE>xsd</span></span><span class=GramE>(</span>), but taking itâ€™s input
 from a file. </span><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal><b><span lang=EN-US style='mso-ansi-language:EN-US'>&nbsp;</span></b><span
@@ -3963,9 +3963,9 @@ EN-GB'><o:p></o:p></span></p>
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
 style='mso-ansi-language:EN-US'>Compiles an XSD file (<span class=SpellE>FileName</span>),
 and adds the elements defined by this XSD to Model. The purpose is to add elements
-(namespaces) to a model that uses the XML Schema ‘any’<span class=GramE>&nbsp;
+(namespaces) to a model that uses the XML Schema â€˜anyâ€™<span class=GramE>&nbsp;
 construct</span>. Only elements that are part of the model will be part of the
-output of <span class=GramE>‘parse(</span>)’! See the soap example for an
+output of <span class=GramE>â€˜parse(</span>)â€™! See the soap example for an
 example where this is used.</span><span lang=EN-GB style='mso-ansi-language:
 EN-GB'><o:p></o:p></span></p>
 
@@ -4024,7 +4024,7 @@ Option =<span class=GramE>&nbsp; {</span><span class=SpellE>continuation_functio
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
 style='mso-ansi-language:EN-US'><span
-style='mso-spacerun:yes'>                            </span>{<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  </span>{<span
 class=SpellE>output_encoding</span>, utf8}<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
@@ -4102,12 +4102,12 @@ of the XML has finished. The function should have 1 argument (<span
 class=SpellE>Continuation_state</span>). It should return a <span class=SpellE>tuple</span>
 {<span class=SpellE>NewData</span>, <span class=SpellE>NewState</span>}, where <span
 class=SpellE>NewData</span> should be the next block of data (again a list of <span
-class=SpellE>unicode</span> code points or binary data – but the data type has
+class=SpellE>unicode</span> code points or binary data â€“ but the data type has
 to be the same for each invocation, and it has to match the data type of XML),
 and <span class=SpellE>NewState</span> is the information that is passed to the
 next invocation. Note: if the encoding of the document supports multi-byte
-characters (UTF8, UTF16) you don’t have to ensure that each block of data
-contains only complete characters – but in case of UTF16 encoding you <i
+characters (UTF8, UTF16) you donâ€™t have to ensure that each block of data
+contains only complete characters â€“ but in case of UTF16 encoding you <i
 style='mso-bidi-font-style:normal'>do</i> have to ensure that you return an odd
 number of bytes.<o:p></o:p></span></p>
 
@@ -4115,8 +4115,8 @@ number of bytes.<o:p></o:p></span></p>
 style='mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
-style='mso-ansi-language:EN-US'>If the ‘<span class=SpellE>output_encoding</span>’
-option is used, the text values will be binary encoded – but the values that
+style='mso-ansi-language:EN-US'>If the â€˜<span class=SpellE>output_encoding</span>â€™
+option is used, the text values will be binary encoded â€“ but the values that
 are specified as integer in the XSD will still be integers.</span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
@@ -4139,7 +4139,7 @@ style='mso-ansi-language:EN-US'>&nbsp;</span><span lang=EN-GB style='mso-ansi-la
 EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
-style='mso-ansi-language:EN-US'>As parse, but taking it’s input from a file.</span><span
+style='mso-ansi-language:EN-US'>As parse, but taking itâ€™s input from a file.</span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
@@ -4304,7 +4304,7 @@ lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:106.3pt'><span lang=EN-US
 style='mso-ansi-language:EN-US'>- <span class=SpellE><span class=GramE>AccIn</span></span><span
-class=GramE> ,</span> a term() – Acc0 for the first invocation, and the result
+class=GramE> ,</span> a term() â€“ Acc0 for the first invocation, and the result
 from the previous invocation for each of the following invocations. <o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt;text-indent:35.4pt'><span
@@ -4320,13 +4320,13 @@ invocation of <span class=SpellE>EventFun</span>.<o:p></o:p></span></p>
 <p class=MsoNormal><span lang=EN-GB style='mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt;text-indent:35.4pt'><span
-lang=EN-US style='mso-ansi-language:EN-US'>Options – [Option]<o:p></o:p></span></p>
+lang=EN-US style='mso-ansi-language:EN-US'>Options â€“ [Option]<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:106.3pt'><span lang=EN-US
 style='mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt;text-indent:35.4pt'><span
-lang=EN-US style='mso-ansi-language:EN-US'>Option – {<span class=SpellE>continuation_function</span>,
+lang=EN-US style='mso-ansi-language:EN-US'>Option â€“ {<span class=SpellE>continuation_function</span>,
 <span class=SpellE>CState</span>, <span class=SpellE>CFunction</span>} | {<span
 class=SpellE>output_format</span>, utf8}<o:p></o:p></span></p>
 
@@ -4334,7 +4334,7 @@ class=SpellE>output_format</span>, utf8}<o:p></o:p></span></p>
 style='mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span></p>
 
 <p class=MsoNormal style='margin-left:106.3pt'><span lang=EN-US
-style='mso-ansi-language:EN-US'>The ‘<span class=SpellE>output_format</span>’
+style='mso-ansi-language:EN-US'>The â€˜<span class=SpellE>output_format</span>â€™
 option determines the encoding of the 'character data': element values and
 attribute values. The only supported encoding at this moment is 'utf8'. The
 default is <span class=GramE>string(</span>).<o:p></o:p></span></p>
@@ -4343,11 +4343,11 @@ default is <span class=GramE>string(</span>).<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:106.3pt'><span class=SpellE><span
 lang=EN-US style='mso-ansi-language:EN-US'>CFunction</span></span><span
-lang=EN-US style='mso-ansi-language:EN-US'> –should be a function that takes </span><span
+lang=EN-US style='mso-ansi-language:EN-US'> â€“should be a function that takes </span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'>2 arguments: Tail and State.<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:106.3pt'><span lang=EN-GB
-style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'> </span>- Tail
+style='mso-ansi-language:EN-GB'><span style='mso-spacerun:yes'>Â </span>- Tail
 is the (short) list of characters (or a short binary) that could not yet be
 parsed because it is (or might be) an incomplete token, or because an encoded
 character is not complete. Since this still has to be parsed, <span
@@ -4368,8 +4368,8 @@ has to be in the same type of encoding as the first part of the document. </span
 lang=EN-US style='mso-ansi-language:EN-US'>&nbsp;<br>
 <br>
 Note: if the encoding of the document supports multi-byte characters (UTF8,
-UTF16) you don’t have to ensure that each block of data contains only complete
-characters – but in case of UTF16 you <i style='mso-bidi-font-style:normal'>do</i>
+UTF16) you donâ€™t have to ensure that each block of data contains only complete
+characters â€“ but in case of UTF16 you <i style='mso-bidi-font-style:normal'>do</i>
 have to ensure that you return an odd number of bytes.<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:106.3pt'><span lang=EN-GB
@@ -4428,15 +4428,15 @@ class=SpellE>NameFun</span>} |<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
 style='mso-ansi-language:EN-US'><span
-style='mso-spacerun:yes'>                            </span>{<span
+style='mso-spacerun:yes'>Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  </span>{<span
 class=SpellE>output_encoding</span>, utf8}<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
-style='mso-ansi-language:EN-US'><span style='mso-tab-count:1'>            </span><span
+style='mso-ansi-language:EN-US'><span style='mso-tab-count:1'>Â Â Â Â Â Â Â Â Â Â Â  </span><span
 class=SpellE>SimpleFormElement</span> = {Tag, Attributes, Content}, <o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
-style='mso-ansi-language:EN-US'><span style='mso-tab-count:1'>            </span>Rest
+style='mso-ansi-language:EN-US'><span style='mso-tab-count:1'>Â Â Â Â Â Â Â Â Â Â Â  </span>Rest
 = list of characters that follow after the end of the XML document<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
@@ -4544,7 +4544,7 @@ style='mso-ansi-language:EN-US'>The function <span class=SpellE>erlsom_lib:find_
 can be passed to <span class=SpellE>compile_xsd</span> as the value for the '<span
 class=SpellE>include_fun</span>' option. It will attempt to get imported <span
 class=SpellE>XSDs</span> from the internet (if the import, include or redefine
-statement includes a ‘location’ attribute in the form of a URL). </span><span
+statement includes a â€˜locationâ€™ attribute in the form of a URL). </span><span
 lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-US
@@ -4707,7 +4707,7 @@ it returns a list, and not a binary.<o:p></o:p></span></p>
 style='mso-ansi-language:EN-GB'>&nbsp;<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-GB
-style='mso-ansi-language:EN-GB'>See the ‘continuation’ example for an example
+style='mso-ansi-language:EN-GB'>See the â€˜continuationâ€™ example for an example
 of how this can be used to deal with very large documents (or streams of data).<o:p></o:p></span></p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span lang=EN-GB
@@ -4838,7 +4838,7 @@ lang=EN-GB style='mso-ansi-language:EN-GB'><o:p></o:p></span></span></p>
 <p class=MsoNormal style='margin-left:35.4pt'>&nbsp;</p>
 
 <p class=MsoNormal style='margin-left:35.4pt'><span style='font-size:10.0pt'>Copyright
-© 2006, 2007, 2008 Willem de Jong</span></p>
+Â© 2006, 2007, 2008 Willem de Jong</span></p>
 
 <div>
 
@@ -4908,8 +4908,8 @@ style='mso-ansi-language:EN-GB'>[1]</span></span></span><span style='mso-bookmar
 _ftn1'></span></a><span style='mso-bookmark:_ftn1'></span><span
 style='mso-ansi-language:EN-GB'> </span><span lang=EN style='mso-ansi-language:
 EN'><a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright"><span
-class=GramE>Copyright</span></a><span class=GramE>&nbsp;©&nbsp;2004&nbsp;<a
-href="http://www.w3.org/"><acronym><span style='font-family:Arial'>W3C</span></acronym></a><sup>®</sup>
+class=GramE>Copyright</span></a><span class=GramE>&nbsp;Â©&nbsp;2004&nbsp;<a
+href="http://www.w3.org/"><acronym><span style='font-family:Arial'>W3C</span></acronym></a><sup>Â®</sup>
 (<a href="http://www.csail.mit.edu/"><acronym><span style='font-family:Arial'>MIT</span></acronym></a>,
 <a href="http://www.ercim.org/"><acronym><span style='font-family:Arial'>ERCIM</span></acronym></a>,
 <a href="http://www.keio.ac.jp/">Keio</a>), All Rights Reserved.</span> W3C <a
