@@ -27,7 +27,8 @@
 %%% introduction to erlsom_parse for the definition of this model.
 
 -module(erlsom_write).
--export([write/2]).
+-export([write/2,
+         write/3]).
 
 -include("erlsom_parse.hrl").
 -include("erlsom.hrl").
@@ -36,21 +37,33 @@
   %% io:format("write: ~p\n", [Text]).
 
 %% Returns the XML document. {ok, Document}
-write(Struct, Model = #model{tps = Types}) ->
+write(Struct, Model) ->
+  write(Struct, Model, []).
+
+write(Struct, Model = #model{tps = Types}, Options) ->
 
   %% start with _document type. 
   case lists:keysearch('_document', 2, Types) of
     {value, #type{els = [Head | _Tail], mxd = Mixed}} ->
       CurrentValue = Struct,
-      ResultWithThisElement = processElementValues([CurrentValue], Head, [], 0, Model, {[], 0}, Mixed),
+      ResultWithThisElement = 
+        processElementValues([CurrentValue], Head, 
+                             [], 0, Model, {[], 0}, Mixed),
       %% debug(ResultWithThisElement);
-      {ok, lists:flatten(ResultWithThisElement)};
+      case proplists:get_value(output, Options, list) of
+        list ->
+          {ok, unicode:characters_to_list(ResultWithThisElement)};
+        chardata ->
+          {ok, ResultWithThisElement};
+        binary ->
+          {ok, unicode:characters_to_binary(ResultWithThisElement)}
+      end;
     _Else ->
       {error, "Model should have _document type"}
   end.
 
 struct2xml(_Struct, [], ResultSoFar, _Model, _Namespaces, _Mixed) ->
-  lists:flatten(lists:reverse(ResultSoFar));
+  lists:reverse(ResultSoFar);
 
 %% Struct = {RecordType, value, ...}
 %% Processes whatever is INSIDE the tags (= the values of the struct), one by one, from the first
@@ -144,7 +157,7 @@ processElementValues([],
     Counter < Min ->
       throw({error, "Not enough values provided"});
     true -> 
-      lists:flatten(lists:reverse(ResultSoFar))
+      lists:reverse(ResultSoFar)
   end;
 
 %% ElementValues can be:

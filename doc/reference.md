@@ -9,6 +9,7 @@
 - [scan/3](#scan_3)
 - [scan_file/2](#scan_file)
 - [write/2](#write)
+- [write/3](#write_3)
 - [write_xsd_hrl_file/3](#write_xsd_hrl_file)
 - [parse_sax/4](#parse_sax)
 - [simple_form/1](#simple_form)
@@ -202,19 +203,27 @@ As [scan](#scan), but taking its input from a file.
  
  
 ### <a name="write">write/2</a> ###
+Equivalent to `write(Struct, Model, [])`.
+
+### <a name="write_3">write/3</a> ###
  
 ```
-write(Struct, Model) -> {ok, XML}
+write(Struct, Model, Options) -> {ok, XML}
 
-Struct = a structure that represents an XML document
-Model  = the internal representation of the XSD
-XML    = [int()].
+Struct  = a structure that represents an XML document
+Model   = the internal representation of the XSD
+Options = [Option]
+Option  = {output, list | charlist | binary}
+XML     = list() | charlist() | binary().
 ```
  
 Translates a structure of records to an XML document. It is the inverse of erlsom:parse().
- 
-Note that the output is a list of Unicode code points. If you want to write it to a file, or send it over a wire, you should transform it to binary, and generally you should encode it. You can use erlsom_ucs:to_utf8() to do this.
- 
+
+The `output` option can be used to specify the format of the output. The
+possible values are:
+- `list`: a list of Unicode code points (integers). This is the default.
+- `charlist`: a deep list of Unicode code points and UTF-8 encoded binaries.
+- `binary`: a UTF-8 encoded binary.
  
 ### <a name="write_xsd_hrl_file">write_xsd_hrl_file/3</a> ###
  

@@ -34,7 +34,7 @@
          simple_form/1, simple_form/2,
          simple_form_file/1, simple_form_file/2,
          scan/2, scan/3, scan_file/2, scan_file/3,
-         write/2,
+         write/2, write/3,
          parse_sax/3, parse_sax/4,
          sax/3, sax/4,
          write_hrl/2, 
@@ -326,6 +326,8 @@ simple_form_file(File, Options) ->
 
 %%----------------------------------------------------------------------
 %% Function: write/2
+%%
+%%
 %% Purpose: translate a structure of records to an XML document. This is the 
 %%     inverse of erlsom:parse(). The XML will conform to an XSD, provided
 %%     that the input structure matches with this XSD.
@@ -336,12 +338,21 @@ simple_form_file(File, Options) ->
 %%     the documentation for the mapping.
 %%     Model = the internal representation of the XSD; the result of
 %%     erlsom:compile().
+%%     Options: [{output, list | charlist | binary}]. In case the option 'list' is 
+%%     selected (this is the default), the output will be a list of unicode
+%%     code points. In case the option 'charlist' is selected, the output will 
+%%     be a charlist, i.e. a deep lists of numbers representing Unicode
+%%     code points and UTF-8 encoded binaries. If 'binary' is selected the
+%%     output will be a UTF-8 encoded binary.
 %%
 %% Returns: {ok, Document} where Document is an XML document (a string),
 %%     or {error, ErrorMessage}.
 %%----------------------------------------------------------------------
 write(Struct, Model) ->
-  erlsom_write:write(Struct, Model).
+  erlsom:write(Struct, Model, []).
+
+write(Struct, Model, Options) ->
+  erlsom_write:write(Struct, Model, Options).
 
 
 %%----------------------------------------------------------------------
