@@ -353,7 +353,7 @@ xsdModel(Namespaces) ->
                         mn = 0, 
                         mx = 1, 
                         nr = 4},
-                    #el{alts = [#alt{tag = 'xsd:all', tp = 'allType'},
+                    #el{alts = [%%#alt{tag = 'xsd:all', tp = 'allType'},
                                 #alt{tag = 'xsd:sequence', tp = 'sequenceType'}, 
                                 #alt{tag = 'xsd:choice', tp = 'choiceType'},
                                 #alt{tag = 'xsd:group', tp = 'groupRefType'},

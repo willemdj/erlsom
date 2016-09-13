@@ -354,7 +354,8 @@ mergeAttrs(BaseAttrs, []) -> BaseAttrs;
 mergeAttrs(BaseAttrs, [Attr | Attrs]) ->
   mergeAttrs(mergeAttr(BaseAttrs, Attr), Attrs).
 
-mergeAttr([#attributeGroupRefType{id=Id} | BaseAttrs], #attributeGroupRefType{id=Id} = Attr) ->
+mergeAttr([#attributeGroupRefType{ref=Ref} | BaseAttrs], 
+          #attributeGroupRefType{ref=Ref} = Attr) ->
   [Attr | BaseAttrs];
 mergeAttr([#attrib{name=Name} | BaseAttrs], #attrib{name=Name} = Attr) ->
   [Attr | BaseAttrs];
