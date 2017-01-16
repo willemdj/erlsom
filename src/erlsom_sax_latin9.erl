@@ -907,7 +907,12 @@ parseContentLT(?STR1_T($/, Tail), State) ->
       State3 = wrapCallback({endElement, Uri, LocalName, Prefix}, State2),
       State4 = mapEndPrefixMappingCallback(NewNamespaces, State3),
       State5 = State4#erlsom_sax_state{namespaces = OldNamespaces, endtags = EndTags2},
-      parseContent(Tail3, State5);
+      case EndTags2 of
+        [] ->
+          {State5, binary_to_list(Tail3)};
+        _ ->
+          parseContent(Tail3, State5)
+      end;
     error -> 
       throw({error, "Malformed: Tags don't match"})
   end;
@@ -917,6 +922,7 @@ parseContentLT(?EMPTY, State) ->
 
 parseContentLT(Tail, State) ->
   Namespaces = State#erlsom_sax_state.namespaces,
+  EndTags = State#erlsom_sax_state.endtags,
   case parseStartTag(Tail, State) of
     {emptyelement, {Prefix, _LocalName, _QName}=StartTag, Attributes, Tail2, State2} ->
       {{Uri, LocalName, QName}, Attributes2, NewNamespaces} = 
@@ -926,9 +932,13 @@ parseContentLT(Tail, State) ->
       State4 = wrapCallback({startElement, Uri, LocalName, Prefix, Attributes2}, State3),
       State5 = wrapCallback({endElement, Uri, LocalName, QName}, State4),
       State6 = mapEndPrefixMappingCallback(NewNamespaces, State5),
-      parseContent(Tail2, State6);
+      case EndTags of
+        [] ->
+          {State5, binary_to_list(Tail2)};
+        _ ->
+          parseContent(Tail2, State6)
+      end;
     {starttag, {Prefix, _LocalName, QName} = StartTag, Attributes, Tail2, State2} ->
-      EndTags = State#erlsom_sax_state.endtags,
         {{Uri, LocalName, Prefix}, Attributes2, NewNamespaces} = 
       createStartTagEvent(StartTag, Namespaces, Attributes),
       %% Call the call back function

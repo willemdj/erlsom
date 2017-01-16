@@ -18,6 +18,7 @@
 %% the function 'to_utf8' is an exact copy.
 
 -module(erlsom_ucs).
+-vsn('0.3').
 -author('Lon.Willett@sse.ie').
 -modified_by('johan.blom@mobilearts.se').
 -modified_by('w.a.de.jong@gmail.com').

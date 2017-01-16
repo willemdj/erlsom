@@ -15,6 +15,7 @@
 
 %% NOTICE: This is just an excerpt of the original ucs application
 -module(ucs).
+-vsn('0.3').
 -author('Lon.Willett@sse.ie').
 -modified_by('johan.blom@mobilearts.se').
 -compile([verbose,report_warnings,warn_unused_vars]).
