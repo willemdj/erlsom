@@ -65,6 +65,7 @@ writeXsdHrlFile(Xsd, Options) ->
   Result = erlsom:compile_xsd(Xsd, Options),
   case Result of
     {ok, Model} -> 
+      erlang:put(erlsom_attribute_hrl_prefix, proplists:get_value(attribute_hrl_prefix, Options, "")),
       writeHrl(Model);
     {error, Error} -> 
       throw({error, Error})
@@ -83,20 +84,26 @@ header() ->
 standard_types(AnyAtts) ->
   case AnyAtts of
     true ->
+      "-ifndef(ERLSOM_ANY_ATTRIB_TYPES).\n"
+      "-define(ERLSOM_ANY_ATTRIB_TYPES, true).\n"
       "-type anyAttrib()  :: {{string(),    %% name of the attribute\n"
       "                        string()},   %% namespace\n"
       "                       string()}.    %% value\n"
       "\n"
       "-type anyAttribs() :: [anyAttrib()] | undefined.\n"
+      "-endif.\n"
       "\n";
     _ -> 
       ""
   end ++
+  "-ifndef(ERLSOM_QNAME_TYPES).\n"
+  "-define(ERLSOM_QNAME_TYPES, true).\n"
   "%% xsd:QName values are translated to #qname{} records.\n"
   "-record(qname, {uri :: string(),\n"
   "                localPart :: string(),\n"
   "                prefix :: string(),\n"
-  "                mappedPrefix :: string()}).\n".
+  "                mappedPrefix :: string()}).\n"
+  "-endif.\n".
 
 writeTypes(Types, TypeHierarchy, AnyAtts) ->
   [standard_types(AnyAtts), [writeType(T, TypeHierarchy, AnyAtts) || T <- Types]].
@@ -235,8 +242,10 @@ writeAttributes(Attributes) ->
 
 writeAttribute(#att{nm = Name, opt = Optional, tp = Type}) -> 
     OptOrReq = if Optional -> " | undefined"; true -> "" end,
+    AttrPrefix = erlang:get(erlsom_attribute_hrl_prefix),
+    AttrName = list_to_atom(AttrPrefix ++ atom_to_list(baseName(Name))),
     Format = "~n\t~p :: ~s~s",
-    lists:flatten(io_lib:format(Format, [baseName(Name), makeType(Type), OptOrReq])).
+    lists:flatten(io_lib:format(Format, [AttrName, makeType(Type), OptOrReq])).
 
 %% the names of the fields should not have the prefix
 baseName(Atom) when is_atom(Atom) ->
