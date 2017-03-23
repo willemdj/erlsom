@@ -230,14 +230,24 @@ possible values are:
 ```
 write_xsd_hrl_file(XSD, Output, Options) -> ok
 
-XSD     = the name of the file that contains the XSD
-Options = a list of Options, see [compile_xsd()](#compile_xsd).
-Output  = the name of the output file
+XSD        = the name of the file that contains the XSD,
+Output     = the name of the output file,
+Options    = [ CompileOpt | HrlOption ]
+HrlOption  = {attribute_hrl_prefix, string()}
+CompileOpt = a list of Options as defined in [compile_xsd()](#compile_xsd).
 ```
             
-Produces a set of record definitions for the types defined by the XSD. Note that the options have to be identical to those that are passed to compile_xsd().
+Produces a set of record definitions for the types defined by the XSD. Note that the compile options have to be identical to those that are passed to compile_xsd().
   
- 
+The `{attribute_hrl_prefix, string()}` is used to specify a prefix
+for the record fields representing attributes. It defaults to `""`.
+E.g. if option `{attribute_hrl_prefix, "attr_"}` will be passed to
+this function, attribute `id` in the XML Schema will be represented
+by the field `attr_id` in the generated record. This is useful in
+the cases when a complex type have an attribute and an element with
+the same name.
+
+
 ### <a name="parse_sax">parse_sax/4</a> ###
 
 ```

@@ -37,7 +37,7 @@
          write/2, write/3,
          parse_sax/3, parse_sax/4,
          sax/3, sax/4,
-         write_hrl/2, 
+         write_hrl/2, write_hrl/3,
 	 write_xsd_hrl_file/2, write_xsd_hrl_file/3, 
          write_hrl_file/2, write_hrl_file/3, write_hrl_file/4,
          add_xsd_file/3,
@@ -412,7 +412,10 @@ sax(Xml, State, EventFun, Options) ->
   Result.
 
 write_hrl(Model, Output) ->
-  Hdr = erlsom_writeHrl:writeHrl(Model),
+  write_hrl(Model, Output, []).
+
+write_hrl(Model, Output, Options) ->
+  Hdr = erlsom_writeHrl:writeHrl(Model, Options),
   file:write_file(Output, Hdr).
 
 %%----------------------------------------------------------------------
@@ -428,6 +431,16 @@ write_hrl(Model, Output) ->
 %%     in the XSD. 'Prefix' is prefixed to the record names.
 %%
 %%     Output = the name of the output file.
+%%
+%%     Options = Compile options plus the following:
+%%
+%%        * `{attribute_hrl_prefix, string()}' -- prefix for the record
+%%          fields representing attributes. Defaults to "". E.g. if option
+%%          {attribute_hrl_prefix, "attr_"} will be passed to this function,
+%%          attribute "id" in the XML Schema will be represented by the field
+%%          'attr_id' in the generated record. This is useful in the cases
+%%          when a complex type have an attribute and an element with the
+%%          same name.
 %%
 %% Returns: ok, or an error if the file was not found. 
 %%----------------------------------------------------------------------
