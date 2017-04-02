@@ -26,8 +26,8 @@
 %%% input.
 
 -module(erlsom_writeHrl).
--export([writeHrl/1]).
--export([write_hrl/1]).
+-export([writeHrl/1, writeHrl/2]).
+-export([write_hrl/1, write_hrl/2]).
 -export([writeHrlFile/3]).
 -export([writeXsdHrlFile/2]).
 
@@ -43,11 +43,19 @@
   %% io:format("~p ~p~n", [Text1, Text2]).
 
 -spec write_hrl(Model::erlsom:model()) -> {hrl_header(), hrl_types()}.
-write_hrl(#model{tps = Types, th = TypeHierarchy, any_attribs = AnyAtts}) ->
+write_hrl(Model) ->
+    write_hrl(Model, []).
+
+-spec write_hrl(Model::erlsom:model(), Options :: list()) -> {hrl_header(), hrl_types()}.
+write_hrl(#model{tps = Types, th = TypeHierarchy, any_attribs = AnyAtts}, Options) ->
+  erlang:put(erlsom_attribute_hrl_prefix, proplists:get_value(attribute_hrl_prefix, Options, "")),
   {header(), writeTypes(Types, TypeHierarchy, AnyAtts)}.
 
-writeHrl(#model{} = Model) ->
-  {Header, Types} = write_hrl(Model),
+writeHrl(Model) ->
+    writeHrl(Model, []).
+
+writeHrl(#model{} = Model, Options) ->
+  {Header, Types} = write_hrl(Model, Options),
   [Header, Types].
 
 writeHrlFile(Xsd, Prefix, Namespaces) ->
@@ -65,8 +73,7 @@ writeXsdHrlFile(Xsd, Options) ->
   Result = erlsom:compile_xsd(Xsd, Options),
   case Result of
     {ok, Model} -> 
-      erlang:put(erlsom_attribute_hrl_prefix, proplists:get_value(attribute_hrl_prefix, Options, "")),
-      writeHrl(Model);
+      writeHrl(Model, Options);
     {error, Error} -> 
       throw({error, Error})
   end.
