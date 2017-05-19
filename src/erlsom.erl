@@ -338,10 +338,10 @@ simple_form_file(File, Options) ->
 %%     the documentation for the mapping.
 %%     Model = the internal representation of the XSD; the result of
 %%     erlsom:compile().
-%%     Options: [{output, list | charlist | binary}]. In case the option 'list' is 
+%%     Options: [{output, list | chardata | binary}]. In case the option 'list' is 
 %%     selected (this is the default), the output will be a list of unicode
-%%     code points. In case the option 'charlist' is selected, the output will 
-%%     be a charlist, i.e. a deep lists of numbers representing Unicode
+%%     code points. In case the option 'chardata' is selected, the output will 
+%%     be a chardata, i.e. a deep lists of numbers representing Unicode
 %%     code points and UTF-8 encoded binaries. If 'binary' is selected the
 %%     output will be a UTF-8 encoded binary.
 %%
