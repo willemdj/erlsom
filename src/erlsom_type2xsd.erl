@@ -94,7 +94,7 @@ type_to_xsd(String, XsdFile, Options) ->
 %% The forms must be records ({attribute, record, _, {Name, Fields}}) or
 %% the special attributes that can be used to specify things like the 
 %% target namespace etc.
--spec translate_forms(XSD_forms::form(), Options::option()) -> string().
+-spec translate_forms(XSD_forms::form(), Options::[option()]) -> #schemaType{}.
 translate_forms(Forms, Options) ->
   Tns = proplists:get_value('target_namespace', Options, {"TargetNamespace", "tns"}), 
   #state{elements = Elements, types = Types, ns = Tns2} = 

@@ -65,10 +65,10 @@
 %% path is used to give local elements a unique name (the 'path' to the element)
 -record(schemaInfo, {targetNamespace, elementFormDefault, namespacePrefix, namespaces, 
                      path=[], attGrps, atts, th,
-                     strict :: boolean(),   %% enforce additional type checks/conversions
-                     include_any_attrs = false, %% if true, the second element in the result 
-                                                %% types will be used for 
-                                                %% atributes that were not explicitly declared
+                     strict = false :: boolean(), %% enforce additional type checks/conversions
+                     include_any_attrs = false,   %% if true, the second element in the result 
+                                                  %% types will be used for 
+                                                  %% atributes that were not explicitly declared
                      value_fun    %% Function that is called after the parsing 
                                   %% of a complex type (resulting in creation of a 
                                   %% record) has been created. Can be used
