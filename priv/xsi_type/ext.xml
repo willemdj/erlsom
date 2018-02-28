@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<base:data
+    xmlns:base="urn:erlsom/xsi_type/base"
+    xmlns:ext="urn:erlsom/xsi_type/ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:type="ext:ExtType">
+    <base:base_info>a</base:base_info>
+    <ext:ext_info>b</ext:ext_info>
+</base:data>
