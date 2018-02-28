@@ -329,9 +329,11 @@ processAlternativeValue(Value, Count,
       {AnyAttrPlusXsiTypeString, DeclaredNamespaces3} = 
         case Abstract of 
           false -> {AnyAttributesString, DeclaredNamespaces2};
-          _ -> 
+          _ ->
+            NameAsText = atom_to_list(Name),
+            {NamespacesStringAbs, DeclaredNamespacesAbs, _ExtraPrefixAbs} = processNamespaces(NameAsText, Namespaces, DeclaredNamespaces2),
             XsiType = [" xsi:type=\"", atom_to_list(Name), "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""], 
-            {[AnyAttributesString, XsiType], DeclaredNamespaces2}
+            {[AnyAttributesString, XsiType, NamespacesStringAbs], DeclaredNamespacesAbs}
      end,
 
       %% deal with namespaces (that is, see if they have to be declared here)
@@ -507,13 +509,15 @@ processAnyAttributes([{{Name, Uri}, Value} | Tail], Acc, Namespaces, DeclaredNam
       processAnyAttributes(Tail, [Acc, " ", Name, "=\"", decodeIfRequired(Value), "\""], 
         Namespaces, DeclaredNamespaces);
     _Other ->
-      %% the "xsi:nil=true" is not written, because it is inserted in another way.
+      %% the "xsi:nil=true" and xsi:type are not written, because they are inserted in another way.
       case {Name, Uri, Value} of
         {"nil", "http://www.w3.org/2001/XMLSchema-instance", "true"} ->
           processAnyAttributes(Tail, Acc, Namespaces, DeclaredNamespaces);
         {"nil", "http://www.w3.org/2001/XMLSchema-instance", "1"} ->
           processAnyAttributes(Tail, Acc, Namespaces, DeclaredNamespaces);
-        _ -> 
+        {"type", "http://www.w3.org/2001/XMLSchema-instance", _} ->
+          processAnyAttributes(Tail, Acc, Namespaces, DeclaredNamespaces);
+        _ ->
           %% get prefix +, if relevant, NS declaration text
           {PrefixedName, DeclaredNamespaces2} = processAnyNamespaces(Name, Uri, Namespaces, DeclaredNamespaces),
           processAnyAttributes(Tail, [Acc, " ", PrefixedName, "=\"", decodeIfRequired(Value), "\""], 

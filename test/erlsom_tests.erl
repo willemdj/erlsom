@@ -53,3 +53,57 @@ verify_stability_(XsdPath, XmlPath, IncludeDirs) ->
 
 priv_path(Path) ->
     filename:join([code:priv_dir(erlsom) | Path]).
+
+
+%%
+%%  Check if xsi:type is parsed and written correctly.
+%%
+%%  This test was introduced to check/fix the following bugs:
+%%    * The ext namespace was not added to the corresponding element when writing model to the XSD.
+%%    * The xsi namespace was duplicated with different prefix if the model had xsi namespace defined with other prefix.
+%%
+%%  Before the fix, the `Written' XML was looking like this:
+%%  ```
+%%      <b:data
+%%          xmlns:b="urn:erlsom/xsi_type/base"
+%%          xmlns:pre1="http://www.w3.org/2001/XMLSchema-instance"
+%%          pre1:type="ext:ExtType"
+%%          xsi:type="e:ExtType"
+%%          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+%%          <b:base_info>a</b:base_info>
+%%          <e:ext_info xmlns:e="urn:erlsom/xsi_type/ext">b</e:ext_info>
+%%      </b:data>
+%%  '''
+xsi_type_write_test() ->
+    %
+    % Parse the XSD model.
+    {ok, Base} = erlsom:compile_xsd_file(
+        priv_path(["xsi_type", "base.xsd"]),
+        [
+            {include_any_attribs, true},
+            {prefix, "b"}
+        ]
+    ),
+    {ok, Ext} = erlsom:compile_xsd_file(
+        priv_path(["xsi_type", "ext.xsd"]),
+        [
+            {include_any_attribs, true},
+            {prefix, "e"},
+            {include_dirs, [priv_path(["xsi_type"])]},
+            {include_files, [{"urn:erlsom/xsi_type/base", "b", priv_path(["xsi_type", "base.xsd"])}]}
+        ]
+    ),
+    Model = erlsom:add_model(Base, Ext),
+    io:format("Model=~p~n", [Model]),
+    %
+    % Parse the XML.
+    {ok, Xml} = file:read_file(priv_path(["xsi_type", "ext.xml"])),
+    {ok, Parsed1} = erlsom:parse(Xml,     Model), io:format("Parsed1=~p~n", [Parsed1]),
+    {ok, Written} = erlsom:write(Parsed1, Model), io:format("Written=~p~n", [Written]),
+    {ok, Parsed2} = erlsom:parse(Written, Model), io:format("Parsed2=~p~n", [Parsed2]),
+    ?assertEqual(
+        erlang:setelement(2, Parsed1, []),  % Compare ignoring the extra attributes, because they
+        erlang:setelement(2, Parsed2, [])   % have type names with prefixes, as defined in the XML.
+    ).
+
+% TODO: XSI:type and xsi:nil in one element.

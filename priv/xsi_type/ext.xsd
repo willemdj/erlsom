@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:base="urn:erlsom/xsi_type/base"
+    elementFormDefault="qualified"
+    targetNamespace="urn:erlsom/xsi_type/ext">
+    <xsd:import namespace="urn:erlsom/xsi_type/base" schemaLocation="base.xsd"/>
+    <xsd:complexType name="ExtType">
+        <xsd:complexContent>
+            <xsd:extension base="base:BaseType">
+                <xsd:sequence>
+                    <xsd:element name="ext_info" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+</xsd:schema>
