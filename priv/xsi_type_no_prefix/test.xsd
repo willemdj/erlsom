@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ !  NOTE: We are not using the targetNamespace here.
+ !  NOTE: elementFormDefault is unqualified by default.
+ !-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:element name="root" type="BaseType"/>
+    <xsd:complexType name="BaseType">
+        <xsd:sequence>
+            <xsd:element name="base_info" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ExtType">
+        <xsd:complexContent>
+            <xsd:extension base="BaseType">
+                <xsd:sequence>
+                    <xsd:element name="ext_info" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+</xsd:schema>
