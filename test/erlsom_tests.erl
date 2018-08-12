@@ -107,3 +107,28 @@ xsi_type_write_test() ->
     ).
 
 % TODO: XSI:type and xsi:nil in one element.
+
+
+%%
+%%  Check, if document can be parsed in the case, when an element is put to the
+%%  global namespace explicitly (`xmlns=""') and has derived type specified.
+%%
+xsi_type_no_prefix_read_test() ->
+    %
+    % Parse the XSD model.
+    {ok, Model} = erlsom:compile_xsd_file(
+        priv_path(["xsi_type_no_prefix", "test.xsd"]),
+        [
+            {include_any_attribs, true},
+            {prefix, "t"}
+        ]
+    ),
+    io:format("Model=~p~n", [Model]),
+    %
+    % Parse the XML.
+    {ok, Xml} = file:read_file(priv_path(["xsi_type_no_prefix", "test.xml"])),
+    {ok, Parsed} = erlsom:parse(Xml, Model),
+    io:format("Parsed=~p~n", [Parsed]),
+    ?assertMatch({'ExtType', _, "base", "ext"}, Parsed).
+
+

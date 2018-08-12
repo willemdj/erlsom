@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ! NOTE: The child elements of the root element has no namespace prefixes
+ !       and the empty namespace prefix is specified explicitly.
+ !-->
+<root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ExtType" xmlns="">
+    <base_info>base</base_info>
+    <ext_info>ext</ext_info>
+</root>

@@ -602,7 +602,7 @@ findXsiType([_| Tail]) ->
 findDerivedType(Type, XsiType, Types, TypeHierarchy, Namespaces, NamespaceMapping) ->
   #qname{localPart = LocalName, mappedPrefix = MappedPrefix} = 
     convertPCData(XsiType, qname, Namespaces, NamespaceMapping),
-  XsiTypeMapped = list_to_atom(makeTypeName(LocalName, case MappedPrefix of undefined -> ""; _ -> MappedPrefix ++ ":" end)),
+  XsiTypeMapped = list_to_atom(makeTypeName(LocalName, case MappedPrefix of undefined -> ""; "" -> ""; _ -> MappedPrefix ++ ":" end)),
   case isAncestor(Type, XsiTypeMapped, TypeHierarchy) of
     false ->
       throw({error, "Type not found in hierarchy: " ++ atom_to_list(Type)});
