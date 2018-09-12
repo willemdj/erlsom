@@ -29,12 +29,12 @@
 -include("erlsom_sax.hrl").
 -export([test/0]).
 -export([findCycle/4]).
--export([continueFun/3]).
--export([continueFun/4]).
--export([continueFun2/4]).
--export([continueFun/5]).
--export([continueFun/6]).
--export([continueFun2/6]).
+-export([continueFunK/4]).
+-export([continueFunK/5]).
+-export([continueFunK/6]).
+
+-export([continueFun2K/7]).
+-export([continueFun2K/5]).
 -export([mapStartPrefixMappingCallback/3]).
 -export([mapEndPrefixMappingCallback/3]).
 -export([createStartTagEvent/3]).
@@ -42,64 +42,69 @@
 %% there are 4 variants of this function, with different numbers of arguments
 %% The names of the first arguments aren't really meaningful, they can
 %% be anything - they are only there to be passed to 'ParseFun'.
-continueFun(V1, V2, V3, T, State, ParseFun) ->
-  {Tail, ContinuationState2} = 
-    (State#erlsom_sax_state.continuation_fun)(T, State#erlsom_sax_state.continuation_state),
-  case Tail of 
-    T -> throw({error, "Malformed: Unexpected end of data"});
-    _ -> 
-      ParseFun(V1, V2, V3, Tail, 
-        State#erlsom_sax_state{continuation_state = ContinuationState2})
-  end.
-
-continueFun2(T, V1, V2, V3, State, ParseFun) ->
+continueFun2K(T, V1, V2, V3, State = #erlsom_sax_state{is_pull = true}, ParseFun, K) ->
+    {continue, fun(Data) -> ParseFun(<<T/binary, Data/binary>>, V1, V2, V3, State#erlsom_sax_state{user_state = []}, K) end,
+     lists:reverse(State#erlsom_sax_state.user_state)};
+continueFun2K(T, V1, V2, V3, State, ParseFun, K) ->
   {Tail, ContinuationState2} = 
     (State#erlsom_sax_state.continuation_fun)(T, State#erlsom_sax_state.continuation_state),
   case Tail of 
     T -> throw({error, "Malformed: Unexpected end of data"});
     _ -> 
       ParseFun(Tail, V1, V2, V3, 
-        State#erlsom_sax_state{continuation_state = ContinuationState2})
+        State#erlsom_sax_state{continuation_state = ContinuationState2}, K)
   end.
 
-continueFun(Prefix, Head, T, State, ParseFun) ->
+continueFunK(Prefix, Head, T, State=#erlsom_sax_state{is_pull=true}, ParseFun, K) ->
+  {continue, fun(Data) -> ParseFun(Prefix, Head, <<T/binary, Data/binary>>, State#erlsom_sax_state{user_state=[]}, K) end, 
+    lists:reverse(State#erlsom_sax_state.user_state)};
+continueFunK(Prefix, Head, T, State, ParseFun, K) ->
   {Tail, ContinuationState2} = 
     (State#erlsom_sax_state.continuation_fun)(T, State#erlsom_sax_state.continuation_state),
   case Tail of 
     T -> throw({error, "Malformed: Unexpected end of data"});
     _ -> 
       ParseFun(Prefix, Head, Tail, 
-        State#erlsom_sax_state{continuation_state = ContinuationState2})
+        State#erlsom_sax_state{continuation_state = ContinuationState2}, K)
   end.
 
-continueFun(Head, T, State, ParseFun) ->
+continueFunK(Head, T, State=#erlsom_sax_state{is_pull=true}, ParseFun, K) ->
+  {continue, fun(Data) -> ParseFun(Head, <<T/binary, Data/binary>>, State#erlsom_sax_state{user_state=[]}, K) end,
+    lists:reverse(State#erlsom_sax_state.user_state)};
+continueFunK(Head, T, State, ParseFun, K) ->
   {Tail, ContinuationState2} = 
     (State#erlsom_sax_state.continuation_fun)(T, State#erlsom_sax_state.continuation_state),
   case Tail of 
     T -> throw({error, "Malformed: Unexpected end of data"});
     _ -> 
       ParseFun(Head, Tail, 
-        State#erlsom_sax_state{continuation_state = ContinuationState2})
+        State#erlsom_sax_state{continuation_state = ContinuationState2}, K)
   end.
 
-continueFun2(T, Head, State, ParseFun) ->
+continueFun2K(T, Head, State = #erlsom_sax_state{is_pull=true}, ParseFun, K) ->
+    {continue, fun(Data) -> ParseFun(<<T/binary, Data/binary>>, Head, State#erlsom_sax_state{user_state = []}, K) end,
+     lists:reverse(State#erlsom_sax_state.user_state)};
+continueFun2K(T, Head, State, ParseFun, K) ->
   {Tail, ContinuationState2} = 
     (State#erlsom_sax_state.continuation_fun)(T, State#erlsom_sax_state.continuation_state),
   case Tail of 
     T -> throw({error, "Malformed: Unexpected end of data"});
     _ -> 
-      ParseFun(Tail, Head,
-        State#erlsom_sax_state{continuation_state = ContinuationState2})
+      ParseFun(Tail, Head, 
+        State#erlsom_sax_state{continuation_state = ContinuationState2}, K)
   end.
 
-continueFun(T, State, ParseFun) ->
+continueFunK(T, State = #erlsom_sax_state{is_pull=true}, ParseFun, K) ->
+  {continue, fun(Data) -> ParseFun(<<T/binary, Data/binary>>, State#erlsom_sax_state{user_state=[]}, K) end,
+    lists:reverse(State#erlsom_sax_state.user_state)};
+continueFunK(T, State, ParseFun, K) ->
   {Tail, ContinuationState2} = 
     (State#erlsom_sax_state.continuation_fun)(T, State#erlsom_sax_state.continuation_state),
   case Tail of 
     T -> throw({error, "Malformed: Unexpected end of data"});
     _ -> 
       ParseFun(Tail, 
-        State#erlsom_sax_state{continuation_state = ContinuationState2})
+        State#erlsom_sax_state{continuation_state = ContinuationState2}, K)
   end.
 
  

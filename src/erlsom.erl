@@ -36,6 +36,7 @@
          scan/2, scan/3, scan_file/2, scan_file/3,
          write/2, write/3,
          parse_sax/3, parse_sax/4,
+         parse_pull/2,
          sax/3, sax/4,
          write_hrl/2, write_hrl/3,
 	 write_xsd_hrl_file/2, write_xsd_hrl_file/3, 
@@ -397,6 +398,10 @@ parse_sax(Xml, State, EventFun, Options) ->
 parse_sax(Xml, State, EventFun) ->
   parse_sax(Xml, State, EventFun, []).
 
+
+
+parse_pull(Xml, Options) ->
+    parse_sax(Xml, [], fun(Ev, Accum) -> [Ev | Accum] end, [pull | Options]).
 %%----------------------------------------------------------------------
 %% Function: sax/3
 %%
