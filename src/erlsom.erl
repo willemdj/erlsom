@@ -98,7 +98,7 @@
 %%        'undefined' for the prefix, unless this was specified in the
 %%        prefix_list.
 %%
-%%     'Include_dirs' is a list of directories (strings), separated by comma's.
+%%     'Include_dirs' is a list of directories (strings), separated by commas.
 %%       It defaults to ["."].
 %%
 %%     'Include_files' is a list of tuples {Namespace, Prefix, Location}.
@@ -126,7 +126,7 @@
 %% option will be searched for a matching namespace. If this is found, the
 %% specified prefix will be used. If a file is also specified, then this file will
 %% be used. If no file is specified (value is undefined), then the 'location'
-%% attribute and the 'include_dirs'option will be used to locate the file.
+%% attribute and the 'include_dirs' option will be used to locate the file.
 %%
 %% If the 'includes' option is not present, or if the namespace is not found, then
 %% the file will be searched for in the include_dirs (based on the 'location'
@@ -210,7 +210,7 @@ compile_file(XsdFile, Prefix, Namespaces) ->
 %%     Option = {continuation_function, Continuation_function,
 %%               Continuation_state}
 %%
-%% If specifified, the continuation function is called whenever the end of
+%% If specified, the continuation function is called whenever the end of
 %% the input XML document is reached before the parsing of the XML has finished.
 %% The function should have 1 argument (Continuation_state). It should return
 %% a tuple {NewData, NewState}, where NewData should be the next block of
@@ -326,8 +326,6 @@ simple_form_file(File, Options) ->
 
 %%----------------------------------------------------------------------
 %% Function: write/2
-%%
-%%
 %% Purpose: translate a structure of records to an XML document. This is the
 %%     inverse of erlsom:parse(). The XML will conform to an XSD, provided
 %%     that the input structure matches with this XSD.
@@ -399,7 +397,6 @@ parse_sax(Xml, State, EventFun) ->
 
 %%----------------------------------------------------------------------
 %% Function: sax/3
-%%
 %% Deprecated. Same as 'parse_sax/3', but without the trailing
 %% characters. If there are any trailing characters they are ignored.
 %%----------------------------------------------------------------------
@@ -483,10 +480,10 @@ add_file(XsdFile, Prefix, Model) ->
   {_, Result} = add_xsd_file(XsdFile, [{prefix, Prefix}], Model),
   Result.
 
-%% add the model for xml schema to a model.
+%% add the model for XML schema to a model.
 %% We need a special function, since:
-%% A - erlsom can't parse the schema for xml schema
-%% B - even if it would be able to parse the schema for xml schema,
+%% A - Erlsom can't parse the schema for XML schema
+%% B - even if it would be able to parse the schema for XML schema,
 %%     the output would be difficult to process.
 %%
 %% Expected to be used for parsing of WSDL files.
