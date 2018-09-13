@@ -3,8 +3,8 @@
 %%% This file is part of Erlsom.
 %%%
 %%% Erlsom is free software: you can redistribute it and/or modify
-%%% it under the terms of the GNU Lesser General Public License as 
-%%% published by the Free Software Foundation, either version 3 of 
+%%% it under the terms of the GNU Lesser General Public License as
+%%% published by the Free Software Foundation, either version 3 of
 %%% the License, or (at your option) any later version.
 %%%
 %%% Erlsom is distributed in the hope that it will be useful,
@@ -12,8 +12,8 @@
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %%% GNU Lesser General Public License for more details.
 %%%
-%%% You should have received a copy of the GNU Lesser General Public 
-%%% License along with Erlsom.  If not, see 
+%%% You should have received a copy of the GNU Lesser General Public
+%%% License along with Erlsom.  If not, see
 %%% <http://www.gnu.org/licenses/>.
 %%%
 %%% Author contact: w.a.de.jong@gmail.com
@@ -24,15 +24,15 @@
 
 
 %% records for the structures as found in the XSD
--record(schemaType, 
-        {elInfo, targetNamespace, elementFormDefault, attributeFormDefault, blockDefault, finalDefault, 
+-record(schemaType,
+        {elInfo, targetNamespace, elementFormDefault, attributeFormDefault, blockDefault, finalDefault,
          version, id, imports, elements}).
 -record(importType, {elInfo, id, namespace, schemaLocation, annotation}).
 -record(includeType, {elInfo, id, schemaLocation, annotation}).
 -record(redefineType, {elInfo, id, schemaLocation, elements}).
--record(globalElementType, {elInfo, name, type, default, fixed, id, abstract, substitutionGroup, final, nillable, 
+-record(globalElementType, {elInfo, name, type, default, fixed, id, abstract, substitutionGroup, final, nillable,
                             annotation, simpleOrComplex, unique}).
--record(localElementType, {elInfo, name, type, default, fixed, form, ref, minOccurs, maxOccurs, nillable, annotation, 
+-record(localElementType, {elInfo, name, type, default, fixed, form, ref, minOccurs, maxOccurs, nillable, annotation,
                            simpleOrComplex, unique}).
 -record(globalComplexTypeType, {elInfo, name, final, abstract, block, mixed, id, annotation, model, attributes, anyAttribute}).
 -record(localComplexTypeType, {elInfo, mixed, annotation, model, attributes, anyAttribute}).
@@ -60,32 +60,32 @@
 %% This is added to the XSD to allow generation of an XML document
 -record(namespaceType, {prefix, 'URI'}).
 
-%% the rest is for internal use in the translation of the XSD to the 
+%% the rest is for internal use in the translation of the XSD to the
 %% format used by the parser
 %% path is used to give local elements a unique name (the 'path' to the element)
--record(schemaInfo, {targetNamespace, elementFormDefault, namespacePrefix, namespaces, 
+-record(schemaInfo, {targetNamespace, elementFormDefault, namespacePrefix, namespaces,
                      path=[], attGrps, atts, th,
                      strict = false :: boolean(), %% enforce additional type checks/conversions
-                     include_any_attrs = false,   %% if true, the second element in the result 
-                                                  %% types will be used for 
+                     include_any_attrs = false,   %% if true, the second element in the result
+                                                  %% types will be used for
                                                   %% atributes that were not explicitly declared
-                     value_fun    %% Function that is called after the parsing 
-                                  %% of a complex type (resulting in creation of a 
+                     value_fun    %% Function that is called after the parsing
+                                  %% of a complex type (resulting in creation of a
                                   %% record) has been created. Can be used
                                   %% to modify the value (or for side effects).
                     }).
 
 %% typeInfo - the intermediate format.
 %% global (true or false): we need to find out in the
-%% end whether this type should be available as 'top level' element in the 
+%% end whether this type should be available as 'top level' element in the
 %% xml document.
--record(typeInfo, {typeName, 
-                   global, 
-                   typeType, 
-                   typeRef, 
-                   elements, 
+-record(typeInfo, {typeName,
+                   global,
+                   typeType,
+                   typeRef,
+                   elements,
                    attributes = [],
-		   anyAttr,
+                   anyAttr,
                    seqOrAll,
                    extends,
                    restricts,

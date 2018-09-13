@@ -3,8 +3,8 @@
 %%% This file is part of Erlsom.
 %%%
 %%% Erlsom is free software: you can redistribute it and/or modify
-%%% it under the terms of the GNU Lesser General Public License as 
-%%% published by the Free Software Foundation, either version 3 of 
+%%% it under the terms of the GNU Lesser General Public License as
+%%% published by the Free Software Foundation, either version 3 of
 %%% the License, or (at your option) any later version.
 %%%
 %%% Erlsom is distributed in the hope that it will be useful,
@@ -12,8 +12,8 @@
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %%% GNU Lesser General Public License for more details.
 %%%
-%%% You should have received a copy of the GNU Lesser General Public 
-%%% License along with Erlsom.  If not, see 
+%%% You should have received a copy of the GNU Lesser General Public
+%%% License along with Erlsom.  If not, see
 %%% <http://www.gnu.org/licenses/>.
 %%%
 %%% Author contact: w.a.de.jong@gmail.com
@@ -23,7 +23,7 @@
 %%% ====================================================================
 
 %%% This is the companion of erlsom_parse, which performs the inverse operation.
-%%% Both modules use the same 'model' that descibes the translation, see the 
+%%% Both modules use the same 'model' that descibes the translation, see the
 %%% introduction to erlsom_parse for the definition of this model.
 
 -module(erlsom_write).
@@ -42,12 +42,12 @@ write(Struct, Model) ->
 
 write(Struct, Model = #model{tps = Types}, Options) ->
 
-  %% start with _document type. 
+  %% start with _document type.
   case lists:keysearch('_document', 2, Types) of
     {value, #type{els = [Head | _Tail], mxd = Mixed}} ->
       CurrentValue = Struct,
-      ResultWithThisElement = 
-        processElementValues([CurrentValue], Head, 
+      ResultWithThisElement =
+        processElementValues([CurrentValue], Head,
                              [], 0, Model, {[], 0}, Mixed),
       %% debug(ResultWithThisElement);
       case proplists:get_value(output, Options, list) of
@@ -67,9 +67,9 @@ struct2xml(_Struct, [], ResultSoFar, _Model, _Namespaces, _Mixed) ->
 
 %% Struct = {RecordType, value, ...}
 %% Processes whatever is INSIDE the tags (= the values of the struct), one by one, from the first
-struct2xml(Struct, 
+struct2xml(Struct,
            _StructModel = [ModelForThisElement = #el{alts = Alternatives, mn = Min, mx = Max, nr = SequenceNr,
-                           nillable = Nillable} | NextElements], 
+                           nillable = Nillable} | NextElements],
            ResultSoFar, Model = #model{nss = Namespaces}, DeclaredNamespaces,
            Mixed) ->
 
@@ -79,51 +79,51 @@ struct2xml(Struct,
   %% value = list of chars (integers) => text
   %% value = list (not string) of:
   %%              tuples => subtypes, element has maxOccurs > 1 OR alternative has maxOccurs > 1
-  %%              strings => 
+  %%              strings =>
   %%              lists => element has maxOccurs > 1 AND alternative has maxOccurs > 1
   %% value == undefined -> no value provided
   %% etc.
 
   %% debug(CurrentValue),
 
-  if 
-    (Max == 1) and (Mixed /= true) ->  
-      case CurrentValue of  
+  if
+    (Max == 1) and (Mixed /= true) ->
+      case CurrentValue of
         undefined ->
-          if 
+          if
             Min > 0  ->
               Tags = [Alt#alt.tag || Alt <- Alternatives],
               Error = lists:flatten(io_lib:format("No value provided for non-optional element ~p~n", [Tags])),
               throw({error, Error});
-	    true -> ok
+            true -> ok
           end,
           ResultForThisElement = [];
         nil ->
-          if 
+          if
             Nillable /= true -> throw({error, "nil value provided for non-nillable element"});
-	    true -> ok
+            true -> ok
           end,
           ResultForThisElement = printNilValue(Alternatives, Namespaces, DeclaredNamespaces);
         {nil, AttrValues} ->
-          if 
+          if
             Nillable /= true -> throw({error, "nil value provided for non-nillable element"});
-	    true -> ok
+            true -> ok
           end,
           ResultForThisElement = printNilValue(Alternatives, AttrValues, Model, Namespaces, DeclaredNamespaces);
         [V1 | _] ->
-          case V1 of  
+          case V1 of
             _ when is_integer(V1) -> %% CurrentValue is a string
               ResultForThisElement = printValue(CurrentValue, Alternatives, Namespaces, DeclaredNamespaces, Mixed);
-            _ when is_tuple(V1) -> 
+            _ when is_tuple(V1) ->
               %% debug("alternative with MaxOccurs > 1"),
-              ResultForThisElement = processAlternatives(CurrentValue, Alternatives, Model, DeclaredNamespaces, 
+              ResultForThisElement = processAlternatives(CurrentValue, Alternatives, Model, DeclaredNamespaces,
                                                          Mixed)
           end;
         #qname{} ->
           ResultForThisElement = printValue(CurrentValue, Alternatives, Namespaces, DeclaredNamespaces, Mixed);
         _ when is_tuple(CurrentValue) ->
           %% debug("subtype"),
-          ResultForThisElement = 
+          ResultForThisElement =
                  processElementValues([CurrentValue], ModelForThisElement, [], 0, Model, DeclaredNamespaces, Mixed);
         _ when is_binary(CurrentValue) ->
           ResultForThisElement = printValue(CurrentValue, Alternatives, Namespaces, DeclaredNamespaces, Mixed);
@@ -131,82 +131,82 @@ struct2xml(Struct,
           %% debug("simple type"),
           ResultForThisElement = printValue(CurrentValue, Alternatives, Namespaces, DeclaredNamespaces, Mixed)
       end;
-    true -> %% CurrentValue is a list, because Element has maxOccurs > 1. 
-      if 
+    true -> %% CurrentValue is a list, because Element has maxOccurs > 1.
+      if
         is_list(CurrentValue); CurrentValue == undefined -> true;
         true -> throw({error, "value has to be a list"})
       end,
-      if 
+      if
         CurrentValue == undefined ->
           ResultForThisElement = [];
         true ->
-          ResultForThisElement = processElementValues(CurrentValue, ModelForThisElement, [], 0, Model, 
+          ResultForThisElement = processElementValues(CurrentValue, ModelForThisElement, [], 0, Model,
                                                       DeclaredNamespaces, Mixed)
       end
   end,
-      
+
   %% process remaining elements
   struct2xml(Struct, NextElements, [ResultForThisElement | ResultSoFar], Model, DeclaredNamespaces, Mixed).
 
 
-processElementValues([], 
-                     _ModelForThisElement = #el{mn = Min}, 
+processElementValues([],
+                     _ModelForThisElement = #el{mn = Min},
                      ResultSoFar, Counter, _Model, _DeclaredNamespaces,
                      _Mixed) ->
-  if 
+  if
     Counter < Min ->
       throw({error, "Not enough values provided"});
-    true -> 
+    true ->
       lists:reverse(ResultSoFar)
   end;
 
 %% ElementValues can be:
-%% 
+%%
 %% FirstElement can be:
 %% - a tuple
 %%    - for a value
 %% - a string (list)
 %%    - for a value
 %% - a list of tuples:
-%%    - for a sequence (or all, no need to distinguish) where the element has more values 
+%%    - for a sequence (or all, no need to distinguish) where the element has more values
 %%    - for a choice where the selected alternative has maxOccurs > 1
 %% - a list of lists
 %%    - for a choice with maxOccurs > 1 and an alternative with maxOccurs > 1
-%%    - it could in theory be a list of lists of lists (etc.)? But not now, since choice in choice is 
+%%    - it could in theory be a list of lists of lists (etc.)? But not now, since choice in choice is
 %%      not supported.
 %% - nil
 %%    - for a nillable element without attributes - even though it is not clear how useful this is
 %% - {nil, Record}
-%%    - for a nillable element with attributes 
-processElementValues([V1 | NextValues], 
-               ModelForThisElement = #el{alts = Alternatives, mx = Max, nillable=Nillable}, 
+%%    - for a nillable element with attributes
+processElementValues([V1 | NextValues],
+               ModelForThisElement = #el{alts = Alternatives, mx = Max, nillable=Nillable},
                ResultSoFar, Counter, Model = #model{nss = Namespaces}, DeclaredNamespaces, Mixed) ->
 
   %% debug("procesElementValues, counter = " ++ integer_to_list(Counter)),
   {Case, IncreaseCounter} =
-    case V1 of 
+    case V1 of
       [] -> %% "", string of 0 characters
         {listOfStrings, 1};
       _ when is_list(V1) ->
         V11 = hd(V1),
         case V11 of
-          #qname{} -> 
+          #qname{} ->
             throw({error, "wrong type in value"});
-          _ when is_tuple(V11) -> 
+          _ when is_tuple(V11) ->
             {listOfTuples, 1};
-          _ when is_integer(V11) -> 
-            if 
+          _ when is_integer(V11) ->
+            if
               Mixed == true ->
                 {mixed, 0};
               true ->
                 %% debug("element w. MaxOccurs > 1; 1st value is a string"),
                 {listOfStrings, 1}
               end;
-          _ -> 
+          _ ->
             throw({error, "wrong type in value"})
         end;
       _ when is_binary(V1) ->
-         if 
+         if
            Mixed == true ->
              {mixed, 0};
            true ->
@@ -217,28 +217,28 @@ processElementValues([V1 | NextValues],
         %% debug("element w. MaxOccurs > 1, (1st value is a qname)."),
         {qname, 1};
       {nil, _Record}  ->
-        if 
+        if
           Nillable /= true -> throw({error, "nil value provided for non-nillable element"});
-	  true -> {V1, 1} %% {{nil, Values}, 1} -- a bit tricky
+          true -> {V1, 1} %% {{nil, Values}, 1} -- a bit tricky
         end;
       _ when is_tuple(V1) ->
         %% debug("element w. MaxOccurs > 1, (1st value is a subtype)"),
         {tuple, 1};
       nil ->
-        if 
+        if
           Nillable /= true -> throw({error, "nil value provided for non-nillable element"});
-	  true -> {nil, 1}
+          true -> {nil, 1}
         end;
       _ ->
         %% debug("element w. MaxOccurs > 1, (1st value is a simple type)"),
         {simpleType, 1}
     end,
-  if 
+  if
     Counter + IncreaseCounter > Max ->    %% if Max == unbound the result of the test is false!
       throw({error, "Too many values provided"});
     true -> true
   end,
-  ResultForThisElement = 
+  ResultForThisElement =
     case Case of
       listOfTuples ->
         processAlternatives(V1, Alternatives, Model, DeclaredNamespaces, Mixed);
@@ -258,7 +258,7 @@ processElementValues([V1 | NextValues],
         printNilValue(Alternatives, Record, Model, Namespaces, DeclaredNamespaces)
     end,
 
-    processElementValues(NextValues, ModelForThisElement, [ResultForThisElement | ResultSoFar], Counter + IncreaseCounter, 
+    processElementValues(NextValues, ModelForThisElement, [ResultForThisElement | ResultSoFar], Counter + IncreaseCounter,
                        Model, DeclaredNamespaces, Mixed).
 
 %% returns a string that represents the value
@@ -270,7 +270,7 @@ processSubType(Value, Alternatives, Model = #model{tps = Types}, DeclaredNamespa
   TypeRecord = findType(RecordType, Types),
   processAlternativeValue(Value, 1, Alternative, TypeRecord, Model, DeclaredNamespaces, Abstract, Mixed).
 
-processAlternatives(Values = [Value | _], Alternatives, Model = #model{tps = Types},  DeclaredNamespaces, 
+processAlternatives(Values = [Value | _], Alternatives, Model = #model{tps = Types},  DeclaredNamespaces,
                     Mixed) ->
   %% See which alternative this is
   RecordType = element(1, Value),
@@ -279,7 +279,7 @@ processAlternatives(Values = [Value | _], Alternatives, Model = #model{tps = Typ
   processAlternativeValues(Values, 0, Alternative, TypeRecord, Model, DeclaredNamespaces, Abstract, [], Mixed).
 
 processAlternativeValues([], Count, #alt{mn = Min}, _Type, _Model, _Ns, _Abstract, Acc, _Mixed) ->
-  if 
+  if
     Count < Min -> throw({error, "not enough values"});
     true -> lists:reverse(Acc)
   end;
@@ -287,8 +287,8 @@ processAlternativeValues([], Count, #alt{mn = Min}, _Type, _Model, _Ns, _Abstrac
 processAlternativeValues([V1 | Tail], Count, Alternative, Type, Model, Ns, Abstract, Acc, Mixed) ->
   processAlternativeValues(Tail, Count + 1, Alternative, Type, Model, Ns, Abstract,
       [processAlternativeValue(V1, Count, Alternative, Type, Model, Ns, Abstract, Mixed) | Acc], Mixed).
-  
-processAlternativeValue(Value, Count, 
+
+processAlternativeValue(Value, Count,
                         #alt{tag = Tag, rl = RealElement, mx = MaxAlt},
                         #type{els = Elements, atts = Attributes, typeName = Name, mxd = MixedChild},
                         Model = #model{nss = Namespaces, any_attribs = AnyAtts},
@@ -296,7 +296,7 @@ processAlternativeValue(Value, Count,
                         Abstract,
                         MixedParent) ->
 
-  Mixed = 
+  Mixed =
     case MixedParent of
       true ->
         case RealElement of
@@ -307,32 +307,32 @@ processAlternativeValue(Value, Count,
       _ -> MixedChild
     end,
 
-  if 
+  if
    Count > MaxAlt -> throw({error, "too many values"});
    true -> true
   end,
 
   TagAsText = atom_to_list(Tag),
-  if 
+  if
     RealElement ->
       %% proces the attributes
       {AttributesString, NewDeclaredNamespaces} = processAttributes(Value, [], Attributes, Namespaces, DeclaredNamespaces),
       %% process anyAttributes
       %% for now we don't check whether 'anyAttributes' are allowed!
-      {AnyAttributesString, DeclaredNamespaces2} = 
-        case AnyAtts of 
+      {AnyAttributesString, DeclaredNamespaces2} =
+        case AnyAtts of
           true ->
             processAnyAttributes(element(2, Value), [], Namespaces, NewDeclaredNamespaces);
           _ ->
             {"", NewDeclaredNamespaces}
         end,
-      {AnyAttrPlusXsiTypeString, DeclaredNamespaces3} = 
-        case Abstract of 
+      {AnyAttrPlusXsiTypeString, DeclaredNamespaces3} =
+        case Abstract of
           false -> {AnyAttributesString, DeclaredNamespaces2};
           _ ->
             NameAsText = atom_to_list(Name),
             {NamespacesStringAbs, DeclaredNamespacesAbs, _ExtraPrefixAbs} = processNamespaces(NameAsText, Namespaces, DeclaredNamespaces2),
-            XsiType = [" xsi:type=\"", atom_to_list(Name), "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""], 
+            XsiType = [" xsi:type=\"", atom_to_list(Name), "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""],
             {[AnyAttributesString, XsiType, NamespacesStringAbs], DeclaredNamespacesAbs}
      end,
 
@@ -341,7 +341,7 @@ processAlternativeValue(Value, Count,
       ResultForThisElement = struct2xml(Value, Elements, [], Model, NewDeclaredNamespaces4, Mixed),
       AllAttrs = [NamespacesString, AttributesString, AnyAttrPlusXsiTypeString],
       printTag([Extra_prefix, TagAsText], AllAttrs, ResultForThisElement);
-    true -> 
+    true ->
       struct2xml(Value, Elements, [], Model, DeclaredNamespaces, Mixed)
   end.
 
@@ -366,7 +366,7 @@ findAlternative(RecordType, Alternatives, Model) ->
 findAlternative(RecordType, Alternatives, #model{th = TypeHierarchy} = Model, Abstract) ->
   case lists:keysearch(RecordType, #alt.tp, Alternatives) of
     {value, Alternative} -> {Alternative, Abstract};
-    _ ->  
+    _ ->
         %% see whether this is an '#any' type
         case Alternatives of
           [#alt{tag='#any', anyInfo = #anyInfo{ns = AltNs}}] when AltNs /= "##other" ->
@@ -375,37 +375,37 @@ findAlternative(RecordType, Alternatives, #model{th = TypeHierarchy} = Model, Ab
           _ ->
             %% see whether an ancestor in the type hierarchy is among the alternatives
             case erlsom_lib:getAncestor(RecordType, TypeHierarchy) of
-              {value, Ancestor} -> 
+              {value, Ancestor} ->
                 findAlternative(Ancestor, Alternatives, Model, true);
-              _ -> 
+              _ ->
                 throw({error, "Struct doesn't match model: recordtype not expected: " ++ atom_to_list(RecordType)})
             end
         end
-  end. 
-  
+  end.
+
 
 %% Attribute is a tuple {Name, SequenceNr, Optional, Type}
 processAttributes(_Struct, ResultSoFar, [], _Namespaces, DeclaredNamespaces) ->
   {ResultSoFar, DeclaredNamespaces};
 
-processAttributes(Struct, ResultSoFar, [#att{nm = Name, 
-                                             nr = SequenceNr, 
-                                             opt = Optional, 
+processAttributes(Struct, ResultSoFar, [#att{nm = Name,
+                                             nr = SequenceNr,
+                                             opt = Optional,
                                              tp = Type} | Rest], Namespaces, DeclaredNamespaces) ->
   NameAsString = atom_to_list(Name),
   {NamespacesString, NewDeclaredNamespaces, _Extra_prefix} = processNamespaces(NameAsString, Namespaces, DeclaredNamespaces),
   AttributeValue = element(SequenceNr, Struct),
   case AttributeValue of
     undefined ->
-      if 
+      if
         Optional ->
           processAttributes(Struct, ResultSoFar, Rest, Namespaces, DeclaredNamespaces);
-	true ->
+        true ->
           throw({error, "No value provided for mandatory attribute " ++ atom_to_list(Name)})
       end;
-    _Defined -> 
+    _Defined ->
       case Type of
-        
+
         String when String == char; String == ascii ->
           DeclaredNamespaces2 = NewDeclaredNamespaces,
           NamespacesString2 = NamespacesString,
@@ -413,8 +413,8 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
         integer ->
           DeclaredNamespaces2 = NewDeclaredNamespaces,
           NamespacesString2 = NamespacesString,
-          CharValue = try integer_to_list(AttributeValue) 
-          catch 
+          CharValue = try integer_to_list(AttributeValue)
+          catch
             _AnyClass:_Any ->
               throw({error, "Wrong Type in attribute  " ++ atom_to_list(Name) ++ ", expected Integer"})
           end;
@@ -429,34 +429,34 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
         float ->
           DeclaredNamespaces2 = NewDeclaredNamespaces,
           NamespacesString2 = NamespacesString,
-          CharValue = try float_to_xml(AttributeValue) 
-          catch 
+          CharValue = try float_to_xml(AttributeValue)
+          catch
             _AnyClass:_Any ->
               throw({error, "Wrong Type in attribute  " ++ atom_to_list(Name) ++ ", expected Float"})
           end;
         atom ->
           DeclaredNamespaces2 = NewDeclaredNamespaces,
           NamespacesString2 = NamespacesString,
-          CharValue = try atom_to_list(AttributeValue) 
-          catch 
+          CharValue = try atom_to_list(AttributeValue)
+          catch
             _AnyClass:_Any ->
               throw({error, "Wrong Type in attribute  " ++ atom_to_list(Name) ++ ", expected Atom"})
           end;
         qname ->
-          {CharValue, NamespacesString2, DeclaredNamespaces2} = 
+          {CharValue, NamespacesString2, DeclaredNamespaces2} =
              try writeQnameAttValue(AttributeValue, NamespacesString, Namespaces, NewDeclaredNamespaces)
           catch
-            _AnyClass:_Any -> 
+            _AnyClass:_Any ->
               throw({error, "Wrong Type in attribute " ++ atom_to_list(Name) ++ ", expected qname, got " ++
                      lists:flatten(io_lib:format("~p",[AttributeValue]))})
           end;
         {integer, Subtype} ->
           DeclaredNamespaces2 = NewDeclaredNamespaces,
           NamespacesString2 = NamespacesString,
-          CharValue = try 
+          CharValue = try
                         erlsom_lib:check_int(Subtype, AttributeValue),
-                        integer_to_list(AttributeValue) 
-                      catch 
+                        integer_to_list(AttributeValue)
+                      catch
                         _AnyClass:_Any ->
                           throw({error, "Wrong Type in attribute " ++ atom_to_list(Name) ++ ", expected " ++ atom_to_list(Subtype)})
                       end;
@@ -475,9 +475,9 @@ processAttributes(Struct, ResultSoFar, [#att{nm = Name,
 %% returns:
 %% {AttributeValue, NamespacesString, NewDeclaredNamespaces}
 %% -record(qname, {uri, localPart, prefix, mappedPrefix}).
-writeQnameAttValue(#qname{uri = Uri, localPart = LP, mappedPrefix = MP}, NamespacesString, Namespaces, 
+writeQnameAttValue(#qname{uri = Uri, localPart = LP, mappedPrefix = MP}, NamespacesString, Namespaces,
                    DeclaredNamespaces = {NamespacesList, Counter}) ->
-  case Uri of 
+  case Uri of
     None when None == []; None == undefined ->
       {LP, NamespacesString, DeclaredNamespaces};
     _ ->
@@ -489,24 +489,24 @@ writeQnameAttValue(#qname{uri = Uri, localPart = LP, mappedPrefix = MP}, Namespa
           %% see whether a prefix was specified
           case lists:keysearch(Uri, #ns.uri, Namespaces) of
             {value, #ns{prefix = Prefix2}} ->
-              {[Prefix2, ":", LP], [NamespacesString, " xmlns:", Prefix2, "=\"", Uri, "\""], 
+              {[Prefix2, ":", LP], [NamespacesString, " xmlns:", Prefix2, "=\"", Uri, "\""],
                {[{Prefix2, Uri} | NamespacesList], Counter}};
             _ ->
-              {[MP, ":", LP], [NamespacesString, " xmlns:", MP, "=\"", Uri, "\""], 
+              {[MP, ":", LP], [NamespacesString, " xmlns:", MP, "=\"", Uri, "\""],
                {[{MP, Uri} | NamespacesList], Counter}}
           end
       end
   end.
 
-          
+
 processAnyAttributes(undefined, Acc, _Namespaces, DeclaredNamespaces) ->
   {Acc, DeclaredNamespaces};
 processAnyAttributes([], Acc, _Namespaces, DeclaredNamespaces) ->
   {Acc, DeclaredNamespaces};
 processAnyAttributes([{{Name, Uri}, Value} | Tail], Acc, Namespaces, DeclaredNamespaces) ->
   case Uri of
-    [] -> 
-      processAnyAttributes(Tail, [Acc, " ", Name, "=\"", decodeIfRequired(Value), "\""], 
+    [] ->
+      processAnyAttributes(Tail, [Acc, " ", Name, "=\"", decodeIfRequired(Value), "\""],
         Namespaces, DeclaredNamespaces);
     _Other ->
       %% the "xsi:nil=true" and xsi:type are not written, because they are inserted in another way.
@@ -520,7 +520,7 @@ processAnyAttributes([{{Name, Uri}, Value} | Tail], Acc, Namespaces, DeclaredNam
         _ ->
           %% get prefix +, if relevant, NS declaration text
           {PrefixedName, DeclaredNamespaces2} = processAnyNamespaces(Name, Uri, Namespaces, DeclaredNamespaces),
-          processAnyAttributes(Tail, [Acc, " ", PrefixedName, "=\"", decodeIfRequired(Value), "\""], 
+          processAnyAttributes(Tail, [Acc, " ", PrefixedName, "=\"", decodeIfRequired(Value), "\""],
                                Namespaces, DeclaredNamespaces2)
       end
   end.
@@ -534,7 +534,7 @@ processAnyAttributes([{{Name, Uri}, Value} | Tail], Acc, Namespaces, DeclaredNam
 %%
 %% returns {NameSpacesString, NewDeclaredNamespaces}, where
 %% NamespacesString is the declaration (if required), and
-%% NewDeclaredNamespaces is the new list of declared 
+%% NewDeclaredNamespaces is the new list of declared
 %% namespaces.
 processNamespaces(Tag, Namespaces, DeclaredNamespaces = {NamespacesList, Counter}) ->
   %% look for ':' in the tag
@@ -548,13 +548,13 @@ processNamespaces(Tag, Namespaces, DeclaredNamespaces = {NamespacesList, Counter
              _ ->
                throw({error, "Tag " ++ Tag ++ " is not of form [prefix:]localName"})
            end,
- 
-  %% IF 
-  %%     prefix is 'undefined' AND 
+
+  %% IF
+  %%     prefix is 'undefined' AND
   %%     namespace for 'undefined' exists AND
-  %%     elementFormDefault (efd) for this ns is 'unqualified' AND 
+  %%     elementFormDefault (efd) for this ns is 'unqualified' AND
   %%     the namespace has not be been declared at a higher level
-  %% THEN 
+  %% THEN
   %%     put a prefix anyway - make one up. (for now: use "erlsom").
 
 
@@ -565,28 +565,28 @@ processNamespaces(Tag, Namespaces, DeclaredNamespaces = {NamespacesList, Counter
     _Else ->
       %% find prefix in Model
       case lists:keysearch(Prefix, #ns.prefix, lists:reverse(Namespaces)) of
-	{value, #ns{uri = Uri, efd = qualified}} ->
-	  Xmlns = case Prefix of
-	           undefined -> " xmlns";
-		   _ -> [" xmlns:", Prefix]
-		 end,
-	  {[Xmlns, "=\"", Uri, "\""], {[{Prefix, Uri} | NamespacesList], Counter}, ""};
-	{value, #ns{uri = Uri, efd = unqualified}} ->
-	  case Prefix of
-	    undefined -> 
+        {value, #ns{uri = Uri, efd = qualified}} ->
+          Xmlns = case Prefix of
+                   undefined -> " xmlns";
+             _ -> [" xmlns:", Prefix]
+           end,
+          {[Xmlns, "=\"", Uri, "\""], {[{Prefix, Uri} | NamespacesList], Counter}, ""};
+        {value, #ns{uri = Uri, efd = unqualified}} ->
+          case Prefix of
+            undefined ->
               Xmlns = " xmlns:erlsom",
               Additional_pf = "erlsom:";
             _ ->
               Xmlns = [" xmlns:", Prefix],
               Additional_pf = ""
-	  end,
-	  {[Xmlns, "=\"", Uri, "\""], {[{Prefix, Uri} | NamespacesList], Counter}, Additional_pf};
-	_ ->
-	  case Prefix of
-	    undefined -> {[], DeclaredNamespaces, ""};
-	    "xml" -> {[], DeclaredNamespaces, ""};
-	    _ -> throw({error, "Inconsistency in model: namespace is not declared - " ++ Prefix})
-	  end
+        end,
+        {[Xmlns, "=\"", Uri, "\""], {[{Prefix, Uri} | NamespacesList], Counter}, Additional_pf};
+      _ ->
+        case Prefix of
+          undefined -> {[], DeclaredNamespaces, ""};
+          "xml" -> {[], DeclaredNamespaces, ""};
+          _ -> throw({error, "Inconsistency in model: namespace is not declared - " ++ Prefix})
+        end
       end
   end.
 
@@ -604,13 +604,13 @@ processAnyNamespaces(Name, Uri, Namespaces, {NamespacesList, Counter} = Declared
           ThePrefix = "pre" ++ integer_to_list(Counter +1)
       end,
       PrefixName = [" xmlns:", ThePrefix, "=\"", Uri, "\" ", ThePrefix, ":", Name],
-      {PrefixName, 
+      {PrefixName,
           {[{ThePrefix, Uri} | NamespacesList], Counter + 1}}
   end.
 
-printValue(CurrentValue, Alternatives, Namespaces, 
+printValue(CurrentValue, Alternatives, Namespaces,
            DeclaredNamespaces = {NamespacesList, _Counter}, Mixed) ->
-  case CurrentValue of 
+  case CurrentValue of
     #qname{localPart = LocalName, prefix = Prefix, uri = Uri} ->
       case lists:keysearch({'#PCDATA', qname}, #alt.tp, Alternatives) of
         {value, #alt{tag = Tag, rl = RealElement}} ->  %% Print Tags if RealElement
@@ -620,22 +620,22 @@ printValue(CurrentValue, Alternatives, Namespaces,
                         undefined -> erlsom_lib:xmlString(LocalName);
                         _ -> erlsom_lib:xmlString(PrintPrefix ++ ":" ++ LocalName)
                       end,
-	  printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces, NsDecl);
-	_Else ->
+          printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces, NsDecl);
+        _Else ->
           throw({error, "Type of value (qname) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
       end;
-   
-    _B when is_list(CurrentValue); is_binary(CurrentValue) -> 
+
+    _B when is_list(CurrentValue); is_binary(CurrentValue) ->
       if
         Mixed == true ->
-          erlsom_lib:xmlString(CurrentValue); %% Note: values for (non-mixed) elements have to be of the 
+          erlsom_lib:xmlString(CurrentValue); %% Note: values for (non-mixed) elements have to be of the
                                    %% form {type, Value} within mixed types
         true ->
           case lists:keysearch({'#PCDATA', char}, #alt.tp, Alternatives) of
             {value, #alt{tag = Tag, rl = RealElement}} ->  %% Print Tags if RealElement
               TextValue = erlsom_lib:xmlString(CurrentValue),
-	      printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
-	    _Else ->
+              printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
+            _Else ->
               throw({error, "Type of value (list) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <-- Expected ~p",[CurrentValue,Alternatives]))})
           end
       end;
@@ -644,16 +644,16 @@ printValue(CurrentValue, Alternatives, Namespaces,
       %% is an integer also a float?
       case lists:keysearch({'#PCDATA', integer}, #alt.tp, Alternatives) of
         {value, #alt{tag = Tag, rl = RealElement}} ->
-          TextValue = try integer_to_list(CurrentValue) 
-          catch 
+          TextValue = try integer_to_list(CurrentValue)
+          catch
             _AnyClass:_Any ->
               throw({error, "Wrong Type"})
           end,
-	  printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
-	_Else -> 
+          printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
+        _Else ->
           try convert_int_subtype(CurrentValue, Alternatives) of
             {ok, #alt{tag = Tag, rl = RealElement}, Converted} ->
-	      printElement(Converted, Tag, RealElement, Namespaces, DeclaredNamespaces);
+              printElement(Converted, Tag, RealElement, Namespaces, DeclaredNamespaces);
             _ ->
               throw({error, "Type of value (integer) does not match model"++
                      lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
@@ -663,37 +663,37 @@ printValue(CurrentValue, Alternatives, Namespaces,
           end
       end;
 
-    _D when is_float(CurrentValue); 
-            CurrentValue =:= 'NaN'; 
+    _D when is_float(CurrentValue);
+            CurrentValue =:= 'NaN';
             CurrentValue =:= 'INF';
             CurrentValue =:= '-INF'  ->
       %% is an integer also a float?
       case lists:keysearch({'#PCDATA', float}, #alt.tp, Alternatives) of
         {value, #alt{tag = Tag, rl = RealElement}} ->
-          TextValue = try float_to_xml(CurrentValue) 
-          catch 
+          TextValue = try float_to_xml(CurrentValue)
+          catch
             _AnyClass:_Any ->
               throw({error, "Wrong Type"})
           end,
-	  printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
-	_Else -> 
+          printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
+        _Else ->
           throw({error, "Type of value (float) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
       end;
 
     _E when CurrentValue ==  true; CurrentValue == false ->
       case lists:keysearch({'#PCDATA', bool}, #alt.tp, Alternatives) of
         {value, #alt{tag = Tag, rl = RealElement}} ->
-          TextValue = try atom_to_list(CurrentValue) 
-          catch 
+          TextValue = try atom_to_list(CurrentValue)
+          catch
             _AnyClass:_Any ->
               throw({error, "Wrong Type"})
           end,
-	  printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
-	_Else -> 
+          printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
+        _Else ->
           throw({error, "Type of value (atom) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
       end;
 
-    _Else -> 
+    _Else ->
       throw({error, "Type of value not valid for XML structure"++lists:flatten(io_lib:format("Value = --> ~p <--]",[CurrentValue]))})
   end.
 
@@ -709,7 +709,7 @@ convert_int_subtype(Value, [_H | T]) ->
   convert_int_subtype(Value, T).
 
 printNilValue([#alt{tag= Tag}], Namespaces, DeclaredNamespaces) ->
-  printElement("", Tag, true, Namespaces, DeclaredNamespaces, 
+  printElement("", Tag, true, Namespaces, DeclaredNamespaces,
     " xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
 printNilValue(_Alternatives, _, _) ->
   throw({error, "Nillable cannot be a choice"}).
@@ -722,8 +722,8 @@ printNilValue([#alt{tag=Tag, tp = RecordType}], Value, #model{tps = Types, any_a
   {AttributesString, NewDeclaredNamespaces} = processAttributes(Value, [], Attributes, Namespaces, DeclaredNamespaces),
   %% process anyAttributes
   %% for now we don't check whether 'anyAttributes' are allowed!
-  {AnyAttributesString, DeclaredNamespaces2} = 
-    case AnyAtts of 
+  {AnyAttributesString, DeclaredNamespaces2} =
+    case AnyAtts of
       true ->
         processAnyAttributes(element(2, Value), [], Namespaces, NewDeclaredNamespaces);
       _ ->
@@ -756,22 +756,22 @@ printPrefix(Uri, Prefix, NamespacesList, Namespaces) ->
                           Prefix
                       end,
       Xmlns = case PrintedPrefix of
-	        undefined -> " xmlns";
+                undefined -> " xmlns";
                 _ -> [" xmlns:", Prefix]
               end,
       {PrintedPrefix, [Xmlns, "=\"", Uri, "\""]}
-  end. 
+  end.
 
 printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces, QnameNs) ->
   if
     RealElement ->
        TagAsText = atom_to_list(Tag),
-       %% this function is only used in 'leaves' of the struct, so we don't need to store the 
-       %% new declared namespaces (since those would apply only to child-elements, of 
+       %% this function is only used in 'leaves' of the struct, so we don't need to store the
+       %% new declared namespaces (since those would apply only to child-elements, of
        %% which there are none)
        {NamespacesString, _, Extra_prefix} = processNamespaces(TagAsText, Namespaces, DeclaredNamespaces),
        [$<, Extra_prefix, TagAsText, NamespacesString, QnameNs, $>,  TextValue, "</", Extra_prefix, TagAsText, $>];
-    true -> 
+    true ->
        TextValue
   end.
 
@@ -786,6 +786,6 @@ decodeIfRequired(Text) ->
 float_to_xml('NaN') -> "NaN";
 float_to_xml('INF') -> "INF";
 float_to_xml('-INF') -> "-INF";
-float_to_xml(Float) -> 
+float_to_xml(Float) ->
   io_lib:format("~e", [Float]).
 

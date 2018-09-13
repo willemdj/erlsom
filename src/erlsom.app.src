@@ -2,7 +2,7 @@
  [{description,"XML parser. Supports SAX style parsing as well as XML Schema based data mapping: create records from XML (and vice versa)"},
   {vsn,"1.4.2"},
   {modules,[]},
-  {maintainers, ["Willem de Jong"]},   
+  {maintainers, ["Willem de Jong"]},
   {licenses, ["GNU Lesser GPL, Version 3"]},
   {links, [{"Github", "https://github.com/willemdj/erlsom"}]},
   {registered, []},

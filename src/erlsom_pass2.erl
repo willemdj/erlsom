@@ -3,8 +3,8 @@
 %%% This file is part of Erlsom.
 %%%
 %%% Erlsom is free software: you can redistribute it and/or modify
-%%% it under the terms of the GNU Lesser General Public License as 
-%%% published by the Free Software Foundation, either version 3 of 
+%%% it under the terms of the GNU Lesser General Public License as
+%%% published by the Free Software Foundation, either version 3 of
 %%% the License, or (at your option) any later version.
 %%%
 %%% Erlsom is distributed in the hope that it will be useful,
@@ -12,14 +12,14 @@
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %%% GNU Lesser General Public License for more details.
 %%%
-%%% You should have received a copy of the GNU Lesser General Public 
-%%% License along with Erlsom.  If not, see 
+%%% You should have received a copy of the GNU Lesser General Public
+%%% License along with Erlsom.  If not, see
 %%% <http://www.gnu.org/licenses/>.
 %%%
 %%% Author contact: w.a.de.jong@gmail.com
 
 %%% ====================================================================
-%%% A second (and 3rd..) pass translating XSD to model used by 
+%%% A second (and 3rd..) pass translating XSD to model used by
 %%% erlsom_parse.
 %%% ====================================================================
 
@@ -31,7 +31,7 @@
 -export([pass0Elements/2]).
 -export([pass0Alternatives/2]).
 -export([pass0Alternatives/3]).
--import(erlsom_lib, [findType/6]). 
+-import(erlsom_lib, [findType/6]).
 -include("erlsom_compile.hrl").
 -include("erlsom.hrl").
 -include("erlsom_parse.hrl").
@@ -44,9 +44,9 @@
 
 %% typeInfo - the intermediate format.
 %% global (true or false): we need to find out in the
-%% end whether this type should be available as 'top level' element in the 
+%% end whether this type should be available as 'top level' element in the
 %% xml document.
-%% -record(typeInfo, 
+%% -record(typeInfo,
 %%         {typeName, global, typeType, typeRef, elements, attributes}).
 %% -record(elementInfo, {alternatives, min, max, nillable}).
 %% -record(alternative, {tag, type, real, min, max}).
@@ -57,29 +57,29 @@
 %% debug(Text1, Text2) -> io:format("pass2: ~p - ~p\n", [Text1, Text2]).
 
 %% debugTypes([]) -> true;
-%% debugTypes([#type{nm = Name}| Tail]) -> 
+%% debugTypes([#type{nm = Name}| Tail]) ->
   %% debug(Name),
   %% debugTypes(Tail).
 
-secondPass(IntermediateStruct, 
-           Info = #schemaInfo{namespaces=NS, 
+secondPass(IntermediateStruct,
+           Info = #schemaInfo{namespaces=NS,
                               targetNamespace = Tns,
                               include_any_attrs = AnyAttrs,
                               value_fun = ValueFun}) ->
   Types0 = pass0(IntermediateStruct),
-  {Types1, GlobalElements, TypeHierarchy} = translateTypes(Types0, 
+  {Types1, GlobalElements, TypeHierarchy} = translateTypes(Types0,
                             [], [], Types0, Info, erlsom_lib:newTree()),
   %% Note: pass 4 is done before pass 3 (seems to be better).
   Types2 = pass3(Types1, Info),
   Types3 = pass4(Types2, Info),
   DocType = make_Document(GlobalElements, [], Info),
   %% fiddle a bit more - replace refernces in the _document that point
-  %% to unknown types by {#PCDATA, ...}, assuming that they point to 
-  %% simple types that are no longer visible. Even if that assumption 
-  %% would be wrong, it wouldn't have worked otherwise either, so it won't 
-  %% break anything (but it fixes the error pointer out by Alexander Wingrad 
+  %% to unknown types by {#PCDATA, ...}, assuming that they point to
+  %% simple types that are no longer visible. Even if that assumption
+  %% would be wrong, it wouldn't have worked otherwise either, so it won't
+  %% break anything (but it fixes the error pointer out by Alexander Wingrad
   %% for those cases).
-  DocType2 = removeDeadRefsFromDoc(DocType, Types3), 
+  DocType2 = removeDeadRefsFromDoc(DocType, Types3),
   DocType3 =  pass3Type(DocType2, Types2, Info), %% this is a list
   Types5 = DocType3 ++ Types3,
   Types6 = pass5(Types5, Info),
@@ -89,23 +89,23 @@ secondPass(IntermediateStruct,
   %% Types are:
   %% NS  :: [#ns{}]
   %% Tns :: string()
-  #model{tps = Types6, nss = NS1, tns = Tns, th = TypeHierarchy, 
+  #model{tps = Types6, nss = NS1, tns = Tns, th = TypeHierarchy,
          any_attribs = AnyAttrs, value_fun = ValueFun}.
 
 %% for substitution groups:
-%% for each element X that is in a substitution group: 
+%% for each element X that is in a substitution group:
 %%   for each element (in any type) that has an alternative that refers to the head element
 %%     add an alternative to that refers to X.
 %%
 %% procedure:
-%% 
+%%
 %% for each element S_E{name=Name, type = Type substitutionGroup = H}  (within a substitution group with head H)
-%%   for each type T 
+%%   for each type T
 %%     for each element T_E
-%%       if T_E contains an alternative that refers to S_E 
+%%       if T_E contains an alternative that refers to S_E
 %%         add an alternative to T_E that refers to S_E:
 %%         tag = Name,
-%%         type = Type 
+%%         type = Type
 %%
 pass0(Types) ->
   lists:foldl(fun pass0Types/2, Types, Types).
@@ -123,10 +123,10 @@ pass0Type(Type = #typeInfo{elements = Elements}, Acc)
 pass0Type(Type = #typeInfo{elements = Elements}, TypeToReferTo) ->
   {NewElements, _Acc}  = lists:mapfoldl(fun pass0Elements/2, TypeToReferTo, Elements),
   {Type#typeInfo{elements = NewElements}, TypeToReferTo}.
-  
-pass0Elements(Element = #elementInfo{alternatives = Alternatives}, 
+
+pass0Elements(Element = #elementInfo{alternatives = Alternatives},
               TypeToReferTo = #typeInfo{}) ->
-  {Element#elementInfo{alternatives = pass0Alternatives(Alternatives, 
+  {Element#elementInfo{alternatives = pass0Alternatives(Alternatives,
                                                         TypeToReferTo)},
    TypeToReferTo}.
 
@@ -136,33 +136,33 @@ pass0Alternatives(Alternatives, TypeToReferTo) ->
 pass0Alternatives([], _, Acc) ->
   Acc;
 pass0Alternatives([Alternative = #alternative{type = Head} | Tail],
-                  TypeToReferToPlusNs = #typeInfo{substitutionGroup = Head, typeName = Name, typeRef = Type}, 
+                  TypeToReferToPlusNs = #typeInfo{substitutionGroup = Head, typeName = Name, typeRef = Type},
                   Acc)
                   when Type /= undefined ->
   %% debug("add an element - ref only"),
-  pass0Alternatives(Tail, TypeToReferToPlusNs, 
+  pass0Alternatives(Tail, TypeToReferToPlusNs,
                     [Alternative | [Alternative#alternative{type = Type, tag = Name} | Acc]]);
 pass0Alternatives([Alternative = #alternative{type = Head} | Tail],
-                  TypeToReferToPlusNs = #typeInfo{substitutionGroup = Head, typeName = Name}, 
+                  TypeToReferToPlusNs = #typeInfo{substitutionGroup = Head, typeName = Name},
                   Acc) ->
   %% debug("add an element - type"),
-  pass0Alternatives(Tail, TypeToReferToPlusNs, 
+  pass0Alternatives(Tail, TypeToReferToPlusNs,
                     [Alternative | [Alternative#alternative{type = Name, tag = Name} | Acc]]);
 pass0Alternatives([Head | Tail], TypeToReferTo, Acc) ->
   pass0Alternatives(Tail, TypeToReferTo, [Head | Acc]).
-  
+
 %% This also creates the type-hierarchy
 translateTypes([Type | Tail], Acc, GlobalAcc, Types, Info = #schemaInfo{namespaces=NS}, TypeHierarchy) ->
   {TranslatedType, TypeOfType} = translateType(Type, Types, Info),
   {Th, TranslatedType2} = case Type#typeInfo.base of
-                            undefined -> 
+                            undefined ->
                               {TypeHierarchy, TranslatedType};
-                            Base -> 
-                              {erlsom_lib:addTreeElement(list_to_atom(Type#typeInfo.typeName), 
-                                                         erlsom_lib:makeTypeRefAtom(Base, NS), 
-                                                         TypeHierarchy), 
+                            Base ->
+                              {erlsom_lib:addTreeElement(list_to_atom(Type#typeInfo.typeName),
+                                                         erlsom_lib:makeTypeRefAtom(Base, NS),
+                                                         TypeHierarchy),
                                %% TranslatedType#type{typeName = list_to_atom(erlsom_lib:makeTagFromRef(Base, NS))}}
-                               TranslatedType#type{typeName = 
+                               TranslatedType#type{typeName =
                                  list_to_atom(erlsom_lib:removePrefixes(Type#typeInfo.typeName))}}
                           end,
   case TypeOfType of
@@ -181,21 +181,21 @@ translateTypes([], Acc, GlobalAcc, _Types, _Info, TypeHierarchy) ->
 %% {'_document', sequence, [{[{'xs:schema', 'schemaType', true, 1, 1}], 1, 1, 1}], [], 1}
 make_Document([#typeInfo{typeName=Name, typeRef=Type}|Tail], Acc, Info)
   when Type /= undefined ->
-  make_Document(Tail, [#alt{tag = list_to_atom(Name), 
+  make_Document(Tail, [#alt{tag = list_to_atom(Name),
                             tp = list_to_type(Type), rl = true, mn = 1, mx = 1}|Acc], Info);
 make_Document([#typeInfo{typeName=Name}|Tail], Acc, Info) ->
-  make_Document(Tail, [#alt{tag = list_to_atom(Name), 
+  make_Document(Tail, [#alt{tag = list_to_atom(Name),
                             tp = list_to_atom(Name), rl = true, mn = 1, mx = 1}|Acc], Info);
 make_Document([], Acc, Info) ->
   Pos = case Info#schemaInfo.include_any_attrs of true -> 3; _ -> 2 end,
-  #type{nm = '_document', tp = sequence, 
-        els = [#el{alts = Acc, mn = 1,  mx = 1, nr = Pos}], 
-        atts = [], 
+  #type{nm = '_document', tp = sequence,
+        els = [#el{alts = Acc, mn = 1,  mx = 1, nr = Pos}],
+        atts = [],
         nr = 1}.
 
 removeDeadRefsFromDoc(Type = #type{nm = '_document', els = [El = #el{alts = Alts}]}, Types) ->
   F = fun(Alt = #alt{tp = {'#PCDATA', _}}) -> Alt;
-         (Alt = #alt{tp = AltType}) -> 
+         (Alt = #alt{tp = AltType}) ->
            case lists:keysearch(AltType, #type.nm, Types) of
              {value, _} -> Alt;
              _ -> Alt#alt{tp = list_to_type("##string")}
@@ -220,23 +220,23 @@ removeDeadRefsFromDoc(Type, _Types) ->
 
 %% resolve 'extended' types: look up the base and add its elements and attributes
 %% First a special hack for extension of the 'anyType'.
-translateType(Type = #typeInfo{elements = Elemts, attributes = Attrs, 
-                               extends = {qname,"http://www.w3.org/2001/XMLSchema","anyType",_,_}, 
-                               anyAttr = AnyAttr, mixed = Mixed}, 
+translateType(Type = #typeInfo{elements = Elemts, attributes = Attrs,
+                               extends = {qname,"http://www.w3.org/2001/XMLSchema","anyType",_,_},
+                               anyAttr = AnyAttr, mixed = Mixed},
               Types, Info = #schemaInfo{}) ->
   AnyInfo = #anyInfo{prCont = "lax", ns = "##any"},
-  Any = [#elementInfo{alternatives = [#alternative{tag = "#any", type = "any", 
-                                                   real = true, min = 1, max = 1, 
-                                                   anyInfo = AnyInfo}], 
+  Any = [#elementInfo{alternatives = [#alternative{tag = "#any", type = "any",
+                                                   real = true, min = 1, max = 1,
+                                                   anyInfo = AnyInfo}],
                       min = 0, max = unbound}],
   Mixed2 = if Mixed == undefined -> true; true -> Mixed end,
-  translateType(Type#typeInfo{elements = Any ++ Elemts, 
-                              attributes = Attrs, 
-                              anyAttr = AnyAttr, 
-                              mixed = Mixed2, 
-                              extends = undefined, 
+  translateType(Type#typeInfo{elements = Any ++ Elemts,
+                              attributes = Attrs,
+                              anyAttr = AnyAttr,
+                              mixed = Mixed2,
+                              extends = undefined,
                               restricts = undefined}, Types, Info);
-translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base, anyAttr = AnyAttr, mixed = Mixed}, 
+translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base, anyAttr = AnyAttr, mixed = Mixed},
               Types, Info = #schemaInfo{namespaces=NS, strict = Strict})
   when Base /= undefined ->
   case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS, Strict), Types) of
@@ -247,49 +247,49 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base
       %% debug(BaseAttrs),
       NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
       translateType(Type#typeInfo{elements = BaseEls ++ Elemts, %% TODO: will never be 'undefined'?
-                                  attributes = mergeAttrs(BaseAttrs, Attrs), 
-				  anyAttr = NewAnyAttr,
+                                  attributes = mergeAttrs(BaseAttrs, Attrs),
+                                  anyAttr = NewAnyAttr,
                                   mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,
                                   extends = Base2, restricts = Base3}, Types, Info);
     _Else ->
       throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, NS, Strict)})
   end;
 
-%% resolve 'restricted' types: look up the base and add its attributes (actually: replace the 
+%% resolve 'restricted' types: look up the base and add its attributes (actually: replace the
 %% take attributes in the derived type by those from the base type)
-%% 
+%%
 %% TODO: this needs some improvement - for example around anyAttributes
-%% 
+%%
 %% First a special hack for restriction of the 'anyType'. In this
 %% special case the attributes of the derived type should remain.
-translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, 
-                               restricts = {qname,"http://www.w3.org/2001/XMLSchema","anyType",_,_}, anyAttr = AnyAttr, mixed = Mixed}, 
+translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs,
+                               restricts = {qname,"http://www.w3.org/2001/XMLSchema","anyType",_,_}, anyAttr = AnyAttr, mixed = Mixed},
               Types, Info = #schemaInfo{}) ->
-  translateType(Type#typeInfo{elements = Elemts, 
+  translateType(Type#typeInfo{elements = Elemts,
                               attributes = Attrs,
-			      anyAttr = AnyAttr,
+                              anyAttr = AnyAttr,
                               mixed = Mixed,
                               extends = undefined,
-		              restricts = undefined}, Types, Info);
+                              restricts = undefined}, Types, Info);
 
 %% resolve 'restricted' types: look up the base and merge attributes
-translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, restricts = Base, anyAttr = AnyAttr, mixed = Mixed}, 
+translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, restricts = Base, anyAttr = AnyAttr, mixed = Mixed},
               Types, Info = #schemaInfo{namespaces=NS, strict=Strict})
   when Base /= undefined ->
   case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS, Strict), Types) of
-    {value, #typeInfo{attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2, 
+    {value, #typeInfo{attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2,
                       restricts = Base3, mixed = Mixed2}} ->
       %% debug(Elemts),
       %% debug(BaseEls),
       %% debug(Attrs),
       %% debug(BaseAttrs),
       NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
-      translateType(Type#typeInfo{elements = Elemts, 
-                                  attributes = mergeAttrs(BaseAttrs, Attrs), 
-				  anyAttr = NewAnyAttr,
+      translateType(Type#typeInfo{elements = Elemts,
+                                  attributes = mergeAttrs(BaseAttrs, Attrs),
+                                  anyAttr = NewAnyAttr,
                                   mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,
                                   extends = Base2,
-				  restricts = Base3}, Types, Info);
+                                  restricts = Base3}, Types, Info);
     _Else ->
       %% debug(Base),
       throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, NS, Strict)})
@@ -303,25 +303,25 @@ translateType(#typeInfo{typeType = simpleType}, _Types, _Info) ->
 translateType(#typeInfo{typeName=Name, typeRef=undefined,
                         typeType = TypeType,
                         elements=Elemts, attributes=Attrs,
-			anyAttr = AnyAttrValue,
+                        anyAttr = AnyAttrValue,
                         mixed = Mixed,
                         seqOrAll = SorA, min = Min, max = Max}, Types, Info) ->
   TypeName=list_to_atom(Name),
   StartPos = case Info#schemaInfo.include_any_attrs of true -> 3; _ -> 2 end,
   %% 'anyAttribute' can be defined in the type, but also in an attribute group
   {Attributes, AnyAttr} = translateAttributes(Attrs, {[], undefined}, StartPos, Info, 1),
-  AnyAttr2 = if 
-               AnyAttr == undefined -> AnyAttrValue; 
+  AnyAttr2 = if
+               AnyAttr == undefined -> AnyAttrValue;
                true -> AnyAttr
              end,
-  NrOfElements = erlsom_lib:listLength(Elemts) + 
+  NrOfElements = erlsom_lib:listLength(Elemts) +
                  erlsom_lib:listLength(Attributes) +1,
-  Elements = translateElements(Elemts, [], erlsom_lib:listLength(Attributes) + StartPos, 
+  Elements = translateElements(Elemts, [], erlsom_lib:listLength(Attributes) + StartPos,
                                Types),
   %% case Mixed of
     %% true ->
       %% Elements2 = makeMixed(Elements, NrOfElements),
-      %% NrOfElements2 = erlsom_lib:listLength(Elements2) + 
+      %% NrOfElements2 = erlsom_lib:listLength(Elements2) +
                       %% erlsom_lib:listLength(Attributes) + 1;
     %% _NotMixed ->
       %% Elements2 = Elements,
@@ -335,18 +335,18 @@ translateType(#typeInfo{typeName=Name, typeRef=Type,
                         typeType = TypeType,
                         elements=undefined, %% attributes=undefined,
                         seqOrAll = SorA,
-			anyAttr = AnyAttrValue,
+                        anyAttr = AnyAttrValue,
                         min = Min,
                         max = Max}, _Types, #schemaInfo{include_any_attrs = IncludeAnyAttrs}) ->
   TypeName=list_to_atom(Name),
   Pos = case IncludeAnyAttrs of true -> 3; _ -> 2 end,
-  {#type{nm = TypeName, tp = seqOrAll(SorA), 
-         els = [#el{alts = [#alt{tag = TypeName, 
-                                 tp = list_to_type(Type), 
-                                 rl = true, 
-                                 mn = 1, 
-                                 mx = 1}], 
-                    mn = 1, mx = 1, nr = Pos}], 
+  {#type{nm = TypeName, tp = seqOrAll(SorA),
+         els = [#el{alts = [#alt{tag = TypeName,
+                                 tp = list_to_type(Type),
+                                 rl = true,
+                                 mn = 1,
+                                 mx = 1}],
+                    mn = 1, mx = 1, nr = Pos}],
          atts = [], nr = 2, mn = Min, mx = Max, anyAttr = AnyAttrValue}, TypeType}.
 
 mergeAttrs([], Attrs) -> Attrs;
@@ -354,7 +354,7 @@ mergeAttrs(BaseAttrs, []) -> BaseAttrs;
 mergeAttrs(BaseAttrs, [Attr | Attrs]) ->
   mergeAttrs(mergeAttr(BaseAttrs, Attr), Attrs).
 
-mergeAttr([#attributeGroupRefType{ref=Ref} | BaseAttrs], 
+mergeAttr([#attributeGroupRefType{ref=Ref} | BaseAttrs],
           #attributeGroupRefType{ref=Ref} = Attr) ->
   [Attr | BaseAttrs];
 mergeAttr([#attrib{name=Name} | BaseAttrs], #attrib{name=Name} = Attr) ->
@@ -367,7 +367,7 @@ mergeAttr([BaseAttr | BaseAttrs], Attr) ->
 seqOrAll(all) -> all;
 seqOrAll(_) -> sequence.
 
-%% purpose of 'Count' is to make sure that we don't get into an infinite loop in case 
+%% purpose of 'Count' is to make sure that we don't get into an infinite loop in case
 %% of circular refernces in attributeGroups
 translateAttributes(_, _Acc, _Pos, _Info, 10) ->
   throw({error, "circular reference in attribute group?"});
@@ -395,7 +395,7 @@ translateElements([], Acc, _Pos, _Types) ->
 %%
 %% Each Element is of the form {Alternatives, MinOccurs, MaxOccurs,
 %% SequenceNumber}.
-%% 
+%%
 %% - Alternatives is a list of Aternative. Quite often there will be only 1
 %%   alternative. If there are several possibilities that may occur at this
 %%   position in the type (a 'choice', in XSD terminology), they will be listed
@@ -409,8 +409,8 @@ translateElements([], Acc, _Pos, _Types) ->
 %%   and maybe more performant.
 
 translateElement(#elementInfo{alternatives=Alternatives, min=Min, max=Max, nillable=Nillable}, Pos, Types) ->
-  #el{alts = translateAlternatives(Alternatives, [], Types), 
-      mn = Min, 
+  #el{alts = translateAlternatives(Alternatives, [], Types),
+      mn = Min,
       mx = Max, nr = Pos, nillable=Nillable}.
 
 translateAlternatives([Alternative | Tail], Acc, Types) ->
@@ -437,7 +437,7 @@ translateAlternative(#alternative{tag=Tag, type=Type, real=Real, min=Min, max=Ma
   %% type (string, for example), then we don't put a reference, but the type
   %% itself.
   %%
-  %% If Type refers to an element in Types that is a globelElement that is 
+  %% If Type refers to an element in Types that is a globelElement that is
   %% just a reference to another type, then we put that second reference.
   case lists:keysearch(Type, #typeInfo.typeName, Types) of
     %% -record(typeInfo, {typeName, global, typeType, typeRef, elements, attributes}).
@@ -449,7 +449,7 @@ translateAlternative(#alternative{tag=Tag, type=Type, real=Real, min=Min, max=Ma
       Tp = case lists:keysearch(Ref, #typeInfo.typeName, Types) of
         {value, #typeInfo{typeRef="##string"}} ->
           list_to_type("##string");
-        _ -> 
+        _ ->
           list_to_type(Ref)
       end,
       #alt{tag = list_to_atom(Tag), tp = Tp, rl = Real, mn = Min, mx = Max, anyInfo = AnyInfo};
@@ -460,7 +460,7 @@ translateAlternative(#alternative{tag=Tag, type=Type, real=Real, min=Min, max=Ma
       #alt{tag = list_to_atom(Tag), tp = list_to_type(Type), rl = Real, mn = Min, mx = Max, anyInfo = AnyInfo}
   end.
 
-%% pass3 replaces, for choices that have several alternatives, the elements with a 
+%% pass3 replaces, for choices that have several alternatives, the elements with a
 %% sort of group (real = false, new type is introduced) (see example10)
 %% This also happens for simple type elements of mixed types (because you can't distinguish
 %% them from the mixed (text) elements otherwise).
@@ -488,15 +488,15 @@ pass3Elements([], _TypeName, Acc, NewTypes, _Types, _Mixed, _Info) ->
 pass3Element(#el{alts = Alternatives, mn = Min} = Rec, TypeName, Types, Mixed, Info)->
   %% if one of the alternatives is optional, the whole choice is optional!
   {ThisElementsAlternatives, NewTypes, Optional} = pass3Alternatives(Alternatives, TypeName, Types, Mixed, Info),
-  if 
+  if
     Optional -> Min2 = 0;
     true -> Min2 = Min
   end,
-  if 
+  if
     (length(Alternatives) /= 1) or (Mixed == true) ->
-      %% TODO: this doesn't work correctly if this happens in a group that is referred from 
+      %% TODO: this doesn't work correctly if this happens in a group that is referred from
       %% within a mixed element (because we only find out that this group is also mixed at
-      %% parse time, due to the 'inheritance' mechanism). 
+      %% parse time, due to the 'inheritance' mechanism).
       {Rec#el{alts = ThisElementsAlternatives, mn = Min2}, NewTypes};
     true ->
       {Rec#el{mn = Min2}, []}
@@ -508,39 +508,39 @@ pass3Alternatives(Alternatives, TypeName, Types, Mixed, Info) ->
 pass3Alternatives([Alternative | Tail], TypeName, Acc, NewTypes, Optional, Alternatives, Types, Mixed, Info) ->
   {TranslatedAlternative, Types2} = pass3Alternative(Alternative, TypeName, Alternatives, Types, Mixed, Info),
   Min = TranslatedAlternative#alt.mn,
-  Optional2 = if 
+  Optional2 = if
                  Min == 0 -> true;
                  true -> Optional
               end,
-  pass3Alternatives(Tail, TypeName, [TranslatedAlternative | Acc], Types2 ++ NewTypes, 
+  pass3Alternatives(Tail, TypeName, [TranslatedAlternative | Acc], Types2 ++ NewTypes,
                     Optional2, Alternatives, Types, Mixed, Info);
 pass3Alternatives([], _TypeName, Acc, NewTypes, Optional, _Alternatives, _Types, _Mixed, _Info) ->
   {Acc, NewTypes, Optional}.
 
 pass3Alternative(Alternative = #alt{tag = Name, rl = Real, tp = Type, mn = Mn}, TypeName, Alternatives, Types, _Mixed, Info) ->
   Pos = case Info#schemaInfo.include_any_attrs of true -> 3; _ -> 2 end,
-  if 
+  if
     Real == false ->
       {Alternative, []};
     true ->
       case Type of
-        {'#PCDATA', _} -> 
-          NewTypeName = 
-             if 
+        {'#PCDATA', _} ->
+          NewTypeName =
+             if
                %% TODO: this probably doesn't make any sense. I guess 'any' types
                %% should be handled as above (return {Alternative, []}).
                Name == '#any' -> list_to_atom(atom_to_list(TypeName) ++ "-any");
-               true -> 
+               true ->
                  case TypeName of
                    '_document' -> Name;
                    _ -> list_to_atom(atom_to_list(TypeName) ++ "-" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Name)))
                  end
              end,
-          {Alternative#alt{tp = NewTypeName, rl = simple, mn = case Mn of 0 -> 0; _ -> 1 end}, 
-            [#type{nm = NewTypeName, tp = sequence, 
-                   els = [#el{alts = [Alternative#alt{mn = 1, mx = 1}], 
-                              mn = 1, mx = 1, nr = Pos}], 
-                   atts = [], 
+          {Alternative#alt{tp = NewTypeName, rl = simple, mn = case Mn of 0 -> 0; _ -> 1 end},
+            [#type{nm = NewTypeName, tp = sequence,
+                   els = [#el{alts = [Alternative#alt{mn = 1, mx = 1}],
+                              mn = 1, mx = 1, nr = Pos}],
+                   atts = [],
                    nr = 2}]};
         _NoSimpleType ->
           %% if the same type occurs in several alternatives, we need to do something similar
@@ -549,12 +549,12 @@ pass3Alternative(Alternative = #alt{tag = Name, rl = Real, tp = Type, mn = Mn}, 
               if
                 %% for any, we don't care (no need to distinguish between 2 different kinds of any)
                 Name == '#any' -> {Alternative, []};
-                true -> 
-                  NewTypeName = 
+                true ->
+                  NewTypeName =
                     list_to_atom(atom_to_list(TypeName) ++ "-" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Name))),
                   case lists:keysearch(Type, #type.nm, Types) of
                     {value, Record} ->
-                      {Alternative#alt{tp = NewTypeName, rl = true, mn = case Mn of 0 -> 0; _ -> 1 end}, 
+                      {Alternative#alt{tp = NewTypeName, rl = true, mn = case Mn of 0 -> 0; _ -> 1 end},
                         [Record#type{nm = NewTypeName}]};
                     _Else ->
                       %% debugTypes(Types),
@@ -573,7 +573,7 @@ occursMoreThanOnce(_Key, _Pos, [], _) ->
   false;
 occursMoreThanOnce(Key, Pos, [H|Tail], OneFound) ->
   case element(Pos, H) of
-    Key -> 
+    Key ->
       case OneFound of
         true ->
           true;
@@ -584,7 +584,7 @@ occursMoreThanOnce(Key, Pos, [H|Tail], OneFound) ->
   end.
 
 
-%% pass4 replaces the tags of group references (##TODO) with the first tag of the 
+%% pass4 replaces the tags of group references (##TODO) with the first tag of the
 %% group definition.
 %% It also takes into account the fact that, if all elements of the group are optional,
 %% the whole group is optional (minOccurs = 0)
@@ -596,8 +596,8 @@ pass4(_Types, 0, _Info) ->
 pass4(Types, Count, Info) ->
   put(erlsom_pass4_ready, true),
   Result = pass4(Types, [], Types, Count, Info),
-  case get(erlsom_pass4_ready) of 
-    true -> 
+  case get(erlsom_pass4_ready) of
+    true ->
       erase(erlsom_pass4_ready),
       Result;
     _Else ->
@@ -705,8 +705,8 @@ pass5Alternatives([], Acc, _Types, _NextElements, _Info, _Tns) ->
 
 pass5Alternative(Alternative = #alt{tag = Name, anyInfo = AnyInfo}, Types, NextElements, Info, Tns) ->
   case Name of
-    '#any' ->  
-      %% #anyInfo{prCont = Pc}  = AnyInfo, 
+    '#any' ->
+      %% #anyInfo{prCont = Pc}  = AnyInfo,
       {Ns, Pc} = case AnyInfo of
                   #anyInfo{} -> {AnyInfo#anyInfo.ns, AnyInfo#anyInfo.prCont};
                   undefined -> {undefined, undefined}
@@ -718,7 +718,7 @@ pass5Alternative(Alternative = #alt{tag = Name, anyInfo = AnyInfo}, Types, NextE
             "##other" ->
               [Alternative#alt{nxt=getNextTags(NextElements)} | getDocumentAlternatives(AnyInfo, Types, Info, Tns)];
             _ ->
-              %% in this case we look for the top-level alternatives in the model when 
+              %% in this case we look for the top-level alternatives in the model when
               %% required during the parsing. This to prevent the model from becoming very large
               %% if there are a lot of "Any" extension points (like in the eBay WSDL, for example).
               [Alternative#alt{nxt=getNextTags(NextElements)}]
@@ -749,7 +749,7 @@ getTagFromAlternatives(_Alternative, [])->
   [].
 
 %% Add the 'nxt' values that signal the end of the 'any' bit
-%% Get the alternatives of the next element. IF the next element is optional, also get the alternatives 
+%% Get the alternatives of the next element. IF the next element is optional, also get the alternatives
 %% of the element after that, etc.
 getNextTags(NextElements) ->
   getNextTags(NextElements, []).
@@ -768,17 +768,17 @@ getTags([], Acc) ->
   Acc;
 getTags([#alt{tag=Tag} | Tail], Acc) ->
   getTags(Tail, [Tag | Acc]).
-  
-  
+
+
 %% get the alternatives from the '_document' type
 %% -record(anyInfo, {prCont, ns}). %% for any elements
-getDocumentAlternatives(AnyInfo, Types, Info = #schemaInfo{}, Tns) ->   
+getDocumentAlternatives(AnyInfo, Types, Info = #schemaInfo{}, Tns) ->
   #type{els = [#el{alts = Alternatives}]} = findType('_document', Types, [], undefined, undefined, undefined), %% only 1 element
   %% TODO: this is a weird hack, lets see whether it works
   getMatchingAlts(Alternatives, AnyInfo, Info, Tns).
 
 getMatchingAlts(Alternatives, #anyInfo{ns = Namespaces}, Info, Tns) ->
-  case Namespaces of 
+  case Namespaces of
     "##any" ->
       Alternatives;
     _  ->
@@ -790,28 +790,28 @@ getMatchingAlts([], Acc, _Namespaces, _Info, _Tns) ->
 getMatchingAlts([Alt = #alt{tag=Tag} | Tail], Acc, Namespaces, Info = #schemaInfo{namespaces=NS}, Tns) ->
   Namespace = erlsom_lib:tagNamespace(Tag, NS),
   case Namespaces of
-    "##local" -> 
+    "##local" ->
       case Namespace of
-        undefined -> 
+        undefined ->
           getMatchingAlts(Tail, add_alternative_no_dups(Alt, Acc), Namespaces, Info, Tns);
         _Else ->
           getMatchingAlts(Tail, Acc, Namespaces, Info, Tns)
       end;
-    "##other" -> 
+    "##other" ->
       case Namespace of
-        undefined -> 
+        undefined ->
           getMatchingAlts(Tail, Acc, Namespaces, Info, Tns);
         %% TODO: '##other' doesn't work, because Tns isn't always correct: see soap-wsdl example
         %% problem arises with imported namespaces. In the case of wsdl (imported into soap)
         %% Tns is soap - so the code below (commented out) doesn't work correctly.
-        Tns -> 
+        Tns ->
           getMatchingAlts(Tail, Acc, Namespaces, Info, Tns);
         _Else ->
           getMatchingAlts(Tail, add_alternative_no_dups(Alt, Acc), Namespaces, Info, Tns)
       end;
     _ ->
       case Namespace of
-        Namespaces -> 
+        Namespaces ->
           getMatchingAlts(Tail, add_alternative_no_dups(Alt, Acc), Namespaces, Info, Tns);
         _ ->
           getMatchingAlts(Tail, Acc, Namespaces, Info, Tns)
@@ -825,7 +825,7 @@ add_alternative_no_dups(Alt = #alt{tag = Tag}, List) ->
     _ ->
       [Alt | List]
   end.
-          
+
 
 list_to_type("##string") ->
   {'#PCDATA', 'char'};
@@ -841,22 +841,22 @@ list_to_type(List) ->
 
 %% -record(attribute, {name, optional, type}).
 %% Attribute is a tuple {Name, SequenceNr, Optional, Type}
-translateAttribute(#attrib{name=Name, optional=Optional, type = Type, ref = undefined}, 
+translateAttribute(#attrib{name=Name, optional=Optional, type = Type, ref = undefined},
                    Pos, #schemaInfo{strict=Strict}, _Count) ->
-  {[#att{nm = list_to_atom(Name), nr = Pos, 
+  {[#att{nm = list_to_atom(Name), nr = Pos,
          opt = trueFalse(Optional), tp = attributeType(Type, Strict)}], undefined};
 
-translateAttribute(#attrib{ref = Ref, optional = Optional}, Pos, 
+translateAttribute(#attrib{ref = Ref, optional = Optional}, Pos,
                    Info= #schemaInfo{namespaces=NS, strict=Strict}, _Count) ->
   Name = erlsom_lib:makeAttrRef(Ref, NS),
   %% debug(Info#schemaInfo.atts),
   case lists:keysearch(Name, #attrib.name, Info#schemaInfo.atts) of
     {value, #attrib{name = Name, type=Type, optional=Optional2}} ->
       Optional3 = if Optional == undefined -> Optional2; true -> Optional end,
-      {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional3), 
+      {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional3),
              tp = attributeType(Type, Strict)}], undefined};
     _ ->
-      if 
+      if
         Name == "xml:lang" ->
           {[#att{nm = list_to_atom(Name), nr = Pos, opt = trueFalse(Optional), tp = 'char'}], undefined};
         Name == "xml:base" ->
@@ -874,12 +874,12 @@ translateAttribute(#attributeGroupRefType{ref=Ref}, Pos, Info = #schemaInfo{name
     {value, #attGrp{atts = Attrs, anyAttr = AnyAttrValue}} ->
       %% translate recursively
       {Attributes, AnyAttr} = translateAttributes(Attrs, {[], undefined}, Pos, Info, Count + 1),
-      AnyAttr2 = if 
-                   AnyAttrValue == undefined -> AnyAttr; 
+      AnyAttr2 = if
+                   AnyAttrValue == undefined -> AnyAttr;
                    true -> AnyAttrValue
                  end,
       {Attributes, AnyAttr2};
-    _Else -> 
+    _Else ->
       %% debug(erlsom_lib:makeAttrRef(Ref, NS)),
       %% debug(Info#schemaInfo.attGrps),
       %% debug(Ref),
@@ -888,7 +888,7 @@ translateAttribute(#attributeGroupRefType{ref=Ref}, Pos, Info = #schemaInfo{name
   end.
 
 attributeType(undefined, _) -> 'char';
-attributeType(#qname{uri = NS, localPart = Local}, Strict) -> 
+attributeType(#qname{uri = NS, localPart = Local}, Strict) ->
   case NS of
     "http://www.w3.org/2001/XMLSchema" ->
       erlsom_lib:translateType(Local, Strict);
@@ -897,7 +897,7 @@ attributeType(#qname{uri = NS, localPart = Local}, Strict) ->
   end.
 
 %% add a #text alternative to every element.
-%% note that this only makes sense for elements with maxOccurs > 1, but that is the 
+%% note that this only makes sense for elements with maxOccurs > 1, but that is the
 %% most likely way to use 'mixed' anyway.
 
 

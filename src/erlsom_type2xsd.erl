@@ -1,32 +1,32 @@
 %% translates an erlang type specification to an xsd.
 
 
-%% The set of type specifications that can be translated is limited 
+%% The set of type specifications that can be translated is limited
 
 %% The spec consists of record definitions only.
 %% Only integer() and string() can be used as basic types.
 %% Lists and unions can be used to structure things (no tuples).
-%% All fields will be optional, except if you provide a default value (this is 
-%% conform the meaning of the type specs). This is often not what you 
+%% All fields will be optional, except if you provide a default value (this is
+%% conform the meaning of the type specs). This is often not what you
 %% want in the XSD. It is easy to fix this in the resulting XSD.
 
-%% 'elements' will be created for all types. You can change this behaviour by 
+%% 'elements' will be created for all types. You can change this behaviour by
 %% explicitly limiting for which types elements must be created by using
-%% a module attribute "-erlsom_xsd_elements([Name])." (It is recommended 
-%% to do this, since it will result in better type checking and 
+%% a module attribute "-erlsom_xsd_elements([Name])." (It is recommended
+%% to do this, since it will result in better type checking and
 %% a cleaner XSD).
 
-%% a namespace can be specified using a command line option, or using 
+%% a namespace can be specified using a command line option, or using
 %% a special attribute in the file.
 
-%% It is possible to indicate which fields of a record have to be implemented 
+%% It is possible to indicate which fields of a record have to be implemented
 %% as attributes by putting a module attribute "-erlsom_xsd_attributes([Name]).", where
-%% Name is of the form Record.Field. Attributes have to be declared in this way 
+%% Name is of the form Record.Field. Attributes have to be declared in this way
 %% before the record in which they are used.
 %% Alternativily, the fields can be given a name that starts with '@': '@attribute'.
-%% NOTE: only the first (couple of) elements of the record can be 
+%% NOTE: only the first (couple of) elements of the record can be
 %% declared as attributes, since Erlsom will always put the attributes first.
-%% 
+%%
 
 -module(erlsom_type2xsd).
 
@@ -43,7 +43,7 @@
 -type option() :: {target_namespace, {uri(), prefix()}}.
 
 %% testing bits
-testString() -> 
+testString() ->
   {ok, Binary} = file:read_file("test_hrl_sms.hrl"),
   binary_to_list(Binary).
 
@@ -59,7 +59,7 @@ test(_Options) ->
 
 %% end of testing bits
 
--record(state, 
+-record(state,
   {elements  = []  %% accumulates the top level elements
   ,types     = []  %% accumulates the types
   ,atts      = []  %% holds the list of elements that must be treated as
@@ -75,7 +75,7 @@ file(Hrl_file, Xsd_file) ->
 file(Hrl_file, Xsd_file, Options) ->
   {ok, Binary} = file:read_file(Hrl_file),
   type_to_xsd(binary_to_list(Binary), Xsd_file, Options).
-  
+
 
 type_to_xsd(String, XsdFile) ->
   type_to_xsd(String, XsdFile, []).
@@ -92,12 +92,12 @@ type_to_xsd(String, XsdFile, Options) ->
 
 %% translate a set of forms (result erl_parse:parse_form()) to an XML schema.
 %% The forms must be records ({attribute, record, _, {Name, Fields}}) or
-%% the special attributes that can be used to specify things like the 
+%% the special attributes that can be used to specify things like the
 %% target namespace etc.
 -spec translate_forms(XSD_forms::form(), Options::[option()]) -> #schemaType{}.
 translate_forms(Forms, Options) ->
-  Tns = proplists:get_value('target_namespace', Options, {"TargetNamespace", "tns"}), 
-  #state{elements = Elements, types = Types, ns = Tns2} = 
+  Tns = proplists:get_value('target_namespace', Options, {"TargetNamespace", "tns"}),
+  #state{elements = Elements, types = Types, ns = Tns2} =
     translateForms(Forms, #state{ns = Tns}),
   #schemaType{elements = Elements ++ Types,
     targetNamespace = getTns(Tns2),
@@ -112,13 +112,13 @@ translateForms([Form | T], S) ->
   translateForms(T, translate(Form, S)).
 
 %% returns State
-translate({attribute, _, record, {Name, Fields}}, 
+translate({attribute, _, record, {Name, Fields}},
           State = #state{elements = Els, types = Types, els = ExportEls,
                         ns = Target_namespace}) ->
   %% return an element and a type
   ElementName = atom_to_list(Name),
   NewEls = case exportElement(ElementName, ExportEls) of
-    true -> 
+    true ->
       [#globalElementType{name = ElementName, type=qname(ElementName, Target_namespace)} | Els];
     false ->
       Els
@@ -143,7 +143,7 @@ translateFields(Fields, ElementName, State) ->
 
 translateFields([], Els, Atts, _ElementName, _State) ->
   {lists:reverse(Els), lists:reverse(Atts)};
-translateFields([{typed_record_field, Name, Type} | Tail], Els, Atts, 
+translateFields([{typed_record_field, Name, Type} | Tail], Els, Atts,
                 ElementName, #state{ns = Tns} = State) ->
   {FieldName, MarkedAsAttr} = translateName(Name),
   case isAttribute(FieldName, State#state.atts, ElementName) or MarkedAsAttr of
@@ -155,13 +155,13 @@ translateFields([{typed_record_field, Name, Type} | Tail], Els, Atts,
 
 isAttribute(FieldName, Atts, ElementName) ->
   %% Atts is a list of strings "[Element.Field"]
-  AttName = ElementName ++ "." ++ FieldName, 
+  AttName = ElementName ++ "." ++ FieldName,
   lists:member(AttName, Atts).
 
 translateElement(FieldName, Type, #state{ns = Tns}) ->
   {TranslatedType, MinOccurs, MaxOccurs} = translateType(Type, Tns),
   case TranslatedType of
-    #choiceType{} -> 
+    #choiceType{} ->
       TranslatedType#choiceType{minOccurs = MinOccurs, maxOccurs = MaxOccurs};
     _ ->
       #localElementType{name = FieldName, type = TranslatedType, minOccurs = MinOccurs, maxOccurs = MaxOccurs}
@@ -197,7 +197,7 @@ translateName({record_field, _, {atom, _, Name}}) ->
 translateType({type, _, union, Alternatives}, Tns) ->
   FilterUndefined = fun({atom, _, undefined}) -> true;
                        (_) -> false
-                    end, 
+                    end,
   FilterDefined = fun(X) -> not(FilterUndefined(X)) end,
   %% look for 'undefined' (and remove it)
   Optional = lists:any(FilterUndefined, Alternatives),
@@ -211,13 +211,13 @@ translateType({type, _, union, Alternatives}, Tns) ->
     [{type, _, SimpleType, _} = TheType] when SimpleType == integer; SimpleType == boolean;
                                               SimpleType == string; SimpleType == record;
                                               SimpleType == float; SimpleType == non_neg_integer;
-                                              SimpleType == pos_integer; 
-                                              SimpleType == neg_integer -> 
+                                              SimpleType == pos_integer;
+                                              SimpleType == neg_integer ->
       %% not really a choice
       {Type, _, MaxOccurs} = translateType(TheType, Tns),
       {Type,  MinOccurs, MaxOccurs};
-    %% some special cases that correspond to types that are generated by 
-    %% erlsom:write_xsd_hrl_file for the types float and 
+    %% some special cases that correspond to types that are generated by
+    %% erlsom:write_xsd_hrl_file for the types float and
     %% nonPositiveInteger():
     [{type,_,float,[]}, {atom,_,'NaN'}, {atom,_,'INF'}, {atom,_,'-INF'}] ->
       Type = #qname{localPart = "float",
@@ -231,7 +231,7 @@ translateType({type, _, union, Alternatives}, Tns) ->
       {Type, _, _} = translateType(Element, Tns),
       {Type,  MinOccurs, "unbounded"};
     _ ->
-      TranslatedAlternatives = [translateAlternative(Alternative, Tns) || 
+      TranslatedAlternatives = [translateAlternative(Alternative, Tns) ||
                                 Alternative <- Alternatives2],
       {#choiceType{alternatives = TranslatedAlternatives}, MinOccurs, undefined}
   end;
@@ -245,7 +245,7 @@ translateType({type, _, record, [{atom, _, RecordType}]}, Tns) ->
 translateType({atom, _, undefined}, _) ->
   undefined;
 translateType({type, _, Base_type, []}, _) ->
-  {#qname{localPart = translate_base_type(Base_type), 
+  {#qname{localPart = translate_base_type(Base_type),
           uri = "http://www.w3.org/2001/XMLSchema"},
     undefined, undefined}.
 

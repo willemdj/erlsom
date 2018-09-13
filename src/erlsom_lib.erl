@@ -3,8 +3,8 @@
 %%% This file is part of Erlsom.
 %%%
 %%% Erlsom is free software: you can redistribute it and/or modify
-%%% it under the terms of the GNU Lesser General Public License as 
-%%% published by the Free Software Foundation, either version 3 of 
+%%% it under the terms of the GNU Lesser General Public License as
+%%% published by the Free Software Foundation, either version 3 of
 %%% the License, or (at your option) any later version.
 %%%
 %%% Erlsom is distributed in the hope that it will be useful,
@@ -12,8 +12,8 @@
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %%% GNU Lesser General Public License for more details.
 %%%
-%%% You should have received a copy of the GNU Lesser General Public 
-%%% License along with Erlsom.  If not, see 
+%%% You should have received a copy of the GNU Lesser General Public
+%%% License along with Erlsom.  If not, see
 %%% <http://www.gnu.org/licenses/>.
 %%%
 %%% Author contact: w.a.de.jong@gmail.com
@@ -48,7 +48,7 @@
          documentAlternatives/1,
          emptyListIfUndefined/1,
          searchBase/2,
-         makeQname/1, localName/1, 
+         makeQname/1, localName/1,
          getUriFromQname/1,
          getTargetNamespaceFromXsd/1,
          removePrefixes/1, unique/1,
@@ -71,11 +71,11 @@
 
 %% Convert text to the indicated type.
 convertPCData(Text, Type, Namespaces, NamespaceMapping) ->
-  try 
+  try
     convertPCData2(Text, Type, Namespaces, NamespaceMapping)
   catch
     _:_ ->
-      throw({error, 
+      throw({error,
              lists:flatten(io_lib:format("Invalid value for type ~p : ~p", [Type, Text]))})
   end.
 
@@ -92,7 +92,7 @@ convertPCData2(Text, Type, Namespaces, NamespaceMapping) ->
     ascii ->
       %% this is only used by the compiler. Names (which have to be converted to atoms later on
       %% in the process) have this type.
-      try 
+      try
         list_to_atom(Text)
       catch
         _Class:Exception -> throw(Exception)
@@ -112,7 +112,7 @@ convertPCData2(Text, Type, Namespaces, NamespaceMapping) ->
       xml_to_float(strip(Text));
     qname ->
       %% qname has form prefix:localname (or, if there is no prefix: localname)
-      %% split the two parts, look up the prefix to find the uri, and put it into 
+      %% split the two parts, look up the prefix to find the uri, and put it into
       %% a qname record {localname, URI, prefix} (URI = undefined if there was no prefix)
       {Prefix, LocalName} = splitOnColon(Text),
       case lists:keysearch(Prefix, 3, Namespaces) of
@@ -120,17 +120,17 @@ convertPCData2(Text, Type, Namespaces, NamespaceMapping) ->
           %% this is namespace qualified - now see whether a mapping applies
           case lists:keysearch(URI, 2, NamespaceMapping) of
             {value, #ns{prefix = MappedPrefix}}  ->
-              #qname{localPart = LocalName, uri = URI, prefix = Prefix, 
+              #qname{localPart = LocalName, uri = URI, prefix = Prefix,
                      mappedPrefix = MappedPrefix};
             _Else ->
               #qname{localPart = LocalName, uri = URI, prefix = Prefix, mappedPrefix = Prefix}
           end;
         _Else ->
-          if 
+          if
             Prefix == [] -> %% no prefix, no default namespace
               #qname{localPart = Text};
-            Prefix == "xml"  -> %% by convention 
-              #qname{localPart = LocalName, uri = "http://www.w3.org/XML/1998/namespace", 
+            Prefix == "xml"  -> %% by convention
+              #qname{localPart = LocalName, uri = "http://www.w3.org/XML/1998/namespace",
                      prefix = Prefix, mappedPrefix = Prefix};
             true ->
               throw({error, invalid})
@@ -150,19 +150,19 @@ xml_to_float("+INF") ->
 xml_to_float("-INF") ->
   '-INF';
 xml_to_float(Float) ->
-  try 
+  try
     list_to_float(Float)
   catch
     %% "10" is a problem
     error:badarg ->
-      try 
+      try
         list_to_integer(Float) * 1.0
       catch
         %% "10E3" is also a problem
         error:badarg ->
           case string:tokens(Float, "Ee") of
             [Mantissa, Exponent] ->
-              list_to_integer(Mantissa) * 
+              list_to_integer(Mantissa) *
                 math:pow(10, list_to_integer(Exponent))
           end
       end
@@ -170,7 +170,7 @@ xml_to_float(Float) ->
 
 
 %% Tree is a data structure used to find out the relations between types.
-%% It is actually a forest, in the sense that there doesn't have to be 
+%% It is actually a forest, in the sense that there doesn't have to be
 %% a unique root.
 newTree() -> [].
 
@@ -182,20 +182,20 @@ isAncestor(Element, Element, _Tree) -> true; %% added because of problem reporte
 isAncestor(Ancestor, Element, Tree) ->
   case lists:keysearch(Element, 1, Tree) of
     {value, {_, Ancestor}} -> true;
-    {value, {_, Parent} = Elem} -> 
+    {value, {_, Parent} = Elem} ->
       %% remove the element, just to be sure that we don't end up in an
       %% endless loop.
       isAncestor(Ancestor, Parent, lists:delete(Elem, Tree));
     _ -> false
   end.
-    
+
 %% get the ancestor of this type (if any)
 getAncestor(Element, Tree) ->
   case lists:keysearch(Element, 1, Tree) of
     {value, {_, Ancestor}} -> {value, Ancestor};
     _ -> false
   end.
-    
+
 %% get all leaves (non-abstract types) of node (abstract type)
 getLeaves(Node, Tree) ->
   Children = [Child || {Child, N} <- Tree, N == Node],
@@ -206,16 +206,16 @@ getLeaves([], Leaves, _) ->
 getLeaves([Node | T], Leaves, Tree) ->
   Children = [Child || {Child, N} <- Tree, N == Node],
   %% if Node has no children, it is a leave.
-  case Children of 
+  case Children of
     [] ->
       getLeaves(T, [Node | Leaves], Tree);
     _ ->
       %% If Node does have children, go one level deeper
-      %% Delete (one instance..) of Node from the tree, to prevent 
+      %% Delete (one instance..) of Node from the tree, to prevent
       %% endless looping
-      getLeaves(Children ++ T, Leaves, lists:keydelete(Node, 2, Tree)) 
+      getLeaves(Children ++ T, Leaves, lists:keydelete(Node, 2, Tree))
   end.
-    
+
 %% get all descendants of Node
 getDescendants(Node, Tree) ->
   Children = [Child || {Child, N} <- Tree, N == Node],
@@ -226,14 +226,14 @@ getDescendants([], Descendants, _) ->
 getDescendants([Node | T], Descendants, Tree) ->
   Children = [Child || {Child, N} <- Tree, N == Node],
   %% if Node has no children, it is a leave.
-  case Children of 
+  case Children of
     [] ->
       getDescendants(T, Descendants, Tree);
     _ ->
       %% If Node does have children, go one level deeper
-      %% Delete (one instance..) of Node from the tree, to prevent 
+      %% Delete (one instance..) of Node from the tree, to prevent
       %% endless looping
-      getDescendants(Children ++ T, Children ++ Descendants, lists:keydelete(Node, 2, Tree)) 
+      getDescendants(Children ++ T, Children ++ Descendants, lists:keydelete(Node, 2, Tree))
   end.
 
 minMax(undefined) ->
@@ -266,7 +266,7 @@ tagNamespace([], _Acc, _Namespaces) ->
   undefined;
 tagNamespace([Char | Tail], Acc, Namespaces) ->
   tagNamespace(Tail, [Char | Acc], Namespaces).
-  
+
 
 nameWithoutPrefix(Name) ->
   nameWithoutPrefix(Name, []).
@@ -290,17 +290,17 @@ translateType(String, false) ->
     "boolean" ->
        'bool';
     _Else ->
-       'char' 
+       'char'
   end;
 %% strict == true
 translateType(String, true) ->
   case String of
     "integer" ->
        integer;
-    "long" ->               % -9223372036854775807 =<  X =< 9223372036854775808 
+    "long" ->               % -9223372036854775807 =<  X =< 9223372036854775808
        {integer, long};
-    "int" ->                % -2147483648 =<  X =< 2147483647  
-       {integer, int}; 
+    "int" ->                % -2147483648 =<  X =< 2147483647
+       {integer, int};
     "short" ->              % -32768 =< X =< 32767
        {integer, short};
     "byte" ->
@@ -327,12 +327,12 @@ translateType(String, true) ->
       {integer, negativeInteger};
     "float" ->
       float;
-    % no disctinction between double and float - both are mapped to 
+    % no disctinction between double and float - both are mapped to
     % erlang float, no chcecks on size will be performed
-    "double" ->  
+    "double" ->
       float;
     _Else ->
-       'char' 
+       'char'
   end.
 
 
@@ -410,7 +410,7 @@ makeName(NameInXsd, #schemaInfo{elementFormDefault="qualified", targetNamespace=
     {value, #ns{prefix = Prefix}} ->
       Prefix ++ ":" ++ Path ++ NameInXsd;
     _Else ->
-      if 
+      if
         TNS == undefined ->
           Path ++ NameInXsd;
         true ->
@@ -428,7 +428,7 @@ makeName(NameInXsd, #schemaInfo{targetNamespace=TNS, namespaces=NS, path=[]}) ->
     {value, #ns{prefix = Prefix}} ->
       Prefix ++ ":" ++ NameInXsd;
     _Else ->
-      if 
+      if
         TNS == undefined ->
           NameInXsd;
         true ->
@@ -446,7 +446,7 @@ makeName(NameInXsd, #schemaInfo{targetNamespace=TNS, namespaces=NS, path=Path}) 
     {value, #ns{prefix = Prefix}} ->
       Prefix ++ ":" ++ Path ++ NameInXsd;
     _Else ->
-      if 
+      if
         TNS == undefined ->
           Path ++ NameInXsd;
         true ->
@@ -459,7 +459,7 @@ makeAttrName(NameInXsd, _Info) ->
   NameInXsd.
 
 makeTypeRefAtom(Qname, Namespaces) ->
-  %% This is only used when building the type-hierarchy. In that 
+  %% This is only used when building the type-hierarchy. In that
   %% context 'strict' is not relevant (so we can simply put 'false').
   TypeRef = makeTypeRef(Qname, Namespaces, false),
   case TypeRef of
@@ -467,12 +467,12 @@ makeTypeRefAtom(Qname, Namespaces) ->
     _ -> list_to_atom(TypeRef)
   end.
 
-%% makeTypeRef creates a reference to a type. This can either be a type 
-%% defined in the XSD (or an imorted XSD), or a predefined type (like 
+%% makeTypeRef creates a reference to a type. This can either be a type
+%% defined in the XSD (or an imorted XSD), or a predefined type (like
 %% xsd:string).
 %% For the predefined types special codes are returned ({'#PCDATA', ...}).
 %% input is a qname.
-%% The output includes the prefix (as found in the Namespaces list), unless the 
+%% The output includes the prefix (as found in the Namespaces list), unless the
 %% type is not in a particular namespace.
 %% If a special prefix was defined for types, this prefix is also added (after
 %% the namespace prefix. So the result could be P:t#MyType, for example.
@@ -482,7 +482,7 @@ makeTypeRefAtom(Qname, Namespaces) ->
 makeTypeRef(undefined, _, _) ->
   %% the 'ur-type': any type (and any attibute).
    {'#PCDATA', 'char'};
-  
+
 makeTypeRef(Qname = #qname{uri = NS, localPart = Local}, Namespaces, Strict) ->
   TypePrefix = case get(erlsom_typePrefix) of
                  undefined -> "";
@@ -515,7 +515,7 @@ makeAttrRef(QName, Namespaces) ->
 makeTagFromRef(QName, Namespaces) ->
   makeRef(QName, Namespaces, "").
 
-%% ExtraPrefix is the additional prefix to distinguish 
+%% ExtraPrefix is the additional prefix to distinguish
 %% types, groups and elements
 makeRef(#qname{uri = NS, localPart = Local}, Namespaces, ExtraPrefix) ->
   case lists:keysearch(NS, 2, Namespaces) of
@@ -527,7 +527,7 @@ makeRef(#qname{uri = NS, localPart = Local}, Namespaces, ExtraPrefix) ->
     {value, #ns{prefix = Prefix}} ->
       Prefix ++ ":" ++ ExtraPrefix ++ Local;
     _ ->
-      if 
+      if
         NS == undefined ->
           ExtraPrefix ++ Local;
         true ->
@@ -537,7 +537,7 @@ makeRef(#qname{uri = NS, localPart = Local}, Namespaces, ExtraPrefix) ->
             {"http://www.w3.org/XML/1998/namespace", "space"} -> "xml:space";
             {"http://www.w3.org/XML/1998/namespace", "base"} -> "xml:base";
             {"http://www.w3.org/XML/1998/namespace", "id"} -> "xml:id";
-            _ -> 
+            _ ->
               throw({error, "Namespace not found " ++ NS})
           end
       end
@@ -562,7 +562,7 @@ makeTag(NameInXsd, #schemaInfo{elementFormDefault="qualified", targetNamespace=T
     {value, #ns{prefix = Prefix}} ->
       Prefix ++ ":" ++ NameInXsd;
     _Else ->
-      if 
+      if
         TNS == undefined ->
           NameInXsd;
         true ->
@@ -593,14 +593,14 @@ findType(TypeReference, Types, Attributes, TypeHierarchy, Namespaces, NamespaceM
   end.
 
 findXsiType([]) -> false;
-findXsiType([#attribute{localName= "type", 
-                        uri = "http://www.w3.org/2001/XMLSchema-instance", 
+findXsiType([#attribute{localName= "type",
+                        uri = "http://www.w3.org/2001/XMLSchema-instance",
                         value = Value}| _Tail]) -> {value, Value};
-findXsiType([_| Tail]) -> 
+findXsiType([_| Tail]) ->
   findXsiType(Tail).
 
 findDerivedType(Type, XsiType, Types, TypeHierarchy, Namespaces, NamespaceMapping) ->
-  #qname{localPart = LocalName, mappedPrefix = MappedPrefix} = 
+  #qname{localPart = LocalName, mappedPrefix = MappedPrefix} =
     convertPCData(XsiType, qname, Namespaces, NamespaceMapping),
   XsiTypeMapped = list_to_atom(makeTypeName(LocalName, case MappedPrefix of undefined -> ""; "" -> ""; _ -> MappedPrefix ++ ":" end)),
   case isAncestor(Type, XsiTypeMapped, TypeHierarchy) of
@@ -614,7 +614,7 @@ findDerivedType(Type, XsiType, Types, TypeHierarchy, Namespaces, NamespaceMappin
           throw({error, "Derived type not found: " ++ atom_to_list(Type)})
       end
   end.
-      
+
 autodetect(Input) ->
   case detectEncoding(Input) of
     ucs4be ->
@@ -633,21 +633,21 @@ autodetect(Input) ->
     iso_8859_1 ->
       binary_to_list(Input)
   end.
-    
+
 
 %% CFun = {ContinuationFunction, ContinuationState} (or undefined)
 detectEncoding(Xml, _CFun, CState) when is_list(Xml) ->
   {list, Xml, CState};
 detectEncoding(Xml, CFun, CState) when is_binary(Xml) ->
-  case Xml of 
+  case Xml of
     <<>> ->
-      case CFun(Xml, CState) of 
+      case CFun(Xml, CState) of
         {<<>>, _} ->
           throw({error, "empty document"});
         {Xml2, State2} ->
           {detectEncoding(Xml2), Xml2, State2}
       end;
-    _ -> 
+    _ ->
       {detectEncoding(Xml), Xml, CState}
   end.
 
@@ -655,9 +655,9 @@ detectEncoding(Xml, CFun, CState) when is_binary(Xml) ->
 %% This was copied from xmerl_lib (by Ulf Wiger), but modified to work
 %% on binaries in stead of lists. I also removed the option to specify
 %% a character set - the function only looks at the first 2 or 4 bytes.
-%% Finally, I changed it to not remove the byte order mark (since 
+%% Finally, I changed it to not remove the byte order mark (since
 %% erlsom has no problem with the byte order mark).
-%% 
+%%
 %% Auto detect what kind of character set we are dealing with and transform
 %% to Erlang integer Unicode format if found.
 %% Appendix F, Page 56-57, XML 1.0 W3C Recommendation 6 October 2000
@@ -673,7 +673,7 @@ detectEncoding(Xml, CFun, CState) when is_binary(Xml) ->
 
 %% Check byte-order mark and transform to Unicode, Erlang integer
 %%% --- With byte-order mark
-detect_encoding(List) 
+detect_encoding(List)
   when is_list(List) ->
   detect_encoding(list_to_binary(List));
 detect_encoding(Xml) ->
@@ -681,7 +681,7 @@ detect_encoding(Xml) ->
 
 
 %% This is the internal version
-%% the version detect_encoding() is there for reasons of backward 
+%% the version detect_encoding() is there for reasons of backward
 %% compatibility
 detectEncoding(<<0,0,16#fe,16#ff, _Rest/binary>>) ->
   ucs4be;
@@ -726,21 +726,21 @@ detect_encoding3(Variables) ->
   case lists:keysearch("encoding", 1, Variables) of
     {value, {_, Encoding}} ->
       case encoding_type(Encoding) of
-        'utf-8' -> 
+        'utf-8' ->
           utf8;
-        'iso-8859-1' -> 
+        'iso-8859-1' ->
           iso_8859_1;
-        'iso-8859-15' -> 
+        'iso-8859-15' ->
           iso_8859_15;
-        'us-ascii' -> 
+        'us-ascii' ->
           iso_8859_1;
         _ -> throw({error, "Encoding " ++ Encoding ++ " not supported"})
       end;
-    _ -> 
+    _ ->
       utf8
   end.
 
-encoding_type(Cs) when is_list(Cs) -> 
+encoding_type(Cs) when is_list(Cs) ->
    case to_lower(Cs) of
        "iso-8859-1" -> 'iso-8859-1';
        "iso_8859_1" -> 'iso-8859-1';
@@ -753,13 +753,13 @@ encoding_type(Cs) when is_list(Cs) ->
        "utf-8"      -> 'utf-8';
        "utf_8"      -> 'utf-8';
        "us-ascii"   -> 'us-ascii';
-       _            -> false 
+       _            -> false
    end.
 
 to_lower(Str) when is_list(Str)   -> [to_lower(C) || C <- Str];
 to_lower(C) when C >= $A, C =< $Z -> C+($a-$A);
 to_lower(C)                       -> C.
-%% end of the code based on Tobbes code 
+%% end of the code based on Tobbes code
 
 %% some code to parse the XML prolog.
 %% returns a list of tuples {variable, value}
@@ -779,9 +779,9 @@ parse_variables("?>" ++ _, Acc) -> Acc;
 
 parse_variables(T = [X | Tail], Acc) ->
   case typeOfMarkupChar(X) of
-    namestartchar -> 
+    namestartchar ->
       parse_variable(T, [], Acc);
-    whitespace -> 
+    whitespace ->
       parse_variables(Tail, Acc);
     _ -> []
   end.
@@ -843,16 +843,16 @@ getFile(Location, IncludeDirs) ->
 
 httpGetFile(URL) ->
   case httpc:request(get, {URL, [{"user-agent", "erlsom"}]}, [], []) of
-		{ok,{{_HTTP,200,_OK}, _Headers, Body}} ->
-			toUnicode(Body);
-		{ok,{{_HTTP,RC,Emsg}, _Headers, _Body}} ->
-			error_logger:error_msg("~p: http-request got: ~p~n",
-				[?MODULE, {RC, Emsg}]),
-			{error, "failed to retrieve: "++URL};
-		{error, Reason} ->
-			error_logger:error_msg("~p: http-request failed: ~p~n",
-				[?MODULE, Reason]),
-			{error, "failed to retrieve: "++URL}
+        {ok,{{_HTTP,200,_OK}, _Headers, Body}} ->
+            toUnicode(Body);
+        {ok,{{_HTTP,RC,Emsg}, _Headers, _Body}} ->
+            error_logger:error_msg("~p: http-request got: ~p~n",
+                [?MODULE, {RC, Emsg}]),
+            {error, "failed to retrieve: "++URL};
+        {error, Reason} ->
+            error_logger:error_msg("~p: http-request failed: ~p~n",
+                [?MODULE, Reason]),
+            {error, "failed to retrieve: "++URL}
   end.
 
 findFileInDirs(undefined, []) ->
@@ -863,9 +863,9 @@ findFileInDirs(Location, []) ->
 findFileInDirs(Location, [H | T]) ->
   Name = filename:join([H, Location]),
   case filelib:is_file(Name) of
-    true -> 
+    true ->
       readImportFile(Name);
-    _ -> 
+    _ ->
       findFileInDirs(Location, T)
   end.
 
@@ -874,13 +874,13 @@ readImportFile(Name) ->
     {ok, Bin} ->
       toUnicode(Bin);
     Error ->
-      throw({error, 
-            lists:flatten(io_lib:format("Error reading include file ~p - ~p", 
+      throw({error,
+            lists:flatten(io_lib:format("Error reading include file ~p - ~p",
                                         [Name, Error]))})
   end.
 
 %% Include_fun is a function that finds the files that are included or imported in
-%% the XSD. It should be a function that takes 4 arguments: 
+%% the XSD. It should be a function that takes 4 arguments:
 %%        - Namespace (from the XSD). This is a string or 'undefined'
 %%        - SchemaLocation (from the XSD). This is a string or 'undefined'
 %%        - Include_dirs. This is the value of the Include_dirs option if this option
@@ -898,7 +898,7 @@ find_xsd(Namespace, Location, Include_dirs, Include_list) ->
     _ ->
        erlsom_lib:findFile(Namespace, Location, Include_dirs, Include_list)
   end.
- 
+
 prefix(Namespace) ->
   Tokens = string:tokens(Namespace, "/ "),
   string:substr(lists:last(Tokens), 1, 5).
@@ -911,19 +911,19 @@ prefix(Namespace) ->
 %%% --------------------------------------------------------------------
 get_url("http://"++_ = URL) ->
     case httpc:request(URL) of
-	{ok, {{_HTTP, 200, _OK}, _Headers, Body}} -> 
-	    case http_uri:parse(URL) of
-		{ok, {_Method, _, _Host, _Port, _Path, _Qargs}} ->
-		    {ok, Body};
-		_ -> 
-		    {error, "failed to retrieve: "++URL}
-	    end;
-	_Error -> 
-	    {error, "failed to retrieve: "++URL}
+    {ok, {{_HTTP, 200, _OK}, _Headers, Body}} ->
+        case http_uri:parse(URL) of
+        {ok, {_Method, _, _Host, _Port, _Path, _Qargs}} ->
+            {ok, Body};
+        _ ->
+            {error, "failed to retrieve: "++URL}
+        end;
+    _Error ->
+        {error, "failed to retrieve: "++URL}
     end;
 get_url(_) ->
     {error, "not a URL"}.
-  
+
 emptyListIfUndefined(undefined) -> [];
 emptyListIfUndefined(List) -> List.
 
@@ -942,33 +942,33 @@ searchBase(Name, [_H | T]) ->
 %% Returns:
 %%  whitespace, lessthan, morethan, etc, see below.
 typeOfNameChar(Char) ->
-  if 
+  if
     Char > 96 ->
-      if 
+      if
         Char < 123 -> namechar;
-	Char < 127 -> char;
-	true -> illegal
+    Char < 127 -> char;
+    true -> illegal
       end;
     Char > 64 ->
-      if 
+      if
         Char < 91 -> namechar;
         Char == 95 -> namechar;
-	true -> char
+    true -> char
       end;
     Char > 47 ->
       if
         Char < 59 -> namechar;
-	Char == 61 -> equalsign;
-	Char == 62 -> morethan;
-	Char == 63 -> questionmark;
-	true -> char
+    Char == 61 -> equalsign;
+    Char == 62 -> morethan;
+    Char == 63 -> questionmark;
+    true -> char
       end;
     Char > 32 ->
-      if 
+      if
         Char < 40 -> char;
         Char < 45 -> illegal;
-	Char == 47 -> slash;
-	true -> namechar
+    Char == 47 -> slash;
+    true -> namechar
       end;
     Char == 32 -> whitespace;
     Char == 9 -> whitespace;
@@ -982,35 +982,35 @@ typeOfNameChar(Char) ->
 %% Returns:
 %%  whitespace, lessthan, morethan, etc, see below.
 typeOfMarkupChar(Char) ->
-  if 
+  if
     Char == 32 -> whitespace;
     Char > 96 ->
-      if 
+      if
         Char < 123 -> namestartchar;
-	Char < 127 -> char;
-	true -> illegal
+    Char < 127 -> char;
+    true -> illegal
       end;
     Char > 64 ->
-      if 
+      if
         Char < 91 -> namestartchar;
         Char == 95 -> namestartchar;
-	true -> char
+    true -> char
       end;
     Char > 40 ->
       if
         Char == 47 -> slash;
         Char < 60 -> char;
-	Char == 60 -> lessthan;
-	Char == 61 -> equalsign;
-	Char == 62 -> morethan;
-	true -> char
+    Char == 60 -> lessthan;
+    Char == 61 -> equalsign;
+    Char == 62 -> morethan;
+    true -> char
       end;
     Char > 32 ->
-      if 
+      if
         Char == 39 -> quote;
         Char == 34 -> quote;
         Char == 38 -> ampersand;
-	true -> char
+    true -> char
       end;
     Char == 9 -> whitespace;
     Char == 10 -> whitespace;
@@ -1058,7 +1058,7 @@ getNamespacesFromModel(#model{nss = Namespaces}) ->
 %% these are the top-level elements. They can occur in an '#any' type.
 %% Check on [], because if for some reason there would be no alternatives
 %% there would be an endless loop.
-documentAlternatives(#model{tps = [#type{nm = '_document', 
+documentAlternatives(#model{tps = [#type{nm = '_document',
                                          els = [#el{alts = Alternatives}]} |
                                                  _]}) when Alternatives /= [] ->
   Alternatives.
@@ -1072,18 +1072,17 @@ removePrefixes(Name) ->
                  undefined -> "";
                  Value -> Value
                end,
-  {_, WithoutTypePrefix} = lists:split(length(TypePrefix), LocalName), 
+  {_, WithoutTypePrefix} = lists:split(length(TypePrefix), LocalName),
   case Prefix of
     [] -> WithoutTypePrefix;
     _ -> Prefix ++ ":" ++ WithoutTypePrefix
   end.
 
 
-  
 %% returns {Prefix, LocalName}
 splitOnColon(Text) ->
   PosOfColon = string:chr(Text, $:),
-  if 
+  if
     PosOfColon == 0 ->
       {[], Text};
     true ->
@@ -1123,9 +1122,9 @@ unique(A, [], Acc) ->
 %% - endElements that follow value are printed directly after the value
 %% - endElements that directly follow a startElement are merged. The indentLevel remains unchanged (+ 1 - 1)
 prettyPrint(String) ->
-  PrintFun = 
+  PrintFun =
     fun(Event, {Acc, IndentLevel, NewNamespaces, Previous, NoIndent} = In) ->
-      Spaces = "    ", 
+      Spaces = "    ",
       case {Previous, Event} of
         {_, {ignorableWhitespace, _}} ->
           In;
@@ -1143,31 +1142,31 @@ prettyPrint(String) ->
         {{startElement, _, _, _, _} = SE, {endElement, _, _, _}} ->
           Indent = string:copies(Spaces, IndentLevel),
           TagContent = printStartTagContent(NewNamespaces, SE),
-          {[[Indent, $<, TagContent, "/>\n"] | Acc], IndentLevel, [], undefined, false}; 
+          {[[Indent, $<, TagContent, "/>\n"] | Acc], IndentLevel, [], undefined, false};
         {{startElement, _, _, _, _} = SE, {characters, _}} ->
           Indent = string:copies(Spaces, IndentLevel),
           TagContent = printStartTagContent(NewNamespaces, SE),
-          {[[Indent, $<, TagContent, ">"] | Acc], IndentLevel + 1, [], Event, false}; 
+          {[[Indent, $<, TagContent, ">"] | Acc], IndentLevel + 1, [], Event, false};
         {{startElement, _, _, _, _} = SE, {startElement, _, _, _, _}} ->
           Indent = string:copies(Spaces, IndentLevel),
           TagContent = printStartTagContent(NewNamespaces, SE),
-          {[[Indent, $<, TagContent, ">\n"] | Acc], IndentLevel + 1, [], Event, false}; 
+          {[[Indent, $<, TagContent, ">\n"] | Acc], IndentLevel + 1, [], Event, false};
         {{startElement, _, _, _, _} = SE, {startPrefixMapping, _, _}} ->
-          %% Will always be followed by another startElement, so treat like 
+          %% Will always be followed by another startElement, so treat like
           %% the clause above
           Indent = string:copies(Spaces, IndentLevel),
           TagContent = printStartTagContent(NewNamespaces, SE),
-          {[[Indent, $<, TagContent, ">\n"] | Acc], IndentLevel + 1, [], Event, false}; 
+          {[[Indent, $<, TagContent, ">\n"] | Acc], IndentLevel + 1, [], Event, false};
         {{characters, Characters}, {startElement, _, _, _, _}} ->
           %% mixed scenario, print characters and newline
-          {[[xmlString(Characters), $\n] | Acc], IndentLevel, [], Event, false}; 
+          {[[xmlString(Characters), $\n] | Acc], IndentLevel, [], Event, false};
         {{characters, Characters}, {endElement, _, _, _}} ->
           %% print characters, no newline
-          {[xmlString(Characters) | Acc], IndentLevel, [], Event, true}; 
+          {[xmlString(Characters) | Acc], IndentLevel, [], Event, true};
         {{characters, Characters}, {characters, _}} ->
           %% value split in 2 (perhaps because of CDATA)
           %% print 1st bit, no newline
-          {[xmlString(Characters) | Acc], IndentLevel, [], Event, true}; 
+          {[xmlString(Characters) | Acc], IndentLevel, [], Event, true};
         {{endElement, _Uri, LocalName, Prefix}, endDocument} ->
           Acc2 = [["</", printPf(Prefix), LocalName, $>] | Acc],
           lists:flatten(lists:reverse(Acc2));
@@ -1188,15 +1187,15 @@ prettyPrint(String) ->
 printStartTagContent(NewNamespaces, {startElement, _, LocalName, Prefix, Attributes}) ->
   Namespaces = printNamespaces(NewNamespaces),
   % silly but the sax parser delivers them in the wrong order.
-  AttributeStr = printAttributes(lists:reverse(Attributes)), 
+  AttributeStr = printAttributes(lists:reverse(Attributes)),
   [printPf(Prefix), LocalName, Namespaces, AttributeStr].
 
 printAttributes(Atts) ->
-  [[?SPACE, printPf(Prefix), Local, "=\"", xmlString(Value), $\"] || 
+  [[?SPACE, printPf(Prefix), Local, "=\"", xmlString(Value), $\"] ||
    #attribute{localName= Local, prefix = Prefix, value = Value} <- Atts].
 
 printNamespaces(Ns) ->
-  [[" xmlns", if Prefix == [] -> []; true -> [$:, Prefix] end, "=\"", URI, $"] || 
+  [[" xmlns", if Prefix == [] -> []; true -> [$:, Prefix] end, "=\"", URI, $"] ||
    {Prefix, URI} <- Ns].
 
 printPf([]) ->

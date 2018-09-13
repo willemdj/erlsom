@@ -3,8 +3,8 @@
 %%% This file is part of Erlsom.
 %%%
 %%% Erlsom is free software: you can redistribute it and/or modify
-%%% it under the terms of the GNU Lesser General Public License as 
-%%% published by the Free Software Foundation, either version 3 of 
+%%% it under the terms of the GNU Lesser General Public License as
+%%% published by the Free Software Foundation, either version 3 of
 %%% the License, or (at your option) any later version.
 %%%
 %%% Erlsom is distributed in the hope that it will be useful,
@@ -12,8 +12,8 @@
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %%% GNU Lesser General Public License for more details.
 %%%
-%%% You should have received a copy of the GNU Lesser General Public 
-%%% License along with Erlsom.  If not, see 
+%%% You should have received a copy of the GNU Lesser General Public
+%%% License along with Erlsom.  If not, see
 %%% <http://www.gnu.org/licenses/>.
 %%%
 %%% Author contact: w.a.de.jong@gmail.com
@@ -24,30 +24,30 @@
 
 %% header file for erlsom_parse. Contains the record definitions.
 
-%% the records that form the model - see erlsom_parse.erl for a 
+%% the records that form the model - see erlsom_parse.erl for a
 %% description.
 
--record(model, {tps, nss, 
+-record(model, {tps, nss,
                 tns, %% target namespace (the URI, a string)
                 th, %% type hierarchy, see 'tree'-functions in erlsom_lib
                 any_attribs, %% Include "any_atributes" (i.e. attributes that
-                             %% have not been explicitly declared in the XSD) 
+                             %% have not been explicitly declared in the XSD)
                              %% in the result. If set to true these will be in
                              %% the second element of the record.
                 value_fun    %% Function that is called after the parsing
-                             %% of a complex type (resulting in creation of a 
+                             %% of a complex type (resulting in creation of a
                              %% record) has been created. Can be used
                              %% to modify the value (or for side effects).
-               }).  
--record(type, {nm, tp = sequence, els, atts = [], anyAttr, nillable, nr, 
+               }).
+-record(type, {nm, tp = sequence, els, atts = [], anyAttr, nillable, nr,
                mn = 1, mx = 1, mxd = false, %% mn & mx are only used by erlsom_compile
                typeName}).  %% typeName is the 'real' name, to be used in xsi:type attributes
                             %% for derived types. The 'nm' field is actually a key, which may
                             %% include an additional prefix to differntiate between elements, types
                             %% and groups.
--record(el, {alts, mn = 1, mx = 1, nillable, 
-             nr %% nr is actually the position of the value in the 
-                %% result record. 
+-record(el, {alts, mn = 1, mx = 1, nillable,
+             nr %% nr is actually the position of the value in the
+                %% result record.
             }).
 -record(alt, {tag, tp, nxt = [], mn = 1, mx = 1, rl = true, anyInfo}).
 -record(att, {nm, nr, opt, tp}).
@@ -56,7 +56,7 @@
 -record(anyAttr, {prCont, ns, tns}). %% for anyAttributes
 -record(anyInfo, {prCont, ns, tns}). %% for any elements
 
--record(state, {currentState, resultSoFar, model, namespaces, 
+-record(state, {currentState, resultSoFar, model, namespaces,
                 allNamespaces, continuationState, value_acc = [],
                 value_fun}).
 
