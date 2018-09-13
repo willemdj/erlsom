@@ -6,7 +6,7 @@
     <xsd:element name="book_store">
         <xsd:complexType>
             <xsd:sequence>
-                <xsd:element name="book" type="book_type" 
+                <xsd:element name="book" type="book_type"
                              minOccurs="1" maxOccurs="unbounded"/>
             </xsd:sequence>
         </xsd:complexType>

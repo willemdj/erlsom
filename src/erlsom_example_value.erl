@@ -9,7 +9,7 @@
 %%      'CurrencyID' = "?",
 %%      'Value' = "?"}
 %%
-%% In order to be able to embed the result it must be possible to specificy 
+%% In order to be able to embed the result it must be possible to specificy
 %% indentation.
 
 -include("erlsom_parse.hrl").
@@ -35,9 +35,9 @@ test(File) ->
   % Pick a type from the model
   #model{tps = [#type{nm = '_document', els=Elements} | _]} = Model,
   [#el{alts = [#alt{tp = Type} | _]} | _] = Elements,
-  % generate an example value, 
+  % generate an example value,
   Example_value = from_model(Type, Model),
-  file:write_file("test_example.erl", 
+  file:write_file("test_example.erl",
                   [test_header(), Example_value, ".\n"]),
   %% See if it compiles
   compile:file("test_example.erl").
@@ -66,11 +66,11 @@ from_type(Type, #model{tps = Types} = Model, State) ->
       from_type2(Value, Model, State)
   end.
 
-from_type2(#type{nm = Name, els = Elements, atts = Attributes}, 
+from_type2(#type{nm = Name, els = Elements, atts = Attributes},
           #model{any_attribs = AnyAtts} = Model, State) ->
   Attribute_result = [from_attribute(A, Model, State) || A <- Attributes],
   Element_result = from_elements(Elements, Model, State),
-  Fields = 
+  Fields =
     case AnyAtts of
       true ->
         Any_attribs = [[comment(State), indent(State), "    anyAttribs = []"]],
@@ -86,7 +86,7 @@ from_elements(Elements, Model, State) ->
 from_elements([], _Model, _State, _ChoiceCount, Acc) ->
   lists:reverse(Acc);
 from_elements([E | T], Model, State, ChoiceCount, Acc) ->
-  {Result, NewCount} = 
+  {Result, NewCount} =
     from_element(E, Model, State, ChoiceCount),
   from_elements(T, Model, State, NewCount, [Result | Acc]).
 
@@ -124,36 +124,36 @@ from_attribute(#att{nm = Name, opt = Optional, tp = Type}, Model,
   Comment = case Optional of
               true ->
                 [comment(State), indent(State), "    % Optional:\n"];
-              false -> 
+              false ->
                 ""
             end,
   Value = default_value(Type, Model, State),
   [Comment, comment(State), indent(State), io_lib:format("    ~p = ~s", [Name, Value])].
 
-from_element(#el{alts = Alternatives, mn = Min, mx = Max}, Model, State, Nr_choices) when 
+from_element(#el{alts = Alternatives, mn = Min, mx = Max}, Model, State, Nr_choices) when
     length(Alternatives) == 1 ->
   Min_Max_comment = min_max_comment(Min, Max, State),
   Values = [from_alternative(A, Max, Model, State) || A <- Alternatives],
   {[Min_Max_comment, Values], Nr_choices};
 from_element(#el{alts = Alternatives, mn = Min, mx = Max}, Model, State, Nr_choices) ->
   Unique_alternatives = lists:ukeysort(#alt.tp, Alternatives),
-  Choice_comment = choice_comment(length(Unique_alternatives), State), 
+  Choice_comment = choice_comment(length(Unique_alternatives), State),
   Min_Max_comment = min_max_comment(Min, Max, State),
-  %% If there are several tags that lead to 1 alternative, there may be more than 1 
+  %% If there are several tags that lead to 1 alternative, there may be more than 1
   %% #alt{} record for the same type.
   Alts = from_alternatives(Unique_alternatives, Model, State),
   Label = choice_label(Nr_choices),
-  Result = 
+  Result =
     case (Max > 1) of %% unbound > 1
       true ->
-        [Min_Max_comment, comment(State), indent(State), "    ", Label, " = [\n", 
+        [Min_Max_comment, comment(State), indent(State), "    ", Label, " = [\n",
          Choice_comment, add_breaks(Alts), $]];
       false ->
-        [Min_Max_comment, comment(State), indent(State), "    ", Label, " = \n", 
+        [Min_Max_comment, comment(State), indent(State), "    ", Label, " = \n",
          Choice_comment, add_breaks(Alts)]
     end,
   {Result, Nr_choices + 1}.
-  
+
 
 choice_label(0) ->
   "choice";
@@ -171,15 +171,15 @@ from_alternatives([H|T], Model, #e_state{choice_depth= Depth} = State,
   %% All alternatives are commented out, exacpt for the last one
   %% (the last one, because otherwise there are problems with commas, closing braces
   %% etc.).
-  New_depth = 
-    case T of 
+  New_depth =
+    case T of
       [] -> % no more alternatives, so this is the last one
         Depth;
-      _ -> 
+      _ ->
         Depth + 1
     end,
-  from_alternatives(T, Model, State, Count + 1, 
-                    [from_alternative2(H, Model, 
+  from_alternatives(T, Model, State, Count + 1,
+                    [from_alternative2(H, Model,
                                        State#e_state{choice_depth = New_depth}) | Acc]).
 
 from_alternative(#alt{tag = Tag, tp = Type, rl = Real, mn = _Min2, mx = _Max2},
@@ -192,15 +192,15 @@ from_alternative(#alt{tag = Tag, tp = Type, rl = Real, mn = _Min2, mx = _Max2},
   Value = default_value(Type, Model, State),
   Field = case (Max > 1) of %% unbound > 1
             true ->
-              case Type of 
+              case Type of
                 any ->
                   %% Note: this is not correct if MinOccurs > 0,
                   %% but that is rare, and it would be difficult
                   %% to figure out what to put in such a case.
-                  io_lib:format("    ~p = ~s[]", 
+                  io_lib:format("    ~p = ~s[]",
                                 [Field_name, Newline]);
                 _ ->
-                  io_lib:format("    ~p = [~s~s]", 
+                  io_lib:format("    ~p = [~s~s]",
                                 [Field_name, Newline, Value])
               end;
             false ->
@@ -216,7 +216,7 @@ any_comment(_, _State) ->
 %% inside a choice
 from_alternative2(#alt{tp = Type, mn = Min, mx = Max}, Model, State) ->
   Value = default_value(Type, Model, State),
-  Min_Max_comment = min_max_comment(Min, Max, bump_level(State, 1)), 
+  Min_Max_comment = min_max_comment(Min, Max, bump_level(State, 1)),
   Field = case (Max > 1) of %% unbound > 1
             true ->
               Value2 = put_brace(Value),
@@ -227,8 +227,8 @@ from_alternative2(#alt{tp = Type, mn = Min, mx = Max}, Model, State) ->
   [Min_Max_comment, Field].
 
 name(Tag, Type, Real) ->
-  With_prefix = 
-    case Real of 
+  With_prefix =
+    case Real of
            false ->
              case Type of
                {_,_} ->
@@ -254,7 +254,7 @@ base_name(Atom) when is_atom(Atom) ->
   list_to_atom(String_no_prefix).
 
 comment(#e_state{choice_depth = D}) ->
-  lists:duplicate(D, $%). 
+  lists:duplicate(D, $%).
 
 
 put_brace(String) ->
@@ -275,7 +275,7 @@ min_max_comment(1, 1, _) ->
 min_max_comment(0, 1, State) ->
   [comment(State), indent(State), "    % Optional:\n"];
 min_max_comment(0, M, State) ->
-  [comment(State), indent(State), 
+  [comment(State), indent(State),
    io_lib:format("    % List with zero ~s elements:~n", [max_as_string(M)])];
 min_max_comment(N, M, State) ->
   [comment(State), indent(State),
@@ -290,7 +290,7 @@ max_as_string(N) ->
 choice_comment(1, _State) ->
   "";
 choice_comment(N, State) ->
-  [comment(State), indent(State), 
+  [comment(State), indent(State),
    io_lib:format("        % Select one from the following ~p elements:~n", [N])].
 
 newline({_, _}) ->

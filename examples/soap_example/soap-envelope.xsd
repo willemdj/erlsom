@@ -17,7 +17,7 @@
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            xmlns:tns="http://www.w3.org/2003/05/soap-envelope"
-           targetNamespace="http://www.w3.org/2003/05/soap-envelope" 
+           targetNamespace="http://www.w3.org/2003/05/soap-envelope"
 		   elementFormDefault="qualified" >
 
 
@@ -43,7 +43,7 @@
     </xs:sequence>
     <xs:anyAttribute namespace="##other" processContents="lax" />
   </xs:complexType>
-  
+
   <xs:element name="Body" type="tns:Body" />
   <xs:complexType name="Body" >
     <xs:sequence>
@@ -85,7 +85,7 @@
 
   <xs:complexType name="faultreason" >
     <xs:sequence>
-	  <xs:element name="Text" type="tns:reasontext" 
+	  <xs:element name="Text" type="tns:reasontext"
                   minOccurs="1"  maxOccurs="unbounded" />
 	</xs:sequence>
   </xs:complexType>
@@ -97,7 +97,7 @@
 	  </xs:extension>
 	</xs:simpleContent>
   </xs:complexType>
-  
+
   <xs:complexType name="faultcode">
     <xs:sequence>
       <xs:element name="Value"
@@ -132,7 +132,7 @@
     <xs:sequence>
       <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"  />
     </xs:sequence>
-    <xs:anyAttribute namespace="##other" processContents="lax" /> 
+    <xs:anyAttribute namespace="##other" processContents="lax" />
   </xs:complexType>
 
   <!-- Global element declaration and complex type definition for header entry returned due to a mustUnderstand fault -->

@@ -3,8 +3,8 @@
 %%% This file is part of Erlsom.
 %%%
 %%% Erlsom is free software: you can redistribute it and/or modify
-%%% it under the terms of the GNU Lesser General Public License as 
-%%% published by the Free Software Foundation, either version 3 of 
+%%% it under the terms of the GNU Lesser General Public License as
+%%% published by the Free Software Foundation, either version 3 of
 %%% the License, or (at your option) any later version.
 %%%
 %%% Erlsom is distributed in the hope that it will be useful,
@@ -12,8 +12,8 @@
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %%% GNU Lesser General Public License for more details.
 %%%
-%%% You should have received a copy of the GNU Lesser General Public 
-%%% License along with Erlsom.  If not, see 
+%%% You should have received a copy of the GNU Lesser General Public
+%%% License along with Erlsom.  If not, see
 %%% <http://www.gnu.org/licenses/>.
 %%%
 %%% Author contact: w.a.de.jong@gmail.com
@@ -22,12 +22,12 @@
 %%% An XML parser, using the SAX model.
 %%% ====================================================================
 
-%% this file exists several times, but with different names: 
+%% this file exists several times, but with different names:
 %% erlsom_sax_utf8, erlsom_sax_latin1 etc.
 %% The only difference to the content of these 2 files is the definition below:
-%% it can be UTF8, LAT1, LAT9, U16B or U16L. (The names have been chosen so that the 
-%% number of bytes in the file will be the same in either case, so that it is 
-%% easy to see whether the files are the same, although this check is obviously 
+%% it can be UTF8, LAT1, LAT9, U16B or U16L. (The names have been chosen so that the
+%% number of bytes in the file will be the same in either case, so that it is
+%% easy to see whether the files are the same, although this check is obviously
 %% rather primitive.)
 
 -define(U16L, true).
@@ -73,7 +73,7 @@
 -define(STR4_T(X1, X2, X3, X4, Y), <<0, X1, 0, X2, 0, X3, 0, X4, Y/binary>>).
 -define(STR7_T(X1, X2, X3, X4, X5, X6, X7, Y), <<0, X1, 0, X2, 0, X3, 0, X4, 0, X5, 0, X6, 0, X7, Y/binary>>).
 -define(STR8_T(X1, X2, X3, X4, X5, X6, X7, X8, Y), <<0, X1, 0, X2, 0, X3, 0, X4, 0, X5, 0, X6, 0, X7, 0, X8, Y/binary>>).
--define(STR9_T(X1, X2, X3, X4, X5, X6, X7, X8, X9, Y), 
+-define(STR9_T(X1, X2, X3, X4, X5, X6, X7, X8, X9, Y),
                <<0, X1, 0, X2, 0, X3, 0, X4, 0, X5, 0, X6, 0, X7, 0, X8, 0, X9, Y/binary>>).
 -define(BOM1(X), <<16#FE, 16#FF, X/binary>>).
 -define(BOM2, <<16#FE>>).
@@ -98,7 +98,7 @@
 -define(STR4_T(X1, X2, X3, X4, Y), <<X1, 0, X2, 0, X3, 0, X4, 0, Y/binary>>).
 -define(STR7_T(X1, X2, X3, X4, X5, X6, X7, Y), <<X1, 0, X2, 0, X3, 0, X4, 0, X5, 0, X6, 0, X7, 0, Y/binary>>).
 -define(STR8_T(X1, X2, X3, X4, X5, X6, X7, X8, Y), <<X1, 0, X2, 0, X3, 0, X4, 0, X5, 0, X6, 0, X7, 0, X8, 0, Y/binary>>).
--define(STR9_T(X1, X2, X3, X4, X5, X6, X7, X8, X9, Y), 
+-define(STR9_T(X1, X2, X3, X4, X5, X6, X7, X8, X9, Y),
                <<X1, 0, X2, 0, X3, 0, X4, 0, X5, 0, X6, 0, X7, 0, X8, 0, X9, 0, Y/binary>>).
 -define(BOM1(X), <<16#FF, 16#FE, X/binary>>).
 -define(BOM2, <<16#FF>>).
@@ -203,16 +203,16 @@ parseProlog(?EMPTY, State) ->
 parseProlog(?STR1($<), State) ->
   ?CF3(?STR1($<), State, fun parseProlog/2);
 parseProlog(?STR2_T($<, $?, Tail), State) ->
-  {processinginstruction, Target, Data, Tail2, State2} = 
+  {processinginstruction, Target, Data, Tail2, State2} =
     parseProcessingInstruction(Tail, State),
   State3 = wrapCallback({processingInstruction, Target, lists:reverse(Data)}, State2),
   parseProlog(Tail2, State3);
 parseProlog(?STR2_T($<, $!, Tail) = T, State) ->
   case Tail of
-    ?STR2_T($-, $-, Tail2) -> 
+    ?STR2_T($-, $-, Tail2) ->
       {comment, Tail3, State2} = parseComment(Tail2, State),
       parseProlog(Tail3, State2);
-    ?STR7_T($D, $O, $C, $T, $Y, $P, $E, Tail2) -> 
+    ?STR7_T($D, $O, $C, $T, $Y, $P, $E, Tail2) ->
       {dtd, Tail3, State2} = parseDTD(Tail2, State),
       parseProlog(Tail3, State2);
     ?STR6($D, $O, $C, $T, $Y, $P) -> ?CF3(T, State, fun parseProlog/2);
@@ -228,7 +228,7 @@ parseProlog(?STR2_T($<, $!, Tail) = T, State) ->
 parseProlog(?STR1_T($<, Tail), State) ->
   parseContentLT(Tail, State);
 %% whitespace in the prolog is ignored
-parseProlog(?STR1_T(NextChar, Tail), State) 
+parseProlog(?STR1_T(NextChar, Tail), State)
   when ?is_whitespace(NextChar) ->
   parseProlog(Tail, State);
 %% non-breaking space, used as byte order mark
@@ -245,7 +245,7 @@ parseProlog(_Tail, _) ->
 %% Decode the next character
 %% Tail = the rest of the XML
 %% returns {Char, Tail2, State2}
-decodeChar(Tail, State) -> 
+decodeChar(Tail, State) ->
   case Tail of
     ?EMPTY -> ?CF3(?EMPTY, State, fun decodeChar/2);
     <<C1, Tail2/binary>> when C1 < 16#80 ->
@@ -314,18 +314,18 @@ decode4(C1, C2, C3, C4) ->
 -endif.
 
 -ifdef(U16B).
-decodeChar(Tail, State) -> 
+decodeChar(Tail, State) ->
   case Tail of
     ?EMPTY -> ?CF3(Tail, State, fun decodeChar/2);
-    <<_>> -> 
+    <<_>> ->
       %% incomplete
       ?CF3(Tail, State, fun decodeChar/2);
     <<C1, C2, Tail2/binary>> when C1 < 16#D8; C1 > 16#DF ->
       {C1 * 256 + C2, Tail2, State};
-    <<_Hi1, _Hi2, _Lo1>> -> 
+    <<_Hi1, _Hi2, _Lo1>> ->
       %% incomplete
       ?CF3(Tail, State, fun decodeChar/2);
-    <<Hi1, Hi2, Lo1, Lo2, Tail2/binary>> 
+    <<Hi1, Hi2, Lo1, Lo2, Tail2/binary>>
       when Hi1 >= 16#D8, Hi1 < 16#DC, Lo1 >= 16#DC, Lo1 < 16#E0 ->
         %% Surrogate pair
         Hi = Hi1 * 256 + Hi2,
@@ -335,24 +335,24 @@ decodeChar(Tail, State) ->
     <<Hi1, _Hi2>> when Hi1 >= 16#D8, Hi1 < 16#DC ->
       %% Surrogate pair, incomplete
       ?CF3(Tail, State, fun decodeChar/2);
-    _ -> 
+    _ ->
       {error,not_utf16be}
   end.
 -endif.
 
 -ifdef(U16L).
-decodeChar(Tail, State) -> 
+decodeChar(Tail, State) ->
   case Tail of
     ?EMPTY -> ?CF3(Tail, State, fun decodeChar/2);
-    <<_>> -> 
+    <<_>> ->
       %% incomplete
       ?CF3(Tail, State, fun decodeChar/2);
     <<C1, C2, Tail2/binary>> when C2 < 16#D8; C2 > 16#DF ->
       {C2 * 256 + C1, Tail2, State};
-    <<_Hi1, _Hi2, _Lo1>> -> 
+    <<_Hi1, _Hi2, _Lo1>> ->
       %% incomplete
       ?CF3(Tail, State, fun decodeChar/2);
-    <<Hi1, Hi2, Lo1, Lo2, Tail2/binary>> 
+    <<Hi1, Hi2, Lo1, Lo2, Tail2/binary>>
       when Hi2 >= 16#D8, Hi2 < 16#DC, Lo2 >= 16#DC, Lo2 < 16#E0 ->
         %% Surrogate pair
         Hi = Hi2 * 256 + Hi1,
@@ -362,14 +362,14 @@ decodeChar(Tail, State) ->
     <<_Hi1, Hi2>> when Hi2 >= 16#D8, Hi2 < 16#DC ->
       %% Surrogate pair, incomplete
       ?CF3(Tail, State, fun decodeChar/2);
-    _ -> 
+    _ ->
       {error,not_utf16le}
   end.
 -endif.
 
 
 -ifdef(LAT1).
-decodeChar(Tail, State) -> 
+decodeChar(Tail, State) ->
   case Tail of
     ?EMPTY -> ?CF3(Tail, State, fun decodeChar/2);
     ?STR1_T(C, T) -> {C, T, State}
@@ -377,7 +377,7 @@ decodeChar(Tail, State) ->
 -endif.
 
 -ifdef(LAT9).
-decodeChar(Tail, State) -> 
+decodeChar(Tail, State) ->
   case Tail of
     ?EMPTY -> ?CF3(Tail, State, fun decodeChar/2);
     ?STR1_T(C, T) -> {latin9toUnicode(C), T, State}
@@ -399,12 +399,12 @@ latin9toUnicode(16#BD) -> % LATIN SMALL LIGATURE OE
   16#0153;
 latin9toUnicode(16#BE) -> % LATIN CAPITAL LETTER Y WITH DIAERESIS
   16#0178;
-latin9toUnicode(Char) -> 
+latin9toUnicode(Char) ->
   Char.
 -endif.
 
 -ifdef(LIST).
-decodeChar(Tail, State) -> 
+decodeChar(Tail, State) ->
   case Tail of
     ?EMPTY -> ?CF3(Tail, State, fun decodeChar/2);
     ?STR1_T(C, T) -> {C, T, State}
@@ -414,22 +414,22 @@ decodeChar(Tail, State) ->
 %% returns {cdata, CData, Tail}
 parseCDATA(Head, Tail0, State) ->
   case Tail0 of
-    ?STR3_T($], $], $>, Tail) -> 
+    ?STR3_T($], $], $>, Tail) ->
       {cdata, lists:reverse(Head), Tail, State};
-    ?STR2($], $]) -> 
+    ?STR2($], $]) ->
       ?CF4(Head, ?STR2($], $]), State, fun parseCDATA/3);
-    ?STR1($]) -> 
+    ?STR1($]) ->
       ?CF4(Head, ?STR1($]), State, fun parseCDATA/3);
     ?STR1_T(NextChar, Tail) when NextChar < 16#80 ->
       parseCDATA([NextChar | Head], Tail, State);
-    ?EMPTY -> 
+    ?EMPTY ->
       ?CF4(Head, ?EMPTY, State, fun parseCDATA/3);
     _ ->
       {Char, Tail2, State2} = decodeChar(Tail0, State),
       parseCDATA([Char | Head], Tail2, State2)
   end.
 
-%% returns {dtd, Tail} 
+%% returns {dtd, Tail}
 parseDTD(?STR1_T($[, Tail), State) ->
   {intSubset, Tail2, State2} = parseIntSubset(Tail, State),
   parseDTD(Tail2, State2);
@@ -439,7 +439,7 @@ parseDTD(?DONTCARE_T(Tail), State) ->
   parseDTD(Tail, State);
 parseDTD(?EMPTY, State) -> ?CF3(?EMPTY, State, fun parseDTD/2).
 
-%% returns {intSubset, Tail} 
+%% returns {intSubset, Tail}
 parseIntSubset(?STR1_T($], Tail), State) ->
   {intSubset, Tail, State};
 parseIntSubset(?STR1_T(NextChar, Tail), State)
@@ -459,7 +459,7 @@ parseIntSubset(?STR3($<, $!, $E) = T, State) -> ?CF3(T, State, fun parseIntSubse
 parseIntSubset(?STR2($<, $!) = T, State) -> ?CF3(T, State, fun parseIntSubset/2);
 parseIntSubset(?STR1($<) = T, State) -> ?CF3(T, State, fun parseIntSubset/2);
 %% comments (starting with <--)
-parseIntSubset(?STR4_T($<, $!, $-, $-, Tail), State) -> 
+parseIntSubset(?STR4_T($<, $!, $-, $-, Tail), State) ->
   {comment, Tail2, State2} = parseComment(Tail, State),
   parseIntSubset(Tail2, State2);
 parseIntSubset(?STR3($<, $!, $-) = T, State) -> ?CF3(T, State, fun parseIntSubset/2);
@@ -468,11 +468,11 @@ parseIntSubset(?STR1_T($%, Tail), State) -> %%
   {Head, Tail2, State2} = parseReference([], parameter, Tail, State),
   parseIntSubset(Head ++ Tail2, State2);
 %% all other things starting with <
-parseIntSubset(?STR1_T($<, Tail), State) -> 
+parseIntSubset(?STR1_T($<, Tail), State) ->
   parseMarkupDecl(Tail, State);
 parseIntSubset(?EMPTY, State) -> ?CF3(?EMPTY, State, fun parseIntSubset/2).
 
-parseMarkupDecl(?STR1_T($>, Tail), State) -> 
+parseMarkupDecl(?STR1_T($>, Tail), State) ->
   parseIntSubset(Tail, State);
 parseMarkupDecl(?STR1_T($", Tail), State) -> %"
   {value, _, Tail2, State2} = parseLiteralValue(Tail, $", [], definition, State), %"
@@ -480,7 +480,7 @@ parseMarkupDecl(?STR1_T($", Tail), State) -> %"
 parseMarkupDecl(?STR1_T($', Tail), State) -> %'
   {value, _, Tail2, State2} = parseLiteralValue(Tail, $', [], definition, State), %'
   parseMarkupDecl(Tail2, State2);
-parseMarkupDecl(?STR1_T(_, Tail), State) -> 
+parseMarkupDecl(?STR1_T(_, Tail), State) ->
   parseMarkupDecl(Tail, State);
 parseMarkupDecl(?EMPTY, State) -> ?CF3(?EMPTY, State, fun parseMarkupDecl/2).
 
@@ -512,15 +512,15 @@ parseEntityName(Tail, State = #erlsom_sax_state{max_entity_size = MaxSize,
   CurrentEntity = State#erlsom_sax_state.current_entity,
   {Type, Tail2, State2} = getType(Tail, State),
   {Name, Tail3, State3} = parseNameNoNamespaces(Tail2, State2),
-  {value, Value, Tail4, State4} = 
+  {value, Value, Tail4, State4} =
     parseLiteral(definition, Tail3, State3#erlsom_sax_state{current_entity = Name}),
-  if 
+  if
     length(EntitiesSoFar) + length(ParEntitiesSoFar) >= MaxNr ->
       throw({error, "Too many entities defined"});
     true ->
       ok
   end,
-  %% this is a bit of a hack - parseliteral may return an encoded value, 
+  %% this is a bit of a hack - parseliteral may return an encoded value,
   %% but that is not what we want here.
   ValueAsList = case OutputEncoding of
                   'utf8' -> erlsom_ucs:decode_utf8(Value);
@@ -585,9 +585,9 @@ parsePIData(Head, Tail, State) ->
     ?STR1($?) -> ?CF4(Head, ?STR1($?), State, fun parsePIData/3);
     ?STR1_T(NextChar, Tail2) when NextChar < 16#80 ->
       parsePIData([NextChar | Head], Tail2, State);
-    ?EMPTY -> 
+    ?EMPTY ->
       ?CF4(Head, ?EMPTY, State, fun parsePIData/3);
-    _ -> 
+    _ ->
       {Char, Tail2, State2} = decodeChar(Tail, State),
       parsePIData([Char | Head], Tail2, State2)
   end.
@@ -621,9 +621,9 @@ parseStartTag(Tail, State) ->
 %% returns {Name, Tail}, where
 %% Name = {Prefix, LocalName, QualifiedName}
 %%
-%% To do: introduce a parameter that indicates whether we are using 
-%% namespaces. 
-parseTagName(?STR1_T(Char, Tail), State) 
+%% To do: introduce a parameter that indicates whether we are using
+%% namespaces.
+parseTagName(?STR1_T(Char, Tail), State)
   when ?is_namestart_char(Char) ->
   %% this should differentiate between 'with namespaces'and 'without'
   %% for the moment the assumption is 'with', therfore a name cannot
@@ -640,7 +640,7 @@ parseTagName(Tail, State) ->
       throw({error, "Malformed: Illegal character in tag"})
   end.
 
-parseTagName(Head, ?STR1_T(NextChar, Tail), State) 
+parseTagName(Head, ?STR1_T(NextChar, Tail), State)
   when ?is_name_char(NextChar) ->
   parseTagName([NextChar | Head], Tail, State);
 parseTagName(Head, ?STR1_T($:, Tail), State) ->
@@ -651,7 +651,7 @@ parseTagName(Head, ?STR1_T($>, Tail), State) ->
 parseTagName(Head, ?STR2_T($/, $>, Tail), State) ->
   LocalName = lists:reverse(Head),
   {emptyelement, {[], LocalName, LocalName}, [], Tail, State};
-parseTagName(Head, ?STR1_T(NextChar, Tail), State) 
+parseTagName(Head, ?STR1_T(NextChar, Tail), State)
   when ?is_whitespace(NextChar) ->
   LocalName = lists:reverse(Head),
   parseAttributes({[], LocalName, LocalName}, [], Tail, State);
@@ -661,7 +661,7 @@ parseTagName(Head, ?EMPTY, State) ->
   ?CF4(Head, ?EMPTY, State, fun parseTagName/3);
 parseTagName(Head, Tail, State) ->
   {Char, Tail2, State2} = decodeChar(Tail, State),
-  if 
+  if
     ?is_name_char2(Char) ->
       parseTagName([Char | Head], Tail2, State2);
     true ->
@@ -674,16 +674,16 @@ parseTagName(Prefix, Head, ?STR1_T(NextChar, Tail), State)
   parseTagName(Prefix, [NextChar | Head], Tail, State);
 parseTagName(Prefix, Head, ?STR1_T(NextChar, Tail), State)
   when ?is_whitespace(NextChar) ->
-  Pf = lists:reverse(Prefix), 
-  Hd = lists:reverse(Head), 
+  Pf = lists:reverse(Prefix),
+  Hd = lists:reverse(Head),
   parseAttributes({Pf, Hd, lists:append([Pf, ":", Hd])}, [], Tail, State);
 parseTagName(Prefix, Head, ?STR1_T($>, Tail), State) ->
-  Pf = lists:reverse(Prefix), 
-  Hd = lists:reverse(Head), 
+  Pf = lists:reverse(Prefix),
+  Hd = lists:reverse(Head),
   {starttag, {Pf, Hd, lists:append([Pf, ":", Hd])}, [], Tail, State};
 parseTagName(Prefix, Head, ?STR2_T($/, $>, Tail), State) ->
-  Pf = lists:reverse(Prefix), 
-  Hd = lists:reverse(Head), 
+  Pf = lists:reverse(Prefix),
+  Hd = lists:reverse(Head),
   {emptyelement, {Pf, Hd, lists:append([Pf, ":", Hd])}, [], Tail, State};
 parseTagName(Prefix, Head, ?EMPTY, State) ->
   ?CF5(Prefix, Head, ?EMPTY, State, fun parseTagName/4);
@@ -691,7 +691,7 @@ parseTagName(Prefix, Head, ?STR1($/), State) ->
   ?CF5(Prefix, Head, ?STR1($/), State, fun parseTagName/4);
 parseTagName(Prefix, Head, Tail, State) ->
   {Char, Tail2, State2} = decodeChar(Tail, State),
-  if 
+  if
     ?is_name_char2(Char) ->
       parseTagName(Prefix, [Char | Head], Tail2, State2);
     true ->
@@ -716,7 +716,7 @@ parseAttrName(Head, ?EMPTY, State) ->
   ?CF4(Head, ?EMPTY, State, fun parseAttrName/3);
 parseAttrName(Head, Tail, State) ->
   {Char, Tail2, State2} = decodeChar(Tail, State),
-  if 
+  if
     ?is_name_char2(Char) ->
       parseAttrName([Char | Head], Tail2, State2);
     true ->
@@ -728,20 +728,20 @@ parseAttrName(Prefix, Head, ?STR1_T(NextChar, Tail), State)
   when ?is_name_char(NextChar) ->
   parseAttrName(Prefix, [NextChar | Head], Tail, State);
 parseAttrName(Prefix, Head, ?STR1_T($=, Tail), State) ->
-  Pf = lists:reverse(Prefix), 
-  Hd = lists:reverse(Head), 
+  Pf = lists:reverse(Prefix),
+  Hd = lists:reverse(Head),
   {{Pf, Hd, lists:append([Pf, ":", Hd])}, Tail, State};
 parseAttrName(Prefix, Head, ?STR1_T(NextChar, Tail), State)
   when ?is_whitespace(NextChar) ->
-  Pf = lists:reverse(Prefix), 
-  Hd = lists:reverse(Head), 
+  Pf = lists:reverse(Prefix),
+  Hd = lists:reverse(Head),
   {Tail2, State2} = parseEqualSign(Tail, State),
   {{Pf, Hd, lists:append([Pf, ":", Hd])}, Tail2, State2};
 parseAttrName(Prefix, Head, ?EMPTY, State) ->
   ?CF5(Prefix, Head, ?EMPTY, State, fun parseAttrName/4);
 parseAttrName(Prefix, Head, Tail, State) ->
   {Char, Tail2, State2} = decodeChar(Tail, State),
-  if 
+  if
     ?is_name_char2(Char) ->
       parseAttrName(Prefix, [Char | Head], Tail2, State2);
     true ->
@@ -754,13 +754,13 @@ parseNameNoNamespaces(?STR1_T(Char, Tail), State)
   parseNameNoNamespaces([Char], Tail, State);
 parseNameNoNamespaces(Tail, State) ->
   {Char, Tail2, State2} = decodeChar(Tail, State),
-  if 
+  if
     ?is_namestart_char2(Char) ->
       parseNameNoNamespaces([Char], Tail2, State2);
     true ->
       throw({error, "Malformed: Illegal character in name"})
   end.
-      
+
 parseNameNoNamespaces(Head, ?STR1_T(NextChar, Tail), State)
   when ?is_name_char(NextChar) ->
   parseNameNoNamespaces([NextChar | Head], Tail, State);
@@ -779,7 +779,7 @@ parseNameNoNamespaces(Head, ?EMPTY, State) ->
   ?CF4(Head, ?EMPTY, State, fun parseNameNoNamespaces/3);
 parseNameNoNamespaces(Head, Tail, State) ->
   {Char, Tail2, State2} = decodeChar(Tail, State),
-  if 
+  if
     ?is_name_char2(Char) ->
       parseNameNoNamespaces([Char | Head], Tail2, State2);
     true ->
@@ -798,10 +798,10 @@ parseAttributes(StartTag, Attributes, ?STR2_T($/, $>, Tail), State) ->
 parseAttributes(StartTag, Attributes, ?STR1_T(NextChar, Tail), State)
   when ?is_whitespace(NextChar) ->
   parseAttributes(StartTag, Attributes, Tail, State);
-parseAttributes(StartTag, Attributes, ?STR1_T(NextChar, Tail), State) 
+parseAttributes(StartTag, Attributes, ?STR1_T(NextChar, Tail), State)
   when ?is_namestart_char(NextChar) ->
     {AttributeName, Tail2, State2} = parseAttrName([NextChar], Tail, State),
-    %% {attribute, Attribute, Tail3, State3} = 
+    %% {attribute, Attribute, Tail3, State3} =
       %% parseAttribute([NextChar], Tail, State),
     {value, Value, Tail3, State3} = parseLiteral(attribute, Tail2, State2),
       %% {attribute, {AttributeName, Value}, Tail2, State2};
@@ -811,41 +811,41 @@ parseAttributes(StartTag, Attributes, ?EMPTY, State) ->
   ?CF5(StartTag, Attributes, ?EMPTY, State, fun parseAttributes/4);
 parseAttributes(StartTag, Attributes, Tail, State) ->
   {Char, Tail2, State2} = decodeChar(Tail, State),
-  case Char of 
+  case Char of
     _ when ?is_namestart_char2(Char) ->
       {AttributeName, Tail3, State3} = parseAttrName([Char], Tail2, State2),
       {value, Value, Tail4, State4} = parseLiteral(attribute, Tail3, State3),
-      %% {attribute, Attribute, Tail3, State3} = 
+      %% {attribute, Attribute, Tail3, State3} =
       %% parseAttribute([Char], Tail2, State2),
       parseAttributes(StartTag, [{AttributeName, Value} | Attributes], Tail4, State4);
     _ ->
       throw({error, "Malformed: Illegal character in name"})
   end.
 
-  
+
 %% returns {value, Value, Tail, State}
 %% depending on the context (attribute or definition) the
 %% handling of entities is slightly different.
 parseLiteral(Context, ?STR1_T($", Tail), State) -> %"
   parseLiteralValue(Tail, $", Context, State); %"
-parseLiteral(Context, ?STR1_T($', Tail), State) -> %'  
+parseLiteral(Context, ?STR1_T($', Tail), State) -> %'
   parseLiteralValue(Tail, $', Context, State); %'
-parseLiteral(Context, ?STR1_T(NextChar, Tail), State) 
+parseLiteral(Context, ?STR1_T(NextChar, Tail), State)
   when ?is_whitespace(NextChar) ->
   parseLiteral(Context, Tail, State);
-parseLiteral(Context, ?EMPTY, State) -> 
+parseLiteral(Context, ?EMPTY, State) ->
   ?CF4(Context, ?EMPTY, State, fun parseLiteral/3);
 parseLiteral(_C, _T, _) ->
   throw({error, "Malformed: Illegal character in literal value"}).
 
-%% TODO: this can be generalized, for example parsing up to the = sign 
+%% TODO: this can be generalized, for example parsing up to the = sign
 %% in an attribute value is exactly the same.
 parseEndHook(?STR1_T($>, Tail), State) ->
   {Tail, State};
 parseEndHook(?STR1_T(NextChar, Tail), State)
   when ?is_whitespace(NextChar) ->
   parseEndHook(Tail, State);
-parseEndHook(?EMPTY, State) -> 
+parseEndHook(?EMPTY, State) ->
   ?CF3(?EMPTY, State, fun parseEndHook/2);
 parseEndHook(_Tail, _) ->
   throw({error, "Malformed: Illegal character in entity definition"}).
@@ -855,7 +855,7 @@ parseEqualSign(?STR1_T($=, Tail), State) ->
 parseEqualSign(?STR1_T(NextChar, Tail), State)
   when ?is_whitespace(NextChar) ->
   parseEqualSign(Tail, State);
-parseEqualSign(?EMPTY, State) -> 
+parseEqualSign(?EMPTY, State) ->
   ?CF3(?EMPTY, State, fun parseEqualSign/2);
 parseEqualSign(_Tail, _) ->
   throw({error, "Malformed: Illegal character in attribute name"}).
@@ -864,7 +864,7 @@ parseEqualSign(_Tail, _) ->
 parseContentLT(?STR1_T($!, Tail), State) ->
   case Tail of
     ?STR2_T($-, $-, Tail3) ->
-      {comment, Tail4, State2} = parseComment(Tail3, State), 
+      {comment, Tail4, State2} = parseComment(Tail3, State),
       parseContent(Tail4, State2);
     ?STR1($-) ->
       ?CF3(?STR2($!, $-), State, fun parseContentLT/2);
@@ -873,7 +873,7 @@ parseContentLT(?STR1_T($!, Tail), State) ->
     ?STR7_T($[, $C, $D, $A, $T, $A, $[, Tail3) ->
       {cdata, CData, Tail4, State2} = parseCDATA([], Tail3, State),
       %% call callback -
-      %% If Cdata is preceded and/or followed by text there will be 2 or 3 
+      %% If Cdata is preceded and/or followed by text there will be 2 or 3
       %% events, but that is legal according to the sax doc.
       State3 = wrapCallback({characters, encodeOutput(CData, State)}, State2),
       parseContent(Tail4, State3);
@@ -892,23 +892,23 @@ parseContentLT(?STR1_T($!, Tail), State) ->
   end;
 
 parseContentLT(?STR1_T($?, Tail), State) ->
-  {processinginstruction, Target, Data, Tail3, State2} = 
+  {processinginstruction, Target, Data, Tail3, State2} =
     parseProcessingInstruction(Tail, State),
   State3 = wrapCallback({processingInstruction, Target, lists:reverse(Data)}, State2),
   parseContent(Tail3, State3);
 
 parseContentLT(?STR1_T($/, Tail), State) ->
   %% this should be the endTag
-  [{QName, Uri, LocalName, Prefix, OldNamespaces, NewNamespaces} | EndTags2] = 
+  [{QName, Uri, LocalName, Prefix, OldNamespaces, NewNamespaces} | EndTags2] =
     State#erlsom_sax_state.endtags,
   case parseEndTag(Tail, QName, State) of
-    {ok, Tail3, State2} -> 
+    {ok, Tail3, State2} ->
       %% Call the call back functions for the end tag
       State3 = wrapCallback({endElement, Uri, LocalName, Prefix}, State2),
       State4 = mapEndPrefixMappingCallback(NewNamespaces, State3),
       State5 = State4#erlsom_sax_state{namespaces = OldNamespaces, endtags = EndTags2},
       parseContent(Tail3, State5);
-    error -> 
+    error ->
       throw({error, "Malformed: Tags don't match"})
   end;
 
@@ -919,7 +919,7 @@ parseContentLT(Tail, State) ->
   Namespaces = State#erlsom_sax_state.namespaces,
   case parseStartTag(Tail, State) of
     {emptyelement, {Prefix, _LocalName, _QName}=StartTag, Attributes, Tail2, State2} ->
-      {{Uri, LocalName, QName}, Attributes2, NewNamespaces} = 
+      {{Uri, LocalName, QName}, Attributes2, NewNamespaces} =
         createStartTagEvent(StartTag, Namespaces, Attributes),
       %% Call the call back functions
       State3 = mapStartPrefixMappingCallback(NewNamespaces, State2),
@@ -929,12 +929,12 @@ parseContentLT(Tail, State) ->
       parseContent(Tail2, State6);
     {starttag, {Prefix, _LocalName, QName} = StartTag, Attributes, Tail2, State2} ->
       EndTags = State#erlsom_sax_state.endtags,
-        {{Uri, LocalName, Prefix}, Attributes2, NewNamespaces} = 
+        {{Uri, LocalName, Prefix}, Attributes2, NewNamespaces} =
       createStartTagEvent(StartTag, Namespaces, Attributes),
       %% Call the call back function
       State3 = mapStartPrefixMappingCallback(NewNamespaces, State2),
       State4 = wrapCallback({startElement, Uri, LocalName, Prefix, Attributes2}, State3),
-      State5 = State4#erlsom_sax_state{namespaces = NewNamespaces ++ Namespaces, 
+      State5 = State4#erlsom_sax_state{namespaces = NewNamespaces ++ Namespaces,
                      endtags = [{QName, Uri, LocalName, Prefix, Namespaces, NewNamespaces} | EndTags]},
       %% TODO: check the order of the namespaces
       parseContent(Tail2, State5)
@@ -944,7 +944,7 @@ parseContent(?STR1_T($<, Tail), #erlsom_sax_state{endtags = EndTags} = State) wh
   parseContentLT(Tail, State);
 
 parseContent(?EMPTY, #erlsom_sax_state{endtags = EndTags} = State) ->
-  case EndTags of 
+  case EndTags of
     [] ->
       %% This is the return value. The second element is what
       %% follows the XML document, as a list.
@@ -973,7 +973,7 @@ parseText(Head, ?STR1_T($<, Tail), State) ->
   State2 = wrapCallback({ignorableWhitespace, lists:reverse(Head)}, State),
   {Tail, State2};
 parseText(Head, ?STR1_T(NextChar, Tail), State)
-  when ?is_whitespace(NextChar) -> 
+  when ?is_whitespace(NextChar) ->
   parseText([NextChar | Head], Tail, State);
 parseText(Head, ?EMPTY, State) ->
   ?CF4(Head, ?EMPTY, State, fun parseText/3);
@@ -986,7 +986,7 @@ parseTextNoIgnore(Head, ?STR1_T($<, Tail), State) ->
 parseTextNoIgnore(Head, ?STR1_T($&, Tail), State) ->
   {Head2, Tail2, State2} = parseReference([], element, Tail, State),
   parseTextNoIgnore(Head2 ++ Head, Tail2, State2);
-parseTextNoIgnore(Head, ?STR1_T(NextChar, Tail), State) 
+parseTextNoIgnore(Head, ?STR1_T(NextChar, Tail), State)
   when NextChar < 16#80 ->
   parseTextNoIgnore([NextChar|Head], Tail, State);
 parseTextNoIgnore(Head, ?EMPTY, State) ->
@@ -1000,7 +1000,7 @@ parseTextBinary(Head, ?STR1_T($<, Tail), State) ->
   State2 = wrapCallback({ignorableWhitespace, Head}, State),
   {Tail, State2};
 parseTextBinary(Head, ?STR1_T(NextChar, Tail), State)
-  when ?is_whitespace(NextChar) -> 
+  when ?is_whitespace(NextChar) ->
   parseTextBinary(<<Head/binary, NextChar>>, Tail, State);
 parseTextBinary(Head, ?EMPTY, State) ->
   ?CF4(Head, ?EMPTY, State, fun parseTextBinary/3);
@@ -1038,21 +1038,21 @@ parseReference(Head, Context, ?EMPTY, State) ->
 parseReference(Head, Context, Tail, State) ->
   {Char, Tail2, State2} = decodeChar(Tail, State),
   parseReference([Char | Head], Context, Tail2, State2).
-  
+
 %% returns: {Head2, Tail2, State2}
 %% Character entities are added to the 'head' (the bit that was parsed already),
 %% other entities are added to the tail (they still have to be parsed).
-%% The problem here is that we have to make sure that we don't get into an infinite 
+%% The problem here is that we have to make sure that we don't get into an infinite
 %% loop. This solved as follows:
-%% We proceed by parsing only the entity (while registring in the state that we 
-%% are parsing this particular entity). However, we replace the continuation function 
-%% by something that simply returns (in stead of calling the function that it was 
-%% working on recursively). We then proceed. 
-%% Before starting to work on this entity, we need to check that we are not already 
+%% We proceed by parsing only the entity (while registring in the state that we
+%% are parsing this particular entity). However, we replace the continuation function
+%% by something that simply returns (in stead of calling the function that it was
+%% working on recursively). We then proceed.
+%% Before starting to work on this entity, we need to check that we are not already
 %% parsing this entity (because that would mean an infinite loop).
 translateReference(Reference, Context, Tail, State) ->
   %% in the context of a definition, character references have to be replaced
-  %% (and others not). 
+  %% (and others not).
   case Reference of
     [$#, $x | Tail1] -> %% hex number of char's code point
       %% unfortunately this function accepts illegal values
@@ -1062,20 +1062,20 @@ translateReference(Reference, Context, Tail, State) ->
     [$# | Tail1] -> %% dec number of char's code point
       case catch list_to_integer(Tail1) of
         {'EXIT', _} -> throw({error, "Malformed: Illegal character in reference"});
-	%% to do: check on legal character.
-	Other -> {[Other], Tail, State}
+        %% to do: check on legal character.
+        Other -> {[Other], Tail, State}
       end;
-    _ -> 
+    _ ->
       translateReferenceNonCharacter(Reference, Context, Tail, State)
   end.
 
-translateReferenceNonCharacter(Reference, Context, Tail, 
-  State = #erlsom_sax_state{current_entity = CurrentEntity, 
+translateReferenceNonCharacter(Reference, Context, Tail,
+  State = #erlsom_sax_state{current_entity = CurrentEntity,
                             max_entity_depth = MaxDepth,
                             entity_relations = Relations,
                             entity_size_acc = TotalSize,
                             max_expanded_entity_size = MaxSize}) ->
-  case Context of 
+  case Context of
     definition ->
       case MaxDepth of
         0 -> throw({error, "Entities nested too deep"});
@@ -1089,9 +1089,9 @@ translateReferenceNonCharacter(Reference, Context, Tail,
         false ->
           Relations2 = [NewRelation | Relations],
           case erlsom_sax_lib:findCycle(Reference, CurrentEntity, Relations2, MaxDepth) of
-            cycle -> 
+            cycle ->
               throw({error, "Malformed: Cycle in entity definitions"});
-            max_depth -> 
+            max_depth ->
               throw({error, "Entities nested too deep"});
             _ -> ok
           end
@@ -1111,7 +1111,7 @@ translateReferenceNonCharacter(Reference, Context, Tail,
         %% replace, add to the parsed text (head)
         {Translation, Tail, State#erlsom_sax_state{entity_size_acc = NewTotal}};
       _ -> %% element or parameter
-        case Type of 
+        case Type of
           user_defined ->
             %% replace, encode again and put back into the input stream (Tail)
             TEncoded = encode(Translation),
@@ -1129,15 +1129,15 @@ nowFinalyTranslate(Reference, Context, State) ->
     "gt" -> {[$>], other};
     "apos" -> {[39], other}; %% apostrof
     "quot" -> {[34], other}; %% quote
-  _ -> 
+  _ ->
     case State#erlsom_sax_state.expand_entities of
-      true -> 
-        ListOfEntities = case Context of 
+      true ->
+        ListOfEntities = case Context of
           parameter -> State#erlsom_sax_state.par_entities;
           element -> State#erlsom_sax_state.entities
         end,
         case lists:keysearch(Reference, 1, ListOfEntities) of
-          {value, {_, EntityText}} -> 
+          {value, {_, EntityText}} ->
             {EntityText, user_defined};
           _ ->
             throw({error, "Malformed: unknown reference: " ++ Reference})
@@ -1208,21 +1208,21 @@ parseLiteralValue(?STR1_T($&, Tail), Quote, Head, Context, State) ->
   parseLiteralValue(Tail2, Quote, Reference ++ Head, Context, State2);
 parseLiteralValue(?STR1_T($<, Tail), Quote, Head, Context, State) ->
   case Context of
-    attribute -> 
+    attribute ->
       throw({error, "Malformed: < not allowed in literal value"});
-    _ -> 
+    _ ->
       parseLiteralValue(Tail, Quote, [$< | Head], Context, State)
   end;
 parseLiteralValue(?STR1_T($%, Tail), Quote, Head, Context, State) -> %%
   case Context of
-    definition -> 
-      %% this is weird, but it follows the implementation of MS 
+    definition ->
+      %% this is weird, but it follows the implementation of MS
       %% Internet Explorer...
-      %% Can't find this in the standard, but it is an unlikely thing 
-      %% to happen in a bonafide xml, and it avoids some problems with 
+      %% Can't find this in the standard, but it is an unlikely thing
+      %% to happen in a bonafide xml, and it avoids some problems with
       %% circular definitions
       throw({error, "Malformed: cannot use % in entity definition (?)"});
-    _ -> 
+    _ ->
       parseLiteralValue(Tail, Quote, [$% | Head], Context, State)
   end;
 parseLiteralValue(?STR1_T(NextChar, Tail), Quote, Head, Context, State)
@@ -1238,22 +1238,22 @@ parseLiteralValueBinary(?STR1_T(Quote, Tail), Quote, Head, _Context, State) ->
   {value, Head, Tail, State};
 parseLiteralValueBinary(?STR1_T($&, Tail), Quote, Head, Context, State) ->
   {Head2, Tail2, State2} = parseReference([], element, Tail, State),
-  %% parseReference returns a list (only 1 char long - in case of a 
+  %% parseReference returns a list (only 1 char long - in case of a
   %% user defined entity this will be put in front of tail!)
   Head2Binary = list_to_binary(erlsom_ucs:to_utf8(lists:reverse(Head2))),
   parseLiteralValueBinary(Tail2, Quote, <<Head/binary,  Head2Binary/binary>>, Context, State2);
 parseLiteralValueBinary(?STR1_T($<, Tail), Quote, Head, Context, State) ->
   case Context of
-    attribute -> 
+    attribute ->
       throw({error, "Malformed: < not allowed in literal value"});
-    _ -> 
+    _ ->
       parseLiteralValueBinary(Tail, Quote, <<Head/binary, $<>>, Context, State)
   end;
 parseLiteralValueBinary(?STR1_T($%, Tail), Quote, Head, Context, State) -> %%
   case Context of
-    definition -> 
+    definition ->
       throw({error, "Malformed: cannot use % in entity definition (?)"});
-    _ -> 
+    _ ->
       parseLiteralValueBinary(Tail, Quote, <<Head/binary, $%>>, Context, State)
   end;
 parseLiteralValueBinary(?STR1_T(NextChar, Tail), Quote, Head, Context, State)
@@ -1272,7 +1272,7 @@ parseEndTag(?STR1_T(A, Tail1), [A | Tail2], State)
   parseEndTag(Tail1, Tail2, State);
 parseEndTag(?STR1_T($>, Tail), [], State) ->
   {ok, Tail, State};
-parseEndTag(?STR1_T(NextChar, Tail), [], State) 
+parseEndTag(?STR1_T(NextChar, Tail), [], State)
   when ?is_whitespace(NextChar) ->
   {Tail2, State2} = removeWS(Tail, State),
   {ok, Tail2, State2};
@@ -1280,7 +1280,7 @@ parseEndTag(?EMPTY, StartTag, State) ->
   ?CF4_2(?EMPTY, StartTag, State, fun parseEndTag/3);
 parseEndTag(Tail, [B | StartTagTail], State) ->
   {Char, Tail2, State2} = decodeChar(Tail, State),
-  if 
+  if
     Char =:= B ->
       parseEndTag(Tail2, StartTagTail, State2);
     true -> error
@@ -1290,7 +1290,7 @@ parseEndTag(_Tail, [], _State) ->
 
 removeWS(?STR1_T($>, T), State) ->
   {T, State};
-removeWS(?STR1_T(C, T), State) 
+removeWS(?STR1_T(C, T), State)
   when ?is_whitespace(C) ->
   removeWS(T, State);
 removeWS(?EMPTY, State) ->
@@ -1308,12 +1308,12 @@ removeWS(_, _) ->
 %% Attribute2 = #attribute
 %% NewNamespaces = list of {Prefix, URI} (prefix can be []).
 %%
-%% Namespaces are in such an order that namespace of the 'closest ancestors' 
-%% are in front. That way the right element will be found, even if a prefix is 
+%% Namespaces are in such an order that namespace of the 'closest ancestors'
+%% are in front. That way the right element will be found, even if a prefix is
 %% used more than once in the document.
 %%
 createStartTagEvent(StartTag, Namespaces, Attributes) ->
-  
+
   %% find the namespace definitions in the attributes
   {NewNamespaces, OtherAttributes} = lookForNamespaces([], [], Attributes),
   AllNamespaces = NewNamespaces ++ Namespaces,
@@ -1326,33 +1326,33 @@ createStartTagEvent(StartTag, Namespaces, Attributes) ->
 
   {Name, Attributes2, NewNamespaces}.
 
-%% returns {Namespaces, OtherAttributes}, where 
-%%   Namespaces = a list of tuples {Prefix, URI} 
+%% returns {Namespaces, OtherAttributes}, where
+%%   Namespaces = a list of tuples {Prefix, URI}
 %%   OtherAttributes = a list of tuples {Name, Value}
 %%
 lookForNamespaces(Namespaces, OtherAttributes, [Head | Tail]) ->
   {{Prefix, LocalName, _QName}, Value} = Head,
-  if 
+  if
     Prefix == "xmlns" ->
-      lookForNamespaces([{LocalName, decodeIfRequired(Value)} | Namespaces], 
+      lookForNamespaces([{LocalName, decodeIfRequired(Value)} | Namespaces],
                          OtherAttributes, Tail);
     Prefix == [],  LocalName == "xmlns" ->
-      lookForNamespaces([{[], decodeIfRequired(Value)} | Namespaces], 
+      lookForNamespaces([{[], decodeIfRequired(Value)} | Namespaces],
                         OtherAttributes, Tail);
-    true -> 
+    true ->
       lookForNamespaces(Namespaces, [Head | OtherAttributes], Tail)
   end;
-  
-lookForNamespaces(Namespaces, OtherAttributes, []) -> 
+
+lookForNamespaces(Namespaces, OtherAttributes, []) ->
   {Namespaces, OtherAttributes}.
- 
+
 decodeIfRequired(URI) when is_list(URI) ->
   URI;
 decodeIfRequired(URI) when is_binary(URI) ->
   {Value, _} = erlsom_ucs:from_utf8(URI),
   Value.
 
-%% StartTag = {Prefix, LocalName, QualifiedName} 
+%% StartTag = {Prefix, LocalName, QualifiedName}
 %% Namespaces = list of {Prefix, URI} (prefix can be []).
 %%
 %% Returns {Uri, LocalName, Prefix}
@@ -1364,19 +1364,19 @@ tagNameTuple(StartTag, Namespaces) ->
     {value, {Prefix, Uri}} -> {Uri, LocalName, Prefix};
     false -> {[], LocalName, Prefix}
   end.
-      
+
 %% Attributes = list of Attribute
 %% Attribute = {{Prefix, LocalName} Value}
 %% Namespaces = list of {Prefix, URI} (prefix can be []).
 %%
 %% Returns a list of #attribute records
-attributeNameTuples(ProcessedAttributes, 
+attributeNameTuples(ProcessedAttributes,
                     [{AttributeName, Value} | Attributes], Namespaces) ->
   {Uri, LocalName, Prefix} = attributeNameTuple(AttributeName, Namespaces),
   attributeNameTuples([#attribute{localName= LocalName,
                                   prefix = Prefix,
-				  uri = Uri,
-				  value = Value} | ProcessedAttributes], 
+                                  uri = Uri,
+                                  value = Value} | ProcessedAttributes],
                       Attributes, Namespaces);
 
 attributeNameTuples(ProcessedAttributes, [], _) ->
@@ -1390,17 +1390,17 @@ attributeNameTuples(ProcessedAttributes, [], _) ->
 %% to the default namespace.
 attributeNameTuple(AttributeName, Namespaces) ->
   {Prefix, LocalName, _} = AttributeName,
-  if 
+  if
     Prefix == [] -> {[], LocalName, []};
-    true -> 
+    true ->
       case lists:keysearch(Prefix, 1, Namespaces) of
         {value, {Prefix, Uri}} ->
-	    {Uri, LocalName, Prefix};
+          {Uri, LocalName, Prefix};
         false ->
-            case Prefix of
-              "xml" -> {"http://www.w3.org/XML/1998/namespace", LocalName, Prefix};
-              _ -> {[], LocalName, Prefix}
-            end
+          case Prefix of
+            "xml" -> {"http://www.w3.org/XML/1998/namespace", LocalName, Prefix};
+            _ -> {[], LocalName, Prefix}
+          end
       end
   end.
 

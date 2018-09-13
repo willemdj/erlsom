@@ -26,8 +26,8 @@
 
 %%% Micellaneous predicates
 -export([is_iso10646/1, is_unicode/1, is_bmpchar/1, is_latin1/1, is_ascii/1,
-	 is_visible_latin1/1, is_visible_ascii/1, is_iso646_basic/1,
-	 is_incharset/2]).
+         is_visible_latin1/1, is_visible_ascii/1, is_iso646_basic/1,
+         is_incharset/2]).
 
 %%% Conversion to/from RFC-1345 style mnemonic strings consisting
 %%% of subsets of ISO-10646 with "escape" sequences.
@@ -54,9 +54,9 @@
 %%% Test if Ch is a legitimate ISO-10646 character code
 is_iso10646(Ch) when is_integer(Ch), Ch >= 0 ->
     if Ch  < 16#D800 -> true;
-       Ch  < 16#E000 -> false;	% Surrogates
+       Ch  < 16#E000 -> false; % Surrogates
        Ch  < 16#FFFE -> true;
-       Ch =< 16#FFFF -> false;	% FFFE and FFFF (not characters)
+       Ch =< 16#FFFF -> false; % FFFE and FFFF (not characters)
        Ch =< 16#7FFFFFFF -> true;
        true -> false
     end;
@@ -71,7 +71,7 @@ is_unicode(_) -> false.
 %%% the basic multi-lingual plane (BMP).
 is_bmpchar(Ch) when is_integer(Ch), Ch >= 0 ->
     if Ch < 16#D800 -> true;
-       Ch < 16#E000 -> false;	% Surrogates
+       Ch < 16#E000 -> false; % Surrogates
        Ch < 16#FFFE -> true;
        true -> false
     end;
@@ -87,16 +87,16 @@ is_ascii(_) -> false.
 
 %%% Test for char an element of ISO-646.basic set
 is_iso646_basic(Ch) when is_integer(Ch), Ch >= $\s ->
-    if Ch =< $Z ->
-	    %% Everything in this range except $# $$ and $@
-	    if Ch > $$ -> Ch =/= $@;
-	       true -> Ch < $#
-	    end;
-       %% Only $_ and $a .. $z in range above $Z
-       Ch > $z -> false;
-       Ch >= $a -> true;
-       true -> Ch =:= $_
-    end;
+  if Ch =< $Z ->
+       %% Everything in this range except $# $$ and $@
+       if Ch > $$ -> Ch =/= $@;
+          true -> Ch < $#
+       end;
+     %% Only $_ and $a .. $z in range above $Z
+     Ch > $z -> false;
+     Ch >= $a -> true;
+     true -> Ch =:= $_
+  end;
 is_iso646_basic(_) ->
     false.
 
@@ -238,41 +238,41 @@ from_utf8(List,Tail) -> from_utf8(list_to_binary(List),[],Tail).
 %     Str0.
 
 % mnemonic_to_char(Mnem) ->
-%     case ucs_data:mnemonic_to_code(Mnem) of
-% 	%% undefined -> error;
-% 	Code when integer(Code) -> Code
-%     end.
+%   case ucs_data:mnemonic_to_code(Mnem) of
+%     %% undefined -> error;
+%     Code when integer(Code) -> Code
+%   end.
 
-% long_mnemonic_to_char([$?,$u|Digits]) when Digits =/= [] ->
-%     Ch = hex_to_integer(Digits,0),
-%     case is_iso10646(Ch) of
-% 	%%false -> error
-% 	true -> Ch
-%     end;
-% long_mnemonic_to_char(Mnem) -> % Other charset encodings not implemented
-%     mnemonic_to_char(Mnem).
+%long_mnemonic_to_char([$?,$u|Digits]) when Digits =/= [] ->
+%  Ch = hex_to_integer(Digits,0),
+%  case is_iso10646(Ch) of
+%    %%false -> error
+%    true -> Ch
+%  end;
+%long_mnemonic_to_char(Mnem) -> % Other charset encodings not implemented
+%  mnemonic_to_char(Mnem).
 
 % hex_to_integer([Digit|Digits],N) when integer(Digit) ->
-%     if Digit >= $0, Digit =< $9 ->
-% 	    hex_to_integer(Digits,(N bsl 4) + Digit - $0);
-%        Digit >= $A, Digit =< $F ->
-% 	    hex_to_integer(Digits,(N bsl 4) + Digit - ($A - 10));
-%        Digit >= $a, Digit =< $f ->
-% 	    hex_to_integer(Digits,(N bsl 4) + Digit - ($a - 10))
-%     end;
+%   if Digit >= $0, Digit =< $9 ->
+%        hex_to_integer(Digits,(N bsl 4) + Digit - $0);
+%      Digit >= $A, Digit =< $F ->
+%        hex_to_integer(Digits,(N bsl 4) + Digit - ($A - 10));
+%      Digit >= $a, Digit =< $f ->
+%        hex_to_integer(Digits,(N bsl 4) + Digit - ($a - 10))
+%   end;
 % hex_to_integer([],N) ->
-%     N.
+%   N.
 
 %%% ............................................................................
 %%% UCS-4 support
 %%% Possible errors encoding UCS-4:
-%%%	- Non-character values (something other than 0 .. 2^31-1)
-%%%	- Surrogate-pair code in string.
-%%%	- 16#FFFE or 16#FFFF character in string.
+%%%  - Non-character values (something other than 0 .. 2^31-1)
+%%%  - Surrogate-pair code in string.
+%%%  - 16#FFFE or 16#FFFF character in string.
 %%% Possible errors decoding UCS-4:
-%%%	- Element out of range (i.e. the "sign" bit is set).
-%%%	- Surrogate-pair code in string.
-%%%	- 16#FFFE or 16#FFFF character in string.
+%%%  - Element out of range (i.e. the "sign" bit is set).
+%%%  - Surrogate-pair code in string.
+%%%  - 16#FFFE or 16#FFFF character in string.
 char_to_ucs4be(Ch) ->
     true = is_iso10646(Ch),
     [(Ch bsr 24),
@@ -281,11 +281,11 @@ char_to_ucs4be(Ch) ->
      Ch band 16#FF].
 
 from_ucs4be(<<Ch:32/big-signed-integer, Rest/binary>>,Acc,Tail) ->
-    if Ch < 0; Ch >= 16#D800, Ch < 16#E000; Ch =:= 16#FFFE; Ch =:= 16#FFFF ->
-	    exit({bad_character_code,Ch});
-       true ->
-	    from_ucs4be(Rest,[Ch|Acc],Tail)
-    end;
+  if Ch < 0; Ch >= 16#D800, Ch < 16#E000; Ch =:= 16#FFFE; Ch =:= 16#FFFF ->
+       exit({bad_character_code,Ch});
+     true ->
+       from_ucs4be(Rest,[Ch|Acc],Tail)
+  end;
 from_ucs4be(<<>>,Acc,Tail) ->
     lists:reverse(Acc,Tail);
 from_ucs4be(Bin,Acc,Tail) ->
@@ -301,11 +301,11 @@ char_to_ucs4le(Ch) ->
 
 
 from_ucs4le(<<Ch:32/little-signed-integer, Rest/binary>>,Acc,Tail) ->
-    if Ch < 0; Ch >= 16#D800, Ch < 16#E000; Ch =:= 16#FFFE; Ch =:= 16#FFFF ->
-	    exit({bad_character_code,Ch});
-       true ->
-	    from_ucs4le(Rest,[Ch|Acc],Tail)
-    end;
+  if Ch < 0; Ch >= 16#D800, Ch < 16#E000; Ch =:= 16#FFFE; Ch =:= 16#FFFF ->
+       exit({bad_character_code,Ch});
+     true ->
+       from_ucs4le(Rest,[Ch|Acc],Tail)
+  end;
 from_ucs4le(<<>>,Acc,Tail) ->
     lists:reverse(Acc,Tail);
 from_ucs4le(Bin,Acc,Tail) ->
@@ -315,7 +315,7 @@ from_ucs4le(Bin,Acc,Tail) ->
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% UCS-2 support
-%%% FIXME! Don't know how to encode UCS-2!! 
+%%% FIXME! Don't know how to encode UCS-2!!
 %%% Currently I just encode as UCS-4, but strips the 16 higher bits.
 char_to_ucs2be(Ch) ->
     true = is_iso10646(Ch),
@@ -323,11 +323,11 @@ char_to_ucs2be(Ch) ->
      Ch band 16#FF].
 
 from_ucs2be(<<Ch:16/big-signed-integer, Rest/binary>>,Acc,Tail) ->
-    if Ch < 0; Ch >= 16#D800, Ch < 16#E000; Ch =:= 16#FFFE; Ch =:= 16#FFFF ->
-	    exit({bad_character_code,Ch});
-       true ->
-	    from_ucs2be(Rest,[Ch|Acc],Tail)
-    end;
+  if Ch < 0; Ch >= 16#D800, Ch < 16#E000; Ch =:= 16#FFFE; Ch =:= 16#FFFF ->
+       exit({bad_character_code,Ch});
+     true ->
+       from_ucs2be(Rest,[Ch|Acc],Tail)
+  end;
 from_ucs2be(<<>>,Acc,Tail) ->
     lists:reverse(Acc,Tail);
 from_ucs2be(Bin,Acc,Tail) ->
@@ -341,11 +341,11 @@ char_to_ucs2le(Ch) ->
 
 
 from_ucs2le(<<Ch:16/little-signed-integer, Rest/binary>>,Acc,Tail) ->
-    if Ch < 0; Ch >= 16#D800, Ch < 16#E000; Ch =:= 16#FFFE; Ch =:= 16#FFFF ->
-	    exit({bad_character_code,Ch});
-       true ->
-	    from_ucs4le(Rest,[Ch|Acc],Tail)
-    end;
+  if Ch < 0; Ch >= 16#D800, Ch < 16#E000; Ch =:= 16#FFFE; Ch =:= 16#FFFF ->
+       exit({bad_character_code,Ch});
+     true ->
+       from_ucs4le(Rest,[Ch|Acc],Tail)
+  end;
 from_ucs2le(<<>>,Acc,Tail) ->
     lists:reverse(Acc,Tail);
 from_ucs2le(Bin,Acc,Tail) ->
@@ -356,40 +356,40 @@ from_ucs2le(Bin,Acc,Tail) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% UTF-16 support
 %%% Possible errors encoding UTF-16
-%%%	- Non-character values (something other than 0 .. 2^31-1)
-%%%	- Surrogate-pair code in string.
-%%%	- 16#FFFE or 16#FFFF character in string.
+%%%  - Non-character values (something other than 0 .. 2^31-1)
+%%%  - Surrogate-pair code in string.
+%%%  - 16#FFFE or 16#FFFF character in string.
 %%% NB: the UCS replacement char (U+FFFD) will be quietly substituted
 %%% for unrepresentable chars (i.e. those geq to 2^20+2^16).
 %%% Possible errors decoding UTF-16:
-%%%	- Unmatched surrogate-pair code in string.
-%%%	- 16#FFFE or 16#FFFF character in string.
+%%%  - Unmatched surrogate-pair code in string.
+%%%  - 16#FFFE or 16#FFFF character in string.
 char_to_utf16be(Ch) when is_integer(Ch), Ch >= 0 ->
-    if Ch =< 16#FFFF ->
-	    if Ch < 16#D800; Ch >= 16#E000, Ch < 16#FFFE ->
-		    [Ch bsr 8, Ch band 16#FF]
-	    end;
-       Ch < 16#110000 ->
-	    %% Encode with surrogate pair
-	    X = Ch - 16#10000,
-	    [16#D8 + (X bsr 18),
-	     (X bsr 10) band 16#FF,
-	     16#DC + ((X bsr 8) band 3),
-	     X band 16#FF];
-       Ch =< 16#7FFFFFFF ->
-	    %% Unrepresentable char: use REPLACEMENT CHARACTER (U+FFFD)
-	    [16#FF, 16#FD]
-    end.
+  if Ch =< 16#FFFF ->
+       if Ch < 16#D800; Ch >= 16#E000, Ch < 16#FFFE ->
+            [Ch bsr 8, Ch band 16#FF]
+       end;
+     Ch < 16#110000 ->
+       %% Encode with surrogate pair
+       X = Ch - 16#10000,
+       [16#D8 + (X bsr 18),
+        (X bsr 10) band 16#FF,
+        16#DC + ((X bsr 8) band 3),
+        X band 16#FF];
+     Ch =< 16#7FFFFFFF ->
+       %% Unrepresentable char: use REPLACEMENT CHARACTER (U+FFFD)
+       [16#FF, 16#FD]
+  end.
 
 from_utf16be(<<Ch:16/big-unsigned-integer, Rest/binary>>, Acc, Tail)
   when Ch < 16#D800; Ch > 16#DFFF ->
-    if Ch < 16#FFFE -> from_utf16be(Rest,[Ch|Acc],Tail) end;
+  if Ch < 16#FFFE -> from_utf16be(Rest,[Ch|Acc],Tail) end;
 from_utf16be(<<Hi:16/big-unsigned-integer, Lo:16/big-unsigned-integer,
-	       Rest/binary>>, Acc, Tail)
+               Rest/binary>>, Acc, Tail)
   when Hi >= 16#D800, Hi < 16#DC00, Lo >= 16#DC00, Lo =< 16#DFFF ->
-    %% Surrogate pair
-    Ch = ((Hi band 16#3FF) bsl 10) + (Lo band 16#3FF) + 16#10000,
-    from_utf16be(Rest, [Ch|Acc], Tail);
+  %% Surrogate pair
+  Ch = ((Hi band 16#3FF) bsl 10) + (Lo band 16#3FF) + 16#10000,
+  from_utf16be(Rest, [Ch|Acc], Tail);
 from_utf16be(<<>>,Acc,Tail) ->
     lists:reverse(Acc,Tail);
 from_utf16be(Bin,Acc,Tail) ->
@@ -397,27 +397,27 @@ from_utf16be(Bin,Acc,Tail) ->
     {error,not_utf16be}.
 
 char_to_utf16le(Ch) when is_integer(Ch), Ch >= 0 ->
-    if Ch =< 16#FFFF ->
-	    if Ch < 16#D800; Ch >= 16#E000, Ch < 16#FFFE ->
-		    [Ch band 16#FF, Ch bsr 8]
-	    end;
-       Ch < 16#110000 ->
-	    %% Encode with surrogate pair
-	    X = Ch - 16#10000,
-	    [(X bsr 10) band 16#FF,
-	     16#D8 + (X bsr 18),
-	     X band 16#FF,
-	     16#DC + ((X bsr 8) band 3)];
-       Ch =< 16#7FFFFFFF ->
-	    %% Unrepresentable char: use REPLACEMENT CHARACTER (U+FFFD)
-	    [16#FD, 16#FF]
-    end.
+  if Ch =< 16#FFFF ->
+       if Ch < 16#D800; Ch >= 16#E000, Ch < 16#FFFE ->
+            [Ch band 16#FF, Ch bsr 8]
+       end;
+     Ch < 16#110000 ->
+       %% Encode with surrogate pair
+       X = Ch - 16#10000,
+       [(X bsr 10) band 16#FF,
+        16#D8 + (X bsr 18),
+        X band 16#FF,
+        16#DC + ((X bsr 8) band 3)];
+     Ch =< 16#7FFFFFFF ->
+       %% Unrepresentable char: use REPLACEMENT CHARACTER (U+FFFD)
+       [16#FD, 16#FF]
+  end.
 
 from_utf16le(<<Ch:16/little-unsigned-integer, Rest/binary>>, Acc, Tail)
   when Ch < 16#D800; Ch > 16#DFFF ->
     if Ch < 16#FFFE -> from_utf16le(Rest, [Ch|Acc], Tail) end;
 from_utf16le(<<Hi:16/little-unsigned-integer, Lo:16/little-unsigned-integer,
-	       Rest/binary>>, Acc, Tail)
+               Rest/binary>>, Acc, Tail)
   when Hi >= 16#D800, Hi < 16#DC00, Lo >= 16#DC00, Lo =< 16#DFFF ->
     %% Surrogate pair
     Ch = ((Hi band 16#3FF) bsl 10) + (Lo band 16#3FF) + 16#10000,
@@ -442,42 +442,42 @@ from_utf16le(Bin,Acc,Tail) ->
 %%%	- Surrogate-pair code encoded as UTF-8.
 %%%	- 16#FFFE or 16#FFFF character in string.
 char_to_utf8(Ch) when is_integer(Ch), Ch >= 0 ->
-    if Ch < 128 ->
-	    %% 0yyyyyyy
-	    [Ch];
-       Ch < 16#800 ->
-	    %% 110xxxxy 10yyyyyy
-	    [16#C0 + (Ch bsr 6),
-	     128+(Ch band 16#3F)];
-       Ch < 16#10000 ->
-	    %% 1110xxxx 10xyyyyy 10yyyyyy
-	    if Ch < 16#D800; Ch > 16#DFFF, Ch < 16#FFFE ->
-		    [16#E0 + (Ch bsr 12),
-		     128+((Ch bsr 6) band 16#3F),
-		     128+(Ch band 16#3F)]
-	    end;
-       Ch < 16#200000 ->
-	    %% 11110xxx 10xxyyyy 10yyyyyy 10yyyyyy
-	    [16#F0+(Ch bsr 18),
-	     128+((Ch bsr 12) band 16#3F),
-	     128+((Ch bsr 6) band 16#3F),
-	     128+(Ch band 16#3F)];
-       Ch < 16#4000000 ->
-	    %% 111110xx 10xxxyyy 10yyyyyy 10yyyyyy 10yyyyyy
-	    [16#F8+(Ch bsr 24),
-	     128+((Ch bsr 18) band 16#3F),
-	     128+((Ch bsr 12) band 16#3F),
-	     128+((Ch bsr 6) band 16#3F),
-	     128+(Ch band 16#3F)];
-       Ch < 16#80000000 ->
-	    %% 1111110x 10xxxxyy 10yyyyyy 10yyyyyy 10yyyyyy 10yyyyyy
-	    [16#FC+(Ch bsr 30),
-	     128+((Ch bsr 24) band 16#3F),
-	     128+((Ch bsr 18) band 16#3F),
-	     128+((Ch bsr 12) band 16#3F),
-	     128+((Ch bsr 6) band 16#3F),
-	     128+(Ch band 16#3F)]
-    end.
+  if Ch < 128 ->
+       %% 0yyyyyyy
+       [Ch];
+     Ch < 16#800 ->
+       %% 110xxxxy 10yyyyyy
+       [16#C0 + (Ch bsr 6),
+        128+(Ch band 16#3F)];
+     Ch < 16#10000 ->
+       %% 1110xxxx 10xyyyyy 10yyyyyy
+       if Ch < 16#D800; Ch > 16#DFFF, Ch < 16#FFFE ->
+            [16#E0 + (Ch bsr 12),
+             128+((Ch bsr 6) band 16#3F),
+             128+(Ch band 16#3F)]
+       end;
+     Ch < 16#200000 ->
+       %% 11110xxx 10xxyyyy 10yyyyyy 10yyyyyy
+       [16#F0+(Ch bsr 18),
+        128+((Ch bsr 12) band 16#3F),
+        128+((Ch bsr 6) band 16#3F),
+        128+(Ch band 16#3F)];
+     Ch < 16#4000000 ->
+       %% 111110xx 10xxxyyy 10yyyyyy 10yyyyyy 10yyyyyy
+       [16#F8+(Ch bsr 24),
+        128+((Ch bsr 18) band 16#3F),
+        128+((Ch bsr 12) band 16#3F),
+        128+((Ch bsr 6) band 16#3F),
+        128+(Ch band 16#3F)];
+     Ch < 16#80000000 ->
+       %% 1111110x 10xxxxyy 10yyyyyy 10yyyyyy 10yyyyyy 10yyyyyy
+       [16#FC+(Ch bsr 30),
+        128+((Ch bsr 24) band 16#3F),
+        128+((Ch bsr 18) band 16#3F),
+        128+((Ch bsr 12) band 16#3F),
+        128+((Ch bsr 6) band 16#3F),
+        128+(Ch band 16#3F)]
+  end.
 
 from_utf8(<<0:1, A:7, Rest/binary>>, Acc, Tail) ->
     %% 7 bits: 0yyyyyyy
@@ -493,19 +493,19 @@ from_utf8(<<14:4, A: 4, 2:2, B:6, 2:2, C:6, Rest/binary>>, Acc, Tail)
     %% 16 bits: 1110xxxx 10xyyyyy 10yyyyyy
     Ch = (A*64+B)*64+C,
     if Ch < 16#D800; Ch > 16#DFFF, Ch < 16#FFFE ->
-	    from_utf8(Rest, [Ch|Acc], Tail)
+      from_utf8(Rest, [Ch|Acc], Tail)
     end;
 from_utf8(<<30:5, A:3, 2:2, B:6, 2:2, C:6, 2:2, D:6, Rest/binary>>, Acc, Tail)
   when A > 0; B >= 16 ->
     %% 21 bits: 11110xxx 10xxyyyy 10yyyyyy 10yyyyyy
     from_utf8(Rest, [((A*64+B)*64+C)*64+D|Acc], Tail);
 from_utf8(<<62:6, A:2, 2:2, B:6, 2:2, C:6, 2:2, D:6, 2:2, E:6, Rest/binary>>,
-	  Acc, Tail)
+          Acc, Tail)
   when A > 0; B >= 8 ->
     %% 26 bits: 111110xx 10xxxyyy 10yyyyyy 10yyyyyy 10yyyyyy
     from_utf8(Rest, [(((A*64+B)*64+C)*64+D)*64+E|Acc], Tail);
 from_utf8(<<126:7, A:1, 2:2, B:6, 2:2, C:6, 2:2, D:6, 2:2, E:6, 2:2, F:6,
-	    Rest/binary>>, Acc, Tail)
+            Rest/binary>>, Acc, Tail)
   when A > 0; B >= 4 ->
     %% 31 bits: 1111110x 10xxxxyy 10yyyyyy 10yyyyyy 10yyyyyy 10yyyyyy
     from_utf8(Rest, [((((A*64+B)*64+C)*64+D)*64+E)*64+F|Acc], Tail);
@@ -517,22 +517,22 @@ from_utf8(Bin,Acc,Tail) ->
 %%% Translation to/from any IANA defined character set, given that a mapping
 %%% exists. Don't care about validating valid subsets of Unicode
 to_unicode(Input,Cs) when Cs=='ansi_x3.4-1968';Cs=='iso-ir-6';
-			  Cs=='ansi_x3.4-1986';Cs=='iso_646.irv:1991';
-			  Cs=='ascii';Cs=='iso646-us';Cs=='us-ascii';Cs=='us';
-			  Cs=='ibm367';Cs=='cp367';Cs=='csascii' -> % US-ASCII
-    Input;
+                          Cs=='ansi_x3.4-1986';Cs=='iso_646.irv:1991';
+                          Cs=='ascii';Cs=='iso646-us';Cs=='us-ascii';Cs=='us';
+                          Cs=='ibm367';Cs=='cp367';Cs=='csascii' -> % US-ASCII
+  Input;
 to_unicode(Input,Cs) when Cs=='iso-10646-utf-1';Cs=='csiso10646utf1' ->
-    Input;
+  Input;
 to_unicode(Input,Cs) when Cs=='iso_646.basic:1983';Cs=='ref';
-			  Cs=='csiso646basic1983' ->
-    Input;
+                          Cs=='csiso646basic1983' ->
+  Input;
 to_unicode(Input,Cs) when Cs=='iso_8859-1:1987';Cs=='iso-ir-100';
-			  Cs=='iso_8859-1';Cs=='latin1';Cs=='l1';Cs=='ibm819';
-			  Cs=='cp819';Cs=='csisolatin1' ->
-    Input;
+                          Cs=='iso_8859-1';Cs=='latin1';Cs=='l1';Cs=='ibm819';
+                          Cs=='cp819';Cs=='csisolatin1' ->
+  Input;
 % to_unicode(Input,Cs) when Cs=='mnemonic';Cs=='"mnemonic+ascii+38';
-% 			  Cs=='mnem';Cs=='"mnemonic+ascii+8200' ->
-%     from_mnemonic(Input);
+%                           Cs=='mnem';Cs=='"mnemonic+ascii+8200' ->
+%   from_mnemonic(Input);
 to_unicode(Input,Cs) when Cs=='iso-10646-ucs-2';Cs=='csunicode' ->
     from_ucs2be(Input); % Guess byteorder
 to_unicode(Input,Cs) when Cs=='iso-10646-ucs-4';Cs=='csucs4' ->
@@ -554,56 +554,56 @@ to_unicode(Input,Charset) ->
 %%% Do this by trying to convert it into unicode, if possible a mapping was
 %%% found and we are ok.
 is_incharset(In,Cs) when Cs=='ansi_x3.4-1968';Cs=='iso-ir-6';
-			 Cs=='ansi_x3.4-1986';Cs=='iso_646.irv:1991';
-			 Cs=='ascii';Cs=='iso646-us';Cs=='us-ascii';Cs=='us';
-			 Cs=='ibm367';Cs=='cp367';Cs=='csascii' -> % US-ASCII
-    if
-	is_integer(In) -> is_ascii(In);
-	is_list(In) -> test_charset(fun is_ascii/1,In)
-    end;
+                         Cs=='ansi_x3.4-1986';Cs=='iso_646.irv:1991';
+                         Cs=='ascii';Cs=='iso646-us';Cs=='us-ascii';Cs=='us';
+                         Cs=='ibm367';Cs=='cp367';Cs=='csascii' -> % US-ASCII
+  if
+    is_integer(In) -> is_ascii(In);
+    is_list(In) -> test_charset(fun is_ascii/1,In)
+  end;
 is_incharset(In,Cs) when Cs=='iso-10646-utf-1';Cs=='csiso10646utf1' ->
-    if
-	is_integer(In) -> is_unicode(In);
-	is_list(In) -> test_charset(fun is_unicode/1, In)
-    end;
+  if
+    is_integer(In) -> is_unicode(In);
+    is_list(In) -> test_charset(fun is_unicode/1, In)
+  end;
 is_incharset(In,Cs) when Cs=='iso_646.basic:1983';Cs=='ref';
-			 Cs=='csiso646basic1983' ->
-    if
-	is_integer(In) -> is_iso646_basic(In);
-	is_list(In) -> test_charset(fun is_iso646_basic/1, In)
-    end;
+                         Cs=='csiso646basic1983' ->
+  if
+    is_integer(In) -> is_iso646_basic(In);
+    is_list(In) -> test_charset(fun is_iso646_basic/1, In)
+  end;
 is_incharset(In,Cs) when Cs=='iso_8859-1:1987';Cs=='iso-ir-100';
-			 Cs=='iso_8859-1';Cs=='latin1';Cs=='l1';Cs=='ibm819';
-			 Cs=='cp819';Cs=='csisolatin1' ->
-    if
-	is_integer(In) -> is_latin1(In);
-	is_list(In) -> test_charset(fun is_latin1/1, In)
-    end;
+                         Cs=='iso_8859-1';Cs=='latin1';Cs=='l1';Cs=='ibm819';
+                         Cs=='cp819';Cs=='csisolatin1' ->
+  if
+    is_integer(In) -> is_latin1(In);
+    is_list(In) -> test_charset(fun is_latin1/1, In)
+  end;
 is_incharset(In,Charset) when is_integer(In) ->
-    case to_unicode([In],Charset) of
-	{error,unsupported_charset} ->
-	    {error,unsupported_charset};
-	{error,_} ->
-	    false;
-	[Int] when is_integer(Int) ->
-	    true
-    end;
+  case to_unicode([In],Charset) of
+    {error,unsupported_charset} ->
+      {error,unsupported_charset};
+    {error,_} ->
+      false;
+    [Int] when is_integer(Int) ->
+      true
+  end;
 is_incharset(In,Charset) when is_list(In) ->
-    case to_unicode(In,Charset) of
-	{error,unsupported_charset} ->
-	    {error,unsupported_charset};
-	{error,_} ->
-	    false;
-	[Int] when is_integer(Int) ->
-	    true
-    end.
+  case to_unicode(In,Charset) of
+    {error,unsupported_charset} ->
+      {error,unsupported_charset};
+    {error,_} ->
+      false;
+    [Int] when is_integer(Int) ->
+      true
+  end.
 
 
 test_charset(Fun,Input) ->
-    case lists:all(Fun, Input) of
-	true ->
-	    true;
-	_ ->
-	    false
-    end.
+  case lists:all(Fun, Input) of
+    true ->
+      true;
+    _ ->
+      false
+  end.
 

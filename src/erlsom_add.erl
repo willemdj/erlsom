@@ -3,8 +3,8 @@
 %%% This file is part of Erlsom.
 %%%
 %%% Erlsom is free software: you can redistribute it and/or modify
-%%% it under the terms of the GNU Lesser General Public License as 
-%%% published by the Free Software Foundation, either version 3 of 
+%%% it under the terms of the GNU Lesser General Public License as
+%%% published by the Free Software Foundation, either version 3 of
 %%% the License, or (at your option) any later version.
 %%%
 %%% Erlsom is distributed in the hope that it will be useful,
@@ -12,8 +12,8 @@
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %%% GNU Lesser General Public License for more details.
 %%%
-%%% You should have received a copy of the GNU Lesser General Public 
-%%% License along with Erlsom.  If not, see 
+%%% You should have received a copy of the GNU Lesser General Public
+%%% License along with Erlsom.  If not, see
 %%% <http://www.gnu.org/licenses/>.
 %%%
 %%% Author contact: w.a.de.jong@gmail.com
@@ -24,12 +24,12 @@
 
 %%% Adds an XSD/namespace to an existing model. This is useful only if the
 %%% existing model contains 'any' elements that have to be parsed. A typical
-%%% example is the soap envelope. In order to parse the body, the parser needs 
+%%% example is the soap envelope. In order to parse the body, the parser needs
 %%% to know it's 'model'.
 
-%%% Compiles the model for the imported xsd, adds the types to the existing 
-%%% model, adds all the alternatives from the _document element to the 
-%%% _document element of the existing model, adds the namespaces, and finally 
+%%% Compiles the model for the imported xsd, adds the types to the existing
+%%% model, adds all the alternatives from the _document element to the
+%%% _document element of the existing model, adds the namespaces, and finally
 %%% updates the alternatives for all 'any' types in the model.
 
 -module(erlsom_add).
@@ -44,8 +44,8 @@
   %% io:format("~p\n", [Text]).
 
 
-%% -record(model, {tps, nss, tns}).  
-%% -record(type, {nm, tp = sequence, els, atts = [], anyAttr, nillable, nr, mn = 1, mx = 1}). 
+%% -record(model, {tps, nss, tns}).
+%% -record(type, {nm, tp = sequence, els, atts = [], anyAttr, nillable, nr, mn = 1, mx = 1}).
 %% -record(el, {alts, mn = 1, mx = 1, nr}).
 
 %% Returns the new #model.
@@ -56,7 +56,7 @@ add(Xsd, Options, Model1) ->
 add_xsd_model(Model1) ->
   add_model(Model1, erlsom_parseXsd:xsdModel()).
 
-add_model(Model1 = #model{tps = Tps, nss = Nss, tns = Tns, th = Th}, 
+add_model(Model1 = #model{tps = Tps, nss = Nss, tns = Tns, th = Th},
           _Model2 = #model{tps = NewTps, nss = NewNss, th = NewTh}) ->
   [Document | OtherTypes] = Tps,
   #type{nm = '_document', els = [Element]} = Document,

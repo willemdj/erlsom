@@ -3,8 +3,8 @@
 %%% This file is part of Erlsom.
 %%%
 %%% Erlsom is free software: you can redistribute it and/or modify
-%%% it under the terms of the GNU Lesser General Public License as 
-%%% published by the Free Software Foundation, either version 3 of 
+%%% it under the terms of the GNU Lesser General Public License as
+%%% published by the Free Software Foundation, either version 3 of
 %%% the License, or (at your option) any later version.
 %%%
 %%% Erlsom is distributed in the hope that it will be useful,
@@ -12,8 +12,8 @@
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %%% GNU Lesser General Public License for more details.
 %%%
-%%% You should have received a copy of the GNU Lesser General Public 
-%%% License along with Erlsom.  If not, see 
+%%% You should have received a copy of the GNU Lesser General Public
+%%% License along with Erlsom.  If not, see
 %%% <http://www.gnu.org/licenses/>.
 %%%
 %%% Author contact: w.a.de.jong@gmail.com
@@ -62,9 +62,9 @@ writeHrlFile(Xsd, Prefix, Namespaces) ->
 %% compile file
   Result = erlsom:compile(Xsd, Prefix, Namespaces),
   case Result of
-    {ok, Model} -> 
+    {ok, Model} ->
       writeHrl(Model);
-    {error, Error} -> 
+    {error, Error} ->
       io:format("Error while compiling file: ~p~n", [Error])
   end.
 
@@ -72,9 +72,9 @@ writeXsdHrlFile(Xsd, Options) ->
 %% compile file
   Result = erlsom:compile_xsd(Xsd, Options),
   case Result of
-    {ok, Model} -> 
+    {ok, Model} ->
       writeHrl(Model, Options);
-    {error, Error} -> 
+    {error, Error} ->
       throw({error, Error})
   end.
 
@@ -86,7 +86,7 @@ header() ->
   "%%\n"
   "%% It is possible to add default values, but be aware that these will\n"
   "%% only be used when *writing* an xml document.\n\n"
-  "\n".  
+  "\n".
 
 standard_types(AnyAtts) ->
   case AnyAtts of
@@ -100,7 +100,7 @@ standard_types(AnyAtts) ->
       "-type anyAttribs() :: [anyAttrib()] | undefined.\n"
       "-endif.\n"
       "\n";
-    _ -> 
+    _ ->
       ""
   end ++
   "-ifndef(ERLSOM_QNAME_TYPES).\n"
@@ -122,14 +122,14 @@ writeType(#type{nm = Name, els = Elements, atts = Attributes, mxd = Mixed},
   Format = "~3n-record(~p, {~s})." ++
            "~2n-type ~s :: ~s.",
   Fields = [case AnyAtts of
-              true -> 
+              true ->
                 "anyAttribs :: anyAttribs()";
-              _ -> 
+              _ ->
                 []
             end,
-            writeAttributes(Attributes), 
+            writeAttributes(Attributes),
             writeElements(Elements, Mixed, Hierarchy)],
-  Args   = [Name, add_commas(Fields), 
+  Args   = [Name, add_commas(Fields),
             formatType(Name), formatRecord(Name)],
   lists:flatten(io_lib:format(Format, Args)).
 
@@ -158,7 +158,7 @@ writeElements(Elements, Mixed, Hierarchy) ->
 
 writeElement(#el{alts = Alternatives, mn = Min, mx = Max, nillable = Nillable}, Mixed, Hierarchy, CountChoices) ->
   {Label, Types, Count2} = case Mixed of
-    true -> 
+    true ->
       writeAlternatives(Alternatives, 1, 1, false, Hierarchy, CountChoices);
     _ ->
       writeAlternatives(Alternatives, Min, Max, Nillable, Hierarchy, CountChoices)
@@ -179,14 +179,14 @@ writeAlternatives(Alts, Min, Max, _N, Hierarchy, CountChoices) when length(Alts)
   Label = case CountChoices of
          0 ->
            "choice :: ";
-         _ -> 
+         _ ->
            ["choice", integer_to_list(CountChoices), " :: "]
        end,
   Alternatives = case lists:keyfind('#any', #alt.tag, Alts) of
                    false ->
                      [writeAlternative(A, 1, 1, false, Hierarchy) || A <- Alts];
                    Alt ->
-                   %% it makes no sense to have a choice between many things if 
+                   %% it makes no sense to have a choice between many things if
                    %% one of them is "any()" - in that case the any() suffices.
                      [writeAlternative(Alt, 1, 1, false, Hierarchy)]
                  end,
@@ -200,7 +200,7 @@ writeAlternatives([#alt{tag = Tag, tp = Tp, rl=Rl} = Alt], Min, Max, Nillable, H
       %% erlsom_lib:nameWithoutPrefix(atom_to_list(Tag));
       baseName(Tag);
     _ when Rl == false; Rl == simple ->
-      case Tp of 
+      case Tp of
         {'#PCDATA', _} ->
           Tag;
         _ ->
@@ -216,11 +216,11 @@ writeAlternative(#alt{tag = '#any'}, _, _, _, _) ->
   "any()";
 writeAlternative(#alt{rl = true, tp = {Tp1, Tp2}, mx = Max2}, Min, Max, Nillable, _H) ->
   formatSimpleType(Tp1, Tp2, Min, Max, Max2, Nillable);
-writeAlternative(#alt{rl = Rl, tp = Type, mx = Max2}, Min, Max, Nillable, Hierarchy) 
+writeAlternative(#alt{rl = Rl, tp = Type, mx = Max2}, Min, Max, Nillable, Hierarchy)
   when Rl == true; Rl == simple ->
   %% The type could be abstract, in that case put the 'leaves' of the type hierarchy
   case erlsom_lib:getDescendants(Type, Hierarchy) of
-    [] -> 
+    [] ->
       formatListType(Type, Min, Max, Max2, Nillable);
     Leaves ->
       minMaxType(string:join([formatType(L) || L <- [Type | Leaves]], " | "),
@@ -247,7 +247,7 @@ writeAttributes(Attributes) ->
 
 -spec writeAttribute(#att{}) -> Acc when Acc :: list().
 
-writeAttribute(#att{nm = Name, opt = Optional, tp = Type}) -> 
+writeAttribute(#att{nm = Name, opt = Optional, tp = Type}) ->
     OptOrReq = if Optional -> " | undefined"; true -> "" end,
     AttrPrefix = erlang:get(erlsom_attribute_hrl_prefix),
     AttrName = list_to_atom(AttrPrefix ++ atom_to_list(baseName(Name))),
@@ -270,7 +270,7 @@ formatSimpleType(Tp1, Tp2, Min, Max, Max2, Nullable) ->
   minMaxType(Type, Min, Max, Max2, Nullable, true).
 
 minMaxType(Type, Min, Max, Max2, Nullable, Simple) ->
-  Optional = if 
+  Optional = if
     Min == 0 ->
       " | undefined";
     true -> ""
@@ -311,7 +311,7 @@ makeType(integer) -> "integer()";
 makeType({integer, negativeInteger}) -> "neg_integer()";
 makeType({integer, positiveInteger}) -> "pos_integer()";
 makeType({integer, nonPositiveInteger}) -> "neg_integer() | 0";
-makeType({integer, Non_neg}) 
+makeType({integer, Non_neg})
   when Non_neg == nonNegativeInteger;
        Non_neg == unsignedLong;
        Non_neg == unsignedInt;

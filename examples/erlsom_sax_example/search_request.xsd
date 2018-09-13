@@ -5,13 +5,13 @@
   <!-- Types for search - result elements, directory categories -->
 
 
-    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                 xmlns:typens="urn:GoogleSearch"
                 xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
                 targetNamespace="urn:GoogleSearch">
 
       <xsd:element name="GoogleSearchResult" type="typens:GoogleSearchResult"/>
-            
+
       <xsd:complexType name="GoogleSearchResult">
         <xsd:all>
           <xsd:element name="documentFiltering"           type="xsd:boolean"/>
@@ -41,7 +41,7 @@
           <xsd:element name="directoryTitle" type="xsd:string"/>
         </xsd:all>
       </xsd:complexType>
-  
+
       <xsd:complexType name="ResultElementArray">
         <xsd:sequence>
           <xsd:element name="item" type="typens:ResultElement" minOccurs="0" maxOccurs="unbounded"/>

@@ -20,7 +20,7 @@ process_book(#book_type{'ISBN' = ISBN, title = Title, author = Author,
             "Author   : ~s~n"
             "Publisher: ~s~n"
             "ISBN     : ~s~n"
-            "Date     : ~s~n~n", 
+            "Date     : ~s~n~n",
             [Title, Author, Publisher, ISBN, formatDate(Date)]).
 
 formatDate(undefined) -> "<unknown>";

@@ -6,8 +6,8 @@
     <xsd:element name="calcAverageResult" type="resultType"/>
     <xsd:complexType name="resultType">
         <xsd:choice>
-            <xsd:element name="okResult" 
-                         type="xsd:float" 
+            <xsd:element name="okResult"
+                         type="xsd:float"
                          />
             <xsd:element name="error" type="errorType"/>
         </xsd:choice>
@@ -15,7 +15,7 @@
     <xsd:complexType name="errorType">
         <xsd:sequence>
             <xsd:element name="errorCode" type="xsd:string"/>
-            <xsd:element name="errorDesription" 
+            <xsd:element name="errorDesription"
                          type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
