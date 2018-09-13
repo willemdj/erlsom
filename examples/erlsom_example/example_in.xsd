@@ -6,8 +6,8 @@
     <xsd:element name="calcAverage" type="arguments"/>
     <xsd:complexType name="arguments">
         <xsd:sequence>
-            <xsd:element name="argument" 
-                         type="xsd:integer" 
+            <xsd:element name="argument"
+                         type="xsd:integer"
                          maxOccurs="unbounded"/>
             <xsd:element name="precision" type="xsd:integer" minOccurs="0"/>
         </xsd:sequence>

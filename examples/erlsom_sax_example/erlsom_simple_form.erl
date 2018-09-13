@@ -20,7 +20,7 @@ simple_form(File) ->
 simple_form(File, Options) ->
   case file:read_file(File) of
     {ok, Bin} ->
-      erlsom:sax(binary_to_list(Bin), 
+      erlsom:sax(binary_to_list(Bin),
                  #sState{stack = [], nameFun = fun erlsom_simple_form:nameFun/3, options = Options},
                  fun erlsom_simple_form:callback/2);
     Error ->
@@ -33,7 +33,7 @@ callback(Event, State) ->
   %% debugEvent(Event),
   try
     case Event of
-      startDocument -> 
+      startDocument ->
          State;
       {startElement, _Uri, _LocalName, _Prefix, _Attributes} ->
          %% debug(Event),
@@ -44,17 +44,17 @@ callback(Event, State) ->
          characters(Event, State);
       {ignorableWhitespace, _Characters} -> State;
       {processingInstruction, _Target, _Data} ->  State;
-      {startPrefixMapping, _Prefix, _URI} -> 
+      {startPrefixMapping, _Prefix, _URI} ->
          State;
       {endPrefixMapping, _Prefix} ->
          State;
-      endDocument -> 
-         case State of 
+      endDocument ->
+         case State of
            #sState{stack = [Root]} ->
-	     %% debug(Result),
-	     {ok, Root};
-	   _Else ->
-	     %% debug(State),
+             %% debug(Result),
+             {ok, Root};
+           _Else ->
+             %% debug(State),
              throw({error, "unexpected end"})
          end;
       {error, Message} ->
@@ -66,7 +66,7 @@ callback(Event, State) ->
     error:Reason -> throwError(error, {Reason,erlang:get_stacktrace()}, Event, State);
     Class:Exception -> throwError(Class, Exception, Event, State)
   end.
-  
+
 %% Stack contains the tree that is growing as the elements come in.
 %% [{root, [attributes], [element1, element2]},
 %%  {element3, [attributes], [element3.1, element3.2]},
@@ -85,13 +85,13 @@ callback(Event, State) ->
 %%  {element3.3, [attributes], [element3.3.1]},
 %%  {element3.3.2, [attributes], [{#text, "the text"}]}]
 
-%% When an endElement comes in, insert the top element of the stack in the 
+%% When an endElement comes in, insert the top element of the stack in the
 %% layer below it (its parent):
 %% [{root, [attributes], [element1, element2]},
 %%  {element3, [attributes], [element3.1, element3.2]},
 %%  {element3.3, [attributes], [element3.3.1, element3.3.2]}]
 
-startElement({startElement, Uri, LocalName, Prefix, Attributes}, 
+startElement({startElement, Uri, LocalName, Prefix, Attributes},
              State = #sState{stack = Stack, nameFun = NameFun}) ->
   Name = NameFun(LocalName, Uri, Prefix),
   State#sState{stack = [{Name, processAttributes(Attributes, State), []} | Stack]}.
@@ -103,13 +103,13 @@ endElement({endElement, _Uri, _LocalName, _Prefix},
 endElement({endElement, _Uri, _LocalName, _Prefix},
            State) ->
   #sState{stack = [{Name, Attributes, Elements} | [{ParentName, ParentAttributes, ParentElements} | Tail]]} = State,
-  State#sState{stack = [{ParentName, 
-                         ParentAttributes, 
+  State#sState{stack = [{ParentName,
+                         ParentAttributes,
                          [{Name, Attributes, lists:reverse(Elements)} | ParentElements]} | Tail]}.
 
 characters({characters, Characters},
-           State = #sState{stack = [{Name, 
-                                     Attributes, 
+           State = #sState{stack = [{Name,
+                                     Attributes,
                                      [FirstBit | OtherElements]
                                     } | Tail]})
            when is_list(FirstBit) ->
@@ -122,7 +122,7 @@ processAttributes(Attributes, State) ->
   processAttributes(Attributes, State, []).
 processAttributes([], _State, Acc) ->
   lists:reverse(Acc);
-processAttributes([#attribute{localName=LocalName, uri=Uri, prefix = Prefix, value=Value} | Tail], 
+processAttributes([#attribute{localName=LocalName, uri=Uri, prefix = Prefix, value=Value} | Tail],
                   State = #sState{nameFun = NameFun},
                   Acc) ->
   processAttributes(Tail, State, [{NameFun(LocalName, Uri, Prefix), Value} | Acc]).
@@ -131,27 +131,27 @@ nameFun(Name, [], _Prefix) ->
   Name;
 nameFun(Name, Namespace, _Prefix) ->
   "{" ++ Namespace ++ "}" ++ Name.
-  
 
-throwError(Class, Exception, Event, 
+
+throwError(Class, Exception, Event,
            #sState{stack = Stack}) ->
-%% "Error while parsing type " 
+%% "Error while parsing type "
 %% Take the ElementRecord at current state, and print the first element
   Message = [{exception, Exception},
-             %% for each of the elements in ResultSoFar, 
+             %% for each of the elements in ResultSoFar,
              %% take the 'elementRecord' element and print the first element (the type).
              {stack, printStackTrace(Stack)},
              %% "Received: "
              {received, Event}],
-  case Class of 
+  case Class of
     'error' -> exit({error, Message});
     'throw' -> throw({error, Message});
     'exit' -> exit({error, Message})
   end;
 
-throwError(Class, Exception, _Event, 
+throwError(Class, Exception, _Event,
            _Something) ->
-  case Class of 
+  case Class of
     'error' -> exit({error, Exception});
     'throw' -> throw({error, Exception});
     'exit' -> exit({error, Exception})
@@ -163,4 +163,4 @@ printStackTrace([], Acc) ->
   Acc;
 printStackTrace([{Name, _, _} | Tail], Acc) ->
   printStackTrace(Tail, [{element, Name} | Acc]).
-  
+

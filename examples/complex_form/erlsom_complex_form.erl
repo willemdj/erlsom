@@ -1,9 +1,9 @@
 %%% translate XML to the output format used by XMERL.
 %%% The output is not complete: some fields in the XMERL output records
-%%% are not populated. But is it enough to use the XPATH fucntions (at 
+%%% are not populated. But is it enough to use the XPATH fucntions (at
 %%% least for the examples that I tried).
 %%%
-%%% Note: this hasn't been tested properly. See it as an example of how 
+%%% Note: this hasn't been tested properly. See it as an example of how
 %%% the sax parser can be used.
 %%%
 -module(erlsom_complex_form).
@@ -21,47 +21,47 @@
 %% XML Element
 %% content = [#xmlElement()|#xmlText()|#xmlPI()|#xmlComment()|#xmlDecl()]
 -record(xmlElement,{
-	  name,			% atom()
-	  expanded_name = [],	% string() | {URI,Local} | {"xmlns",Local}
-	  nsinfo = [],	        % {Prefix, Local} | []
-	  namespace,
-	  parents = [],		% [{atom(),integer()}]
-	  pos,			% integer()
-	  attributes = [],	% [#xmlAttribute()]
-	  content = [],
-	  language = "",	% string()
-	  xmlbase="",           % string() XML Base path, for relative URI:s
-	  elementdef=undeclared % atom(), one of [undeclared | prolog | external | element]
-	 }).
+  name,                 % atom()
+  expanded_name = [],   % string() | {URI,Local} | {"xmlns",Local}
+  nsinfo = [],          % {Prefix, Local} | []
+  namespace,
+  parents = [],         % [{atom(),integer()}]
+  pos,                  % integer()
+  attributes = [],      % [#xmlAttribute()]
+  content = [],
+  language = "",        % string()
+  xmlbase="",           % string() XML Base path, for relative URI:s
+  elementdef=undeclared % atom(), one of [undeclared | prolog | external | element]
+}).
 
 %% plain text
 %% IOlist = [char() | binary () | IOlist]
 -record(xmlText,{
-	  parents = [],	% [{atom(),integer()}]
-	  pos,		% integer()
-	  language = [],% inherits the element's language
-	  value,	% IOlist()
-	  type = text   % atom() one of (text|cdata)
-	 }).
+  parents = [],  % [{atom(),integer()}]
+  pos,           % integer()
+  language = [], % inherits the element's language
+  value,         % IOlist()
+  type = text    % atom() one of (text|cdata)
+}).
 
 %% Attribute
 -record(xmlAttribute,{
-	  name,		   % atom()
-	  expanded_name=[],% atom() | {string(),atom()}
-	  nsinfo = [],	   % {Prefix, Local} | []
-	  namespace = [],  % inherits the element's namespace
-	  parents = [],	   % [{atom(),integer()}]
-	  pos,		   % integer()
-	  language = [],   % inherits the element's language
-	  value,	   % IOlist() | atom() | integer()
-	  normalized       % atom() one of (true | false)
-	 }).
+  name,            % atom()
+  expanded_name=[],% atom() | {string(),atom()}
+  nsinfo = [],     % {Prefix, Local} | []
+  namespace = [],  % inherits the element's namespace
+  parents = [],    % [{atom(),integer()}]
+  pos,       % integer()
+  language = [],   % inherits the element's language
+  value,     % IOlist() | atom() | integer()
+  normalized       % atom() one of (true | false)
+}).
 
 %% namespace record
 -record(xmlNamespace,{
-	  default = [],
-	  nodes = []
-	 }).
+  default = [],
+  nodes = []
+ }).
 
 
 -record(sState, {stack = [], posStack = [],  options}).
@@ -81,7 +81,7 @@ scan(Xml) ->
   scan(Xml, []).
 
 scan(Xml, Options) ->
-  erlsom:parse_sax(Xml, 
+  erlsom:parse_sax(Xml,
     #sState{stack = []},
     fun callback/2, Options).
 
@@ -90,7 +90,7 @@ callback(Event, State) ->
 
   try
     case Event of
-      startDocument -> 
+      startDocument ->
         case State of
           #sState{} ->
             State;
@@ -103,18 +103,18 @@ callback(Event, State) ->
         endElement(Event, State);
       {characters, _Characters} ->
         characters(Event, State);
-      {ignorableWhitespace, Characters} -> 
+      {ignorableWhitespace, Characters} ->
         characters({characters, Characters}, State);
       {processingInstruction, _Target, _Data} ->  State;
-      {startPrefixMapping, _Prefix, _URI} -> 
+      {startPrefixMapping, _Prefix, _URI} ->
         State;
       {endPrefixMapping, _Prefix} ->
         State;
-      endDocument -> 
-        case State of 
+      endDocument ->
+        case State of
           #sState{stack = [Root]} ->
-	    Root;
-	  _Else ->
+            Root;
+          _Else ->
             throw({error, "unexpected end"})
         end;
       {error, Message} ->
@@ -126,7 +126,7 @@ callback(Event, State) ->
     error:Reason -> throwError(error, {Reason,erlang:get_stacktrace()}, Event, State);
     Class:Exception -> throwError(Class, Exception, Event, State)
   end.
-  
+
 %% Stack contains the tree that is growing as the elements come in.
 %% [{root, [attributes], [element1, element2]},
 %%  {element3, [attributes], [element3.1, element3.2]},
@@ -152,17 +152,17 @@ callback(Event, State) ->
 %%  {element3.3, [attributes], [element3.3.1]},
 %%  {element3.3.2, [attributes], [{#text, "the text"}]}]
 
-%% When an endElement comes in, insert the top element of the stack in the 
+%% When an endElement comes in, insert the top element of the stack in the
 %% layer below it (its parent):
 %% [{root, [attributes], [element1, element2]},
 %%  {element3, [attributes], [element3.1, element3.2]},
 %%  {element3.3, [attributes], [element3.3.1, element3.3.2]}]
 
-startElement({startElement, Uri, LocalName, Prefix, Attributes}, 
+startElement({startElement, Uri, LocalName, Prefix, Attributes},
              State = #sState{stack = [], posStack = []}) ->
   Name = makeName(LocalName, Prefix),
   State#sState{stack = [#xmlElement{name = Name,
-	                            expanded_name = makeExpandedName(Uri, LocalName),
+                                    expanded_name = makeExpandedName(Uri, LocalName),
                                     pos = 1,
                                     nsinfo = makeNsInfo(Prefix, LocalName),
                                     namespace = makeNs(Prefix, Uri, #xmlNamespace{}),
@@ -171,11 +171,11 @@ startElement({startElement, Uri, LocalName, Prefix, Attributes},
                                     content = []}],
                posStack = [0]};
 
-startElement({startElement, Uri, LocalName, Prefix, Attributes}, 
+startElement({startElement, Uri, LocalName, Prefix, Attributes},
              State = #sState{stack = [Parent | _], posStack = [Pos | _]}) ->
   Name = makeName(LocalName, Prefix),
   State#sState{stack = [#xmlElement{name = Name,
-	                            expanded_name = makeExpandedName(Uri, LocalName),
+                                    expanded_name = makeExpandedName(Uri, LocalName),
                                     pos = Pos + 1,
                                     nsinfo = makeNsInfo(Prefix, LocalName),
                                     namespace = makeNs(Prefix, Uri, Parent#xmlElement.namespace),
@@ -190,11 +190,11 @@ endElement({endElement, _Uri, _LocalName, _Prefix},
 
 endElement({endElement, _Uri, _LocalName, _Prefix},
            %%State) ->
-  #sState{stack = [#xmlElement{content = ChildContent} = Child | 
+  #sState{stack = [#xmlElement{content = ChildContent} = Child |
                      [#xmlElement{content = ParentContent} = Parent | Tail]],
           posStack = [_NrOfChildEls | [NrOfElements | PosTail]]} = State) ->
-  State#sState{stack = [Parent#xmlElement{content = [Child#xmlElement{content = lists:reverse(ChildContent)} | 
-                                                     ParentContent]} | 
+  State#sState{stack = [Parent#xmlElement{content = [Child#xmlElement{content = lists:reverse(ChildContent)} |
+                                                     ParentContent]} |
                         Tail],
                posStack = [NrOfElements + 1 | PosTail]}.
 
@@ -219,36 +219,36 @@ processAttributes(Attributes, State) ->
   processAttributes(Attributes, State, 1,  []).
 processAttributes([], _State, _Count, Acc) ->
   lists:reverse(Acc);
-processAttributes([#attribute{localName=LocalName, uri = Uri, prefix = Prefix, value=Value} | Tail], 
+processAttributes([#attribute{localName=LocalName, uri = Uri, prefix = Prefix, value=Value} | Tail],
                   State, Count, Acc) ->
   processAttributes(Tail, State, Count + 1, [
-    #xmlAttribute{
-	  name = makeName(LocalName, Prefix), 
-	  expanded_name = makeExpandedName(Uri, LocalName),
-          nsinfo = makeNsInfo(Prefix, LocalName),
-	  pos = Count,
-	  value = Value
-	 } | Acc]).
+                                             #xmlAttribute{
+                                                name = makeName(LocalName, Prefix),
+                                                expanded_name = makeExpandedName(Uri, LocalName),
+                                                nsinfo = makeNsInfo(Prefix, LocalName),
+                                                pos = Count,
+                                                value = Value
+                                               } | Acc]).
 
-throwError(Class, Exception, Event, 
+throwError(Class, Exception, Event,
            #sState{stack = Stack}) ->
-%% "Error while parsing type " 
+%% "Error while parsing type "
 %% Take the ElementRecord at current state, and print the first element
   Message = [{exception, Exception},
-             %% for each of the elements in ResultSoFar, 
+             %% for each of the elements in ResultSoFar,
              %% take the 'elementRecord' element and print the first element (the type).
              {stack, printStackTrace(Stack)},
              %% "Received: "
              {received, Event}],
-  case Class of 
+  case Class of
     'error' -> exit({error, Message});
     'throw' -> throw({error, Message});
     'exit' -> exit({error, Message})
   end;
 
-throwError(Class, Exception, _Event, 
+throwError(Class, Exception, _Event,
            _Something) ->
-  case Class of 
+  case Class of
     'error' -> exit({error, Exception});
     'throw' -> throw({error, Exception});
     'exit' -> exit({error, Exception})
@@ -260,7 +260,7 @@ printStackTrace([], Acc) ->
   Acc;
 printStackTrace([#xmlElement{name = Name} | Tail], Acc) ->
   printStackTrace(Tail, [{element, Name} | Acc]).
-  
+
 makeName(Local, []) ->
   list_to_atom_or_not(Local);
 makeName(Local, Prefix) ->
@@ -282,7 +282,7 @@ makeExpandedName(Uri, Local) ->
 
 list_to_atom_or_not(String) ->
   try list_to_atom(String)
-  catch 
+  catch
     _:_ -> String
   end.
 

@@ -16,7 +16,7 @@
 
 <i:calcAverage xmlns:i="http://www.example.org">
     <i:argument>3</i:argument>
-    <i:argument> 7 <![CDATA[ This is some CDATA with some tags <tag> </tag> 
+    <i:argument> 7 <![CDATA[ This is some CDATA with some tags <tag> </tag>
 </tag2>]]> and some more text </i:argument>
     <i:argument>and now an entity: &lt; and some more text </i:argument>
     <i:argument>and now defined entity: &zz; and some more text </i:argument>

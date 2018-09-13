@@ -25,13 +25,13 @@ run() ->
   %% do something with the content
   case Input of
     #'in:arguments'{values = undefined} ->
-      Error = #'out:errorType'{errorCode = "01", 
+      Error = #'out:errorType'{errorCode = "01",
                                errorDescription = "No arguments provided"},
       Result = #'out:resultType-error'{error = Error};
     #'in:arguments'{values = List, precision = Precision} ->
       Result = #'out:resultType-okResult'{value = calcAverage(List, Precision)}
   end,
-  
+
   %% generate xml.
   Response = #'out:resultType'{result=Result},
   XmlResult = erlsom:write(Response, ModelOut),

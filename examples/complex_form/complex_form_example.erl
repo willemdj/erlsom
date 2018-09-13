@@ -1,4 +1,4 @@
-%% shows how you could (in theory, at least) apply xpath to the 
+%% shows how you could (in theory, at least) apply xpath to the
 %% result of erlsom_complex_form.
 -module(complex_form_example).
 -include_lib("xmerl/include/xmerl.hrl").
