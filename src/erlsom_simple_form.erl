@@ -27,6 +27,7 @@
 -export([new_state/1]).
 
 -include("erlsom_sax.hrl").
+-include("exception.hrl").
 
 -record(sState, {stack, nameFun, options}).
 
@@ -93,7 +94,7 @@ callback(Event, State) ->
         exit(Message)
     end
   catch
-    error:Reason -> throwError(error, {Reason,erlang:get_stacktrace()}, Event, State);
+    ?EXCEPTION(error, Reason, Stacktrace) -> throwError(error, {Reason, ?GET_STACK(Stacktrace)}, Event, State);
     Class:Exception -> throwError(Class, Exception, Event, State)
   end.
 

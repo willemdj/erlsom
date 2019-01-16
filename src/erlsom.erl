@@ -44,6 +44,7 @@
          add_file/3, add_xsd_model/1, add_model/2]).
 
 -include("erlsom.hrl").
+-include("exception.hrl").
 -include("erlsom_parse.hrl").
 
 -type characters() :: string() | binary().
@@ -261,7 +262,7 @@ scan_file(File, Model, Options) ->
       catch
         throw:Reason -> {error, Reason};
         exit:Reason -> throw({'EXIT',Reason});
-        error:Reason -> throw({'EXIT',{Reason,erlang:get_stacktrace()}})
+        ?EXCEPTION(error, Reason, Stacktrace) -> throw({'EXIT',{Reason, ?GET_STACK(Stacktrace)}})
       end;
     Error ->
       Error
