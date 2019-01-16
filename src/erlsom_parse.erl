@@ -172,6 +172,7 @@
 -export([new_state/1]).
 -export([new_state/2]).
 -include("erlsom.hrl").
+-include("exception.hrl").
 -include("erlsom_sax.hrl").
 -include("erlsom_parse.hrl"). %% the record definitions
 -import(erlsom_lib, [findType/6]).
@@ -345,7 +346,7 @@ xml2StructCallback(Event, State) ->
          exit(Message)
     end
   catch
-    error:Reason -> throwError(error, {Reason,erlang:get_stacktrace()}, Event, State);
+    ?EXCEPTION(error, Reason, Stacktrace) -> throwError(error, {Reason, ?GET_STACK(Stacktrace)}, Event, State);
     Class:Exception -> throwError(Class, Exception, Event, State)
   end.
 
