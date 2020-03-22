@@ -910,19 +910,14 @@ prefix(Namespace) ->
 %%% slightly modified
 %%% --------------------------------------------------------------------
 get_url("http://"++_ = URL) ->
-    case httpc:request(URL) of
+  case httpc:request(URL) of
     {ok, {{_HTTP, 200, _OK}, _Headers, Body}} ->
-        case http_uri:parse(URL) of
-        {ok, {_Method, _, _Host, _Port, _Path, _Qargs}} ->
-            {ok, Body};
-        _ ->
-            {error, "failed to retrieve: "++URL}
-        end;
-    _Error ->
-        {error, "failed to retrieve: "++URL}
-    end;
+      {ok, Body};
+    _ ->
+      {error, "failed to retrieve: "++URL}
+  end;
 get_url(_) ->
-    {error, "not a URL"}.
+  {error, "not a URL"}.
 
 emptyListIfUndefined(undefined) -> [];
 emptyListIfUndefined(List) -> List.
