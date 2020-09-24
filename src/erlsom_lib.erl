@@ -585,7 +585,7 @@ findType(TypeReference, Types, Attributes, TypeHierarchy, Namespaces, NamespaceM
     {value, Value} ->
       case findXsiType(Attributes) of
         {value, XsiType} ->
-          findDerivedType(TypeReference, XsiType, Types, TypeHierarchy, Namespaces, NamespaceMapping);
+          findDerivedType(Value#type.typeName, XsiType, Types, TypeHierarchy, Namespaces, NamespaceMapping);
         _ -> Value
       end;
     _Else ->
