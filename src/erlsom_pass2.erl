@@ -517,7 +517,7 @@ pass3Alternatives([Alternative | Tail], TypeName, Acc, NewTypes, Optional, Alter
 pass3Alternatives([], _TypeName, Acc, NewTypes, Optional, _Alternatives, _Types, _Mixed, _Info) ->
   {Acc, NewTypes, Optional}.
 
-pass3Alternative(Alternative = #alt{tag = Name, rl = Real, tp = Type, mn = Mn}, TypeName, Alternatives, Types, _Mixed, Info) ->
+pass3Alternative(Alternative = #alt{tag = Name, rl = Real, tp = Type, mn = Mn}, TypeName, Alternatives, _Types, _Mixed, Info) ->
   Pos = case Info#schemaInfo.include_any_attrs of true -> 3; _ -> 2 end,
   if
     Real == false ->
@@ -551,15 +551,11 @@ pass3Alternative(Alternative = #alt{tag = Name, rl = Real, tp = Type, mn = Mn}, 
                 Name == '#any' -> {Alternative, []};
                 true ->
                   NewTypeName =
-                    list_to_atom(atom_to_list(TypeName) ++ "-" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Name))),
-                  case lists:keysearch(Type, #type.nm, Types) of
-                    {value, Record} ->
-                      {Alternative#alt{tp = NewTypeName, rl = true, mn = case Mn of 0 -> 0; _ -> 1 end},
-                        [Record#type{nm = NewTypeName}]};
-                    _Else ->
-                      %% debugTypes(Types),
-                      throw({error, "Type definition not found " ++ atom_to_list(Type)})
-                  end
+                    list_to_atom(atom_to_list(TypeName) ++ "_" ++ erlsom_lib:nameWithoutPrefix(atom_to_list(Name))),
+		  NewAlternative = Alternative#alt{tp = NewTypeName, rl = false, mn = case Mn of 0 -> 0; _ -> 1 end},
+		  NewElement = #el{alts = [Alternative], mn = 1, mx = 1, nr = Pos},
+		  NewTypeDef = #type{nm = NewTypeName, tp = sequence, els = [NewElement], atts = [], nr = 2},
+		  {NewAlternative, [NewTypeDef]}
               end;
             _ ->
               {Alternative, []}
