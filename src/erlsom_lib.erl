@@ -40,7 +40,7 @@
          xmlString/1,
          strip/1,
          toUnicode/1, detect_encoding/1, detectEncoding/3,
-         findFile/4, find_xsd/4, findType/6,
+         findFile/4, find_xsd/4, findType/6, findType/2,
          readImportFile/1,
          newTree/0, addTreeElement/3, isAncestor/3, getAncestor/2,
          getLeaves/2,
@@ -581,13 +581,15 @@ toUnicode(Bin) ->
   autodetect(Bin).
 
 findType(TypeReference, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping) ->
+    case findXsiType(Attributes) of
+      {value, XsiType} ->
+        findDerivedType(TypeReference, XsiType, Types, TypeHierarchy, Namespaces, NamespaceMapping);
+      _ -> findType(TypeReference, Types)
+    end.
+
+findType(TypeReference, Types) ->
   case lists:keysearch(TypeReference, #type.nm, Types) of
-    {value, Value} ->
-      case findXsiType(Attributes) of
-        {value, XsiType} ->
-          findDerivedType(TypeReference, XsiType, Types, TypeHierarchy, Namespaces, NamespaceMapping);
-        _ -> Value
-      end;
+    {value, Value} -> Value;
     _Else ->
       throw({error, "Type not found: " ++ atom_to_list(TypeReference)})
   end.
