@@ -175,7 +175,6 @@
 -include("exception.hrl").
 -include("erlsom_sax.hrl").
 -include("erlsom_parse.hrl"). %% the record definitions
--import(erlsom_lib, [findType/6]).
 -import(erlsom_lib, [convertPCData/4]).
 
 
@@ -334,11 +333,11 @@ xml2StructCallback(Event, State) ->
              State#state{namespaces = lists:keydelete(Prefix, 3, Namespaces)}
          end;
       endDocument ->
-         case State of
+         case popNonRealElements(State) of
            {result, Result} ->
              Result;
            _Else ->
-             throw({error, "unexpected end"})
+             throw({error, "unexpected end", (hd((_Else#state.currentState)#cs.re))#el.alts})
          end;
       {error, Message} ->
          throw(Message);
@@ -349,6 +348,31 @@ xml2StructCallback(Event, State) ->
     ?EXCEPTION(error, Reason, Stacktrace) -> throwError(error, {Reason, ?GET_STACK(Stacktrace)}, Event, State);
     Class:Exception -> throwError(Class, Exception, Event, State)
   end.
+
+popNonRealElements(#state{currentState = #cs{rl = true}} = State) -> State;
+popNonRealElements(State = #state{currentState = CS = #cs{re = [#el{mn = MinOccurs} | Tail], sf = ReceivedSoFar}})
+    when ReceivedSoFar >= MinOccurs ->
+    popNonRealElements(State#state{currentState = CS#cs{re = Tail, sf = 0}});
+popNonRealElements(State = #state{currentState = #cs{re = [],
+                                                     er = ElementRecord},
+                                  value_fun = VFun,
+                                  value_acc = Acc,
+                                  resultSoFar = [Head | Tail]}) ->
+    %% debugMessage("~nPop (after 'non-real' element)"),
+    %% debugState(State),
+    {NewCurrentState, Acc2} = pop(ElementRecord, Head, VFun, Acc),
+    NewState = State#state{currentState = NewCurrentState,
+        resultSoFar = Tail,
+        value_acc = Acc2},
+    popNonRealElements(NewState);
+popNonRealElements(_State = #state{currentState = #cs{re = [],
+                                                      er = ElementRecord},
+                                   value_fun = ValueFun,
+                                   value_acc = Acc,
+                                   resultSoFar = []}) ->
+    %% debugState(_State),
+    applyValueFun(ValueFun, ElementRecord, Acc);
+popNonRealElements(State) -> State.
 
 %% the initial call can either be with a #state record, or with just the model.
 stateMachine(Event, Model = #model{value_fun = ValueFun}) ->
@@ -372,7 +396,7 @@ stateMachine(Event, Model = #model{value_fun = ValueFun}) ->
 %% CurrentState is a tuple {RemainingElements, ReceivedSoFar, ElementRecord, RealElement}
 stateMachine(Event,
              State = #state{currentState=undefined,
-                            model = #model{tps = [#type{nm = _document,
+                            model = #model{tps = [#type{nm = '_document',
                                                         els = [#el{alts = Alternatives} | _]} | _],
                                            nss = NamespaceMapping,
                                            th = TypeHierarchy,
@@ -387,7 +411,7 @@ stateMachine(Event,
       case lists:keysearch(Name, #alt.tag, Alternatives) of
         {value, #alt{tp = TypeReference, rl = RealElement}} ->
           %% look for the type description
-          TheType = findType(TypeReference, Types, AttributeValues, TypeHierarchy, Namespaces, NamespaceMapping),
+          TheType = findType(RealElement, TypeReference, Types, AttributeValues, TypeHierarchy, Namespaces, NamespaceMapping),
           #type{tp = Tp, els = Elements2, mxd = Mixed} = TheType,
           %% create new record for this element &
           %% process the attributes
@@ -538,7 +562,7 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
                   %% not text: a complex type.
                   %% look for the type discription
                   %% debug("Not text: a complex type"),
-                  TypeDef = findType(Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
+                  TypeDef = findType(Real, Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
                   %% #type{els = Elements, atts = ListOfAttributes, nr = NrOfElements} = TypeDef,
                   %% create new record for this element
                   %% process the attributes
@@ -800,7 +824,7 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
                       %% look for the type discription
                       %% debug("Not text: a complex type"),
                       %% Look for xsi:type attribute
-                      TypeDef = findType(Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
+                      TypeDef = findType(RealElement2, Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
                       #type{els = Elements, tp = Tp, mxd = Mxd} = TypeDef,
                       case RealElement2 of
                         true -> NewMxd = Mxd;
@@ -893,7 +917,7 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
                                      NewState = undefined
                                  end; %}
                                true ->  %% not a real element
-                                 TypeDef = findType(Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
+                                 TypeDef = erlsom_lib:findType(Type, Types),
                                  %% debug(Type),
                                  #type{els = Elements, tp = Tp, mxd = Mxd} = TypeDef,
                                  NewRecord = newRecord(TypeDef, StoreAnyAttr),
@@ -967,7 +991,7 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
           %% TODO: this seems to be a bit odd? What is this is a reference to a group?
           %% a helper element for this text
           %% look for the type discription
-          TypeDef = findType(Type, Types, [], TypeHierarchy, Namespaces, NamespaceMapping),
+          TypeDef = erlsom_lib:findType(Type, Types),
           %% create new record for this element
           %% (can't have any attributes)
           NewRecord = newRecord(TypeDef, StoreAnyAttr),
@@ -1065,7 +1089,7 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
                %% not text: a complex type.
                %% look for the type discription
                %% Look for xsi:type attribute
-               TypeDef = findType(Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
+               TypeDef = findType(RealElement, Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
                #type{els = Elements, tp = Tp} = TypeDef,
                %% create new record for this element
                %% process the attributes
@@ -1519,3 +1543,9 @@ applyValueFun(skip, ElementRecord, _Acc) ->
 applyValueFun(ValueFun, ElementRecord, Acc) ->
   {_, Result} = ValueFun(ElementRecord, Acc),
   {result, Result}.
+
+
+findType(false, TypeReference, Types, _AttributeValues, _TypeHierarchy, _Namespaces, _NamespaceMapping) ->
+    erlsom_lib:findType(TypeReference, Types);
+findType(_, TypeReference, Types, AttributeValues, TypeHierarchy, Namespaces, NamespaceMapping) ->
+    erlsom_lib:findType(TypeReference, Types, AttributeValues, TypeHierarchy, Namespaces, NamespaceMapping).
