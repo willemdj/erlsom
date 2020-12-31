@@ -249,7 +249,8 @@ xsdModel(Namespaces) ->
                         mx = unbound,
                         nr = 6}],
              atts = [#att{nm = name, nr = 3, opt = false, tp = ascii},
-                     #att{nm = id, nr = 4, opt = true, tp = char}],
+                     #att{nm = id, nr = 4, opt = true, tp = char},
+                     #att{nm = final, nr = 5, opt = true, tp = char}],
              nr = 5},
 
 %% -record(localSimpleTypeType, {annotation, model}).
