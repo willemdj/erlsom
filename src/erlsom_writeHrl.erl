@@ -113,7 +113,25 @@ standard_types(AnyAtts) ->
   "-endif.\n".
 
 writeTypes(Types, TypeHierarchy, AnyAtts) ->
-  [standard_types(AnyAtts), [writeType(T, TypeHierarchy, AnyAtts) || T <- Types]].
+  [standard_types(AnyAtts), [filterType(Types, TypeHierarchy, AnyAtts)]].
+
+filterType(Types, TypeHierarchy, AnyAtts) ->
+  filterType2(Types, TypeHierarchy, AnyAtts, [], maps:new()).
+
+filterType2([H|L], TypeHierarchy, AnyAtts, Acc, Maps) ->
+  case  H of
+    #type{nm = Name} ->
+      case maps:is_key(Name, Maps) of
+        true ->
+          filterType2(L, TypeHierarchy, AnyAtts, [Acc], Maps);
+        false ->
+          NewMaps = maps:put(Name, 1, Maps),
+          filterType2(L, TypeHierarchy, AnyAtts, [writeType(H, TypeHierarchy, AnyAtts) | Acc], NewMaps)
+      end;
+    _ -> [[]|Acc]
+  end;
+filterType2([], _TypeHierarchy, _AnyAtts, Acc, _Maps) ->
+  [Acc].
 
 writeType(#type{nm = '_document'}, _, _) ->
   [];
