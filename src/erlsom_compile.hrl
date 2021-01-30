@@ -36,7 +36,7 @@
                            simpleOrComplex, unique}).
 -record(globalComplexTypeType, {elInfo, name, final, abstract, block, mixed, id, annotation, model, attributes, anyAttribute}).
 -record(localComplexTypeType, {elInfo, mixed, annotation, model, attributes, anyAttribute}).
--record(globalSimpleTypeType, {elInfo, name, id, annotation, model}).
+-record(globalSimpleTypeType, {elInfo, name, id, final, annotation, model}).
 -record(localSimpleTypeType, {elInfo, annotation, model}).
 -record(simpleContentType, {elInfo, annotation, model, id}).
 -record(groupDefType, {elInfo, name, annotation, model}).

@@ -243,15 +243,15 @@ xsdModel(Namespaces) ->
              els = [#el{alts = [#alt{tag = 'xsd:annotation', tp = 'annotationType'}],
                         mn = 0,
                         mx = 1,
-                        nr = 5},
+                        nr = 6},
                     #el{alts =  [#alt{tag = '#any', tp = any, nxt = [], anyInfo = AnyInfo}],
                         mn = 0,
                         mx = unbound,
-                        nr = 6}],
+                        nr = 7}],
              atts = [#att{nm = name, nr = 3, opt = false, tp = ascii},
                      #att{nm = id, nr = 4, opt = true, tp = char},
                      #att{nm = final, nr = 5, opt = true, tp = char}],
-             nr = 5},
+             nr = 6},
 
 %% -record(localSimpleTypeType, {annotation, model}).
 %% simpleType - restriction, list and union are ignored.
