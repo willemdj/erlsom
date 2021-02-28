@@ -153,6 +153,7 @@ pass0Alternatives([Head | Tail], TypeToReferTo, Acc) ->
 
 %% This also creates the type-hierarchy
 translateTypes([Type | Tail], Acc, GlobalAcc, Types, Info = #schemaInfo{namespaces=NS}, TypeHierarchy) ->
+  %%#typeInfo{restricts = Base} = Type,
   {TranslatedType, TypeOfType} = translateType(Type, Types, Info),
   {Th, TranslatedType2} = case Type#typeInfo.base of
                             undefined ->
@@ -239,20 +240,26 @@ translateType(Type = #typeInfo{elements = Elemts, attributes = Attrs,
 translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base, anyAttr = AnyAttr, mixed = Mixed},
               Types, Info = #schemaInfo{namespaces=NS, strict = Strict})
   when Base /= undefined ->
-  case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS, Strict), Types) of
-    {value, #typeInfo{elements = BaseEls, attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2, restricts = Base3, mixed = Mixed2}} ->
-      %% debug(Elemts),
-      %% debug(BaseEls),
-      %% debug(Attrs),
-      %% debug(BaseAttrs),
-      NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
-      translateType(Type#typeInfo{elements = BaseEls ++ Elemts, %% TODO: will never be 'undefined'?
-                                  attributes = mergeAttrs(BaseAttrs, Attrs),
-                                  anyAttr = NewAnyAttr,
-                                  mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,
-                                  extends = Base2, restricts = Base3}, Types, Info);
-    _Else ->
-      throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, NS, Strict)})
+  case erlsom_lib:makeTypeRef(Base, NS, Strict) of
+    {'#PCDATA', _T} ->
+      translateType(Type#typeInfo{extends = undefined}, Types, Info);
+    TypeRef ->
+      case erlsom_lib:searchBase(TypeRef, Types) of
+        {value, #typeInfo{elements = BaseEls0, attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2, restricts = Base3, mixed = Mixed2}} ->
+          BaseEls = case BaseEls0 of undefined -> []; _ -> BaseEls0 end,
+          %% debug(Elemts),
+          %% debug(BaseEls),
+          %% debug(Attrs),
+          %% debug(BaseAttrs),
+          NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
+          translateType(Type#typeInfo{elements = BaseEls ++ Elemts, %% TODO: will never be 'undefined'?
+                                      attributes = mergeAttrs(BaseAttrs, Attrs),
+                                      anyAttr = NewAnyAttr,
+                                      mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,
+                                      extends = Base2, restricts = Base3}, Types, Info);
+        _Else ->
+          throw({error, "Base type not found: " ++ erlsom_lib:makeTypeRef(Base, NS, Strict)})
+      end
   end;
 
 %% resolve 'restricted' types: look up the base and add its attributes (actually: replace the
@@ -277,6 +284,8 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, restricts = Ba
               Types, Info = #schemaInfo{namespaces=NS, strict=Strict})
   when Base /= undefined ->
   case erlsom_lib:searchBase(erlsom_lib:makeTypeRef(Base, NS, Strict), Types) of
+    {'#PCDATA', _T} ->
+      translateType(Type#typeInfo{restricts = undefined}, Types, Info);
     {value, #typeInfo{attributes = BaseAttrs, anyAttr = BaseAnyAttr, extends = Base2,
                       restricts = Base3, mixed = Mixed2}} ->
       %% debug(Elemts),
@@ -297,7 +306,7 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, restricts = Ba
 
 %% this corresponds with simple types. They don't have to be included in the model,
 %% since references will be replaced by {#PCDATA, ...} type.
-translateType(#typeInfo{typeType = simpleType}, _Types, _Info) ->
+translateType(#typeInfo{typeType = simpleType} = _T, _Types, _Info) ->
   {[], noType};
 
 translateType(#typeInfo{typeName=Name, typeRef=undefined,

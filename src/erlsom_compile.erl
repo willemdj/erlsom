@@ -619,18 +619,22 @@ translateAnyAttrValue(#anyAttributeType{namespace = Ns, processContents = Pc}, T
 %% -record(simpleContentType, {annotation, model}).
 %% -record(extensionType, {annotation, attributes, anyAttribute}).
 %% This is a bit weird - see it as a hook to do something else with the simpleContentType
-translateSimpleContentTypeModel(#simpleContentType{model=#extensionType{attributes=Attributes, anyAttribute = AnyAttr}},
+translateSimpleContentTypeModel(#simpleContentType{model=#extensionType{attributes=Attributes, 
+                                                                        anyAttribute = AnyAttr,
+                                                                        base = Base}},
                                 Acc = #p1acc{tns = Tns}) ->
    TheAttributes = translateAttributes(Attributes, Acc),
    AnyAttrValue = translateAnyAttrValue(AnyAttr, Tns),
-   {TheAttributes, AnyAttrValue};
-translateSimpleContentTypeModel(#simpleContentType{model=#restrictionType{attributes=Attributes, anyAttribute = AnyAttr}},
+   {TheAttributes, AnyAttrValue, undefined, Base};
+translateSimpleContentTypeModel(#simpleContentType{model=#restrictionType{attributes=Attributes,
+                                                                          anyAttribute = AnyAttr, 
+                                                                          base = Base}},
                                 Acc = #p1acc{tns = Tns}) ->
    TheAttributes = translateAttributes(Attributes, Acc),
    AnyAttrValue = translateAnyAttrValue(AnyAttr, Tns),
-   {TheAttributes, AnyAttrValue};
+   {TheAttributes, AnyAttrValue, Base, undefined};
 translateSimpleContentTypeModel(#simpleContentType{}, _Acc) ->
-   {[], undefined}.
+   {[], undefined, undefined, undefined}.
 
 translateAttributes(undefined, _Acc) ->
   [];
@@ -695,8 +699,9 @@ translateComplexTypeModel(SCType = #simpleContentType{}, Acc = #p1acc{}) ->
   %% this will be a 'mixed' type: it will have a '#text' alternative
   Element = #elementInfo{alternatives=[#alternative{tag="#text", type="##string", real=false}],
                                              min=0, max=1},
-  {TheAttributes, AnyAttr} = translateSimpleContentTypeModel(SCType, Acc),
-  {#typeInfo{elements = [Element], seqOrAll = text, attributes=TheAttributes, anyAttr = AnyAttr}, Acc};
+  {TheAttributes, AnyAttr, Restricts, Extends} = translateSimpleContentTypeModel(SCType, Acc),
+  {#typeInfo{elements = [Element], seqOrAll = text, attributes=TheAttributes, anyAttr = AnyAttr,
+             restricts = Restricts, extends = Extends}, Acc};
 
 translateComplexTypeModel(#complexContentType{model = Model, mixed = Mixed}, Acc) ->
   {Type, Acc2} = translateComplexTypeModel(Model, Acc),
