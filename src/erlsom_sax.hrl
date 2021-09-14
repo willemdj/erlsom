@@ -36,7 +36,7 @@
    current_entity = '__top',
    namespaces = [],
    endtags = [],
-   output, %% determines the encoding of text and atttribute values
+   output, %% determines the encoding of text and attribute values
    expand_entities = true, %% if false, user defined entities will
                            %% be ignored in the DTD, and use of entities
                            %% will fail.
@@ -68,7 +68,7 @@
 -define(is_namestart_char(C),
         C > 96, C < 123; C > 64, C < 91; C =:= $_).
 
--define(is_namestart_char2(C),          %%  also for characters <> 7 bit asscii
+-define(is_namestart_char2(C),          %%  also for characters <> 7 bit ascii
         C > 96, C < 123; C > 64, C < 91; C =:= $_;
         C > 191, C =/= 215, C =/= 247). %% this check is far from complete!
 

@@ -626,7 +626,7 @@ parseStartTag(Tail, State) ->
 parseTagName(?STR1_T(Char, Tail), State)
   when ?is_namestart_char(Char) ->
   %% this should differentiate between 'with namespaces'and 'without'
-  %% for the moment the assumption is 'with', therfore a name cannot
+  %% for the moment the assumption is 'with', therefore a name cannot
   %% start with a ':'.
   parseTagName([Char], Tail, State);
 parseTagName(?EMPTY, State) ->
@@ -1025,8 +1025,8 @@ parseTextNoIgnoreBinary(Head, Tail, State) ->
   EncodedChar = erlsom_ucs:char_to_utf8(Char),
   parseTextNoIgnoreBinary(<<Head/binary, EncodedChar/binary>>, Tail2, State2).
 
-%% entity refernces in attribute values differ fundamentally from
-%% refernces in elements and in entity definitions
+%% entity references in attribute values differ fundamentally from
+%% references in elements and in entity definitions
 %% Context can be: element, attribute, definition
 parseReference(Head, Context, ?STR1_T($;, Tail), State) ->
   translateReference(lists:reverse(Head), Context, Tail, State);
@@ -1044,7 +1044,7 @@ parseReference(Head, Context, Tail, State) ->
 %% other entities are added to the tail (they still have to be parsed).
 %% The problem here is that we have to make sure that we don't get into an infinite
 %% loop. This solved as follows:
-%% We proceed by parsing only the entity (while registring in the state that we
+%% We proceed by parsing only the entity (while registering in the state that we
 %% are parsing this particular entity). However, we replace the continuation function
 %% by something that simply returns (in stead of calling the function that it was
 %% working on recursively). We then proceed.

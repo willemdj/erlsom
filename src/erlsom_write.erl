@@ -23,7 +23,7 @@
 %%% ====================================================================
 
 %%% This is the companion of erlsom_parse, which performs the inverse operation.
-%%% Both modules use the same 'model' that descibes the translation, see the
+%%% Both modules use the same 'model' that describes the translation, see the
 %%% introduction to erlsom_parse for the definition of this model.
 
 -module(erlsom_write).
@@ -315,7 +315,7 @@ processAlternativeValue(Value, Count,
   TagAsText = atom_to_list(Tag),
   if
     RealElement ->
-      %% proces the attributes
+      %% process the attributes
       {AttributesString, NewDeclaredNamespaces} = processAttributes(Value, [], Attributes, Namespaces, DeclaredNamespaces),
       %% process anyAttributes
       %% for now we don't check whether 'anyAttributes' are allowed!
@@ -718,7 +718,7 @@ printNilValue([#alt{tag=Tag, tp = RecordType}], Value, #model{tps = Types, any_a
   TypeRecord = findType(RecordType, Types),
   Attributes = TypeRecord#type.atts,
 
-  %% proces the attributes
+  %% process the attributes
   {AttributesString, NewDeclaredNamespaces} = processAttributes(Value, [], Attributes, Namespaces, DeclaredNamespaces),
   %% process anyAttributes
   %% for now we don't check whether 'anyAttributes' are allowed!

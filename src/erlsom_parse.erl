@@ -26,7 +26,7 @@
 %% translate XML (that follows a certain schema - grammar) to a
 %% predefined structure (a set of linked records).
 %%
-%% The XSD is translated to a stucture (called the 'Model'in the code below)
+%% The XSD is translated to a structure (called the 'Model'in the code below)
 %% that drives the parser, the parser self is generic.
 %%
 %% The main function is a callback that will be called by the SAX parser.
@@ -93,7 +93,7 @@
 %% Each Alternative is of the form {Tag, TypeReference, MinOccurs, MaxOccurs,
 %% RealElement}.
 %% - Tag is generally the tag of the element. In case of a 'choice', the
-%%   combination of the Tag and the next event determines which altenative is
+%%   combination of the Tag and the next event determines which alternative is
 %%   selected. Tag can also be '#text', in which case we expect a 'character'
 %%   event.
 %% - TypeReference is either a reference to a Type (a TypeName), or a tuple
@@ -541,7 +541,7 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
           %% check on MaxOccurs
           if %%{
             Max /= unbound, Count >= Max ->
-              %% debug("But we have already recieved this event the maximum number of times"),
+              %% debug("But we have already received this event the maximum number of times"),
               %% pop.
               {NewCurrentState, Acc2} = pop(lists:reverse(Acc), Head, VFun, ValueAcc),
               NewState = State#state{currentState = NewCurrentState,
@@ -560,7 +560,7 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
                   resultSoFar = [State#state.currentState | State#state.resultSoFar]};
                 _Else ->
                   %% not text: a complex type.
-                  %% look for the type discription
+                  %% look for the type description
                   %% debug("Not text: a complex type"),
                   TypeDef = findType(Real, Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
                   %% #type{els = Elements, atts = ListOfAttributes, nr = NrOfElements} = TypeDef,
@@ -787,7 +787,7 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
           %% debug("This is a valid alternative"),
           if
             MaxOccurs /= unbound, ReceivedSoFar >= MaxOccurs ->
-              %% debug("But we have already recieved this event the maximum number of times"),
+              %% debug("But we have already received this event the maximum number of times"),
               %% move on
               NewState = State#state{currentState = #cs{re = NextElements,
                                                         sf = 0,
@@ -821,7 +821,7 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
                       end;
                     _Else ->
                       %% not text: a complex type.
-                      %% look for the type discription
+                      %% look for the type description
                       %% debug("Not text: a complex type"),
                       %% Look for xsi:type attribute
                       TypeDef = findType(RealElement2, Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
@@ -990,13 +990,13 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
           %% debug("odd case"),
           %% TODO: this seems to be a bit odd? What is this is a reference to a group?
           %% a helper element for this text
-          %% look for the type discription
+          %% look for the type description
           TypeDef = erlsom_lib:findType(Type, Types),
           %% create new record for this element
           %% (can't have any attributes)
           NewRecord = newRecord(TypeDef, StoreAnyAttr),
           %% push the current status, create a new level in the state machine
-          %% (we know that this is a helperElement, therfore RealElement = false)
+          %% (we know that this is a helperElement, therefore RealElement = false)
           NewState = State#state{currentState = #cs{re = TypeDef#type.els,
                                                     sf = 0,
                                                     er = NewRecord,
@@ -1087,7 +1087,7 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
                end;
             _Else ->
                %% not text: a complex type.
-               %% look for the type discription
+               %% look for the type description
                %% Look for xsi:type attribute
                TypeDef = findType(RealElement, Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
                #type{els = Elements, tp = Tp} = TypeDef,
@@ -1127,7 +1127,7 @@ stateMachine(Event, State = #state{currentState = #all{re = RemainingElements,
       end;
 
     {characters, Characters} ->
-       %% should be be extended to deal with mixed alements, or wit simple elements with attributes?
+       %% should be be extended to deal with mixed alements, or with simple elements with attributes?
        %% not sure...
          throw({error,
                 pp("Unexpected characters event in All: ~s", [Characters])});
@@ -1478,7 +1478,7 @@ printResultSoFar([_H | T], Acc) ->
 %% loop go through the list of elements, checking whether the
 %% tag occurs as an alternative in any one of them.
 %% return the alternative and remove this element from the list of elements.
-%% if the elemnt is not found, return false
+%% if the element is not found, return false
 findTagInElements(Tag, Elements) ->
   findTagInElements(Tag, Elements, []).
 findTagInElements(_Tag, [], _) -> false;

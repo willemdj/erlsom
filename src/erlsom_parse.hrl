@@ -43,7 +43,7 @@
                mn = 1, mx = 1, mxd = false, %% mn & mx are only used by erlsom_compile
                typeName}).  %% typeName is the 'real' name, to be used in xsi:type attributes
                             %% for derived types. The 'nm' field is actually a key, which may
-                            %% include an additional prefix to differntiate between elements, types
+                            %% include an additional prefix to differentiate between elements, types
                             %% and groups.
 -record(el, {alts, mn = 1, mx = 1, nillable,
              nr %% nr is actually the position of the value in the

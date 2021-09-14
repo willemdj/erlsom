@@ -5,7 +5,7 @@
 
 <?TARGET This is a programming instruction ?>
 
-<!-- DTD is ingored, except for the entities !-->
+<!-- DTD is ignored, except for the entities !-->
 <!DOCTYPE aDTD [
   <!ELEMENT anElement (#PCDATA)>
   <!ENTITY zz 'entity' >
