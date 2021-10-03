@@ -237,6 +237,8 @@ writeAlternative(#alt{rl = false, tp=Tp, mx=Max2}, Min, Max, Nillable, _H) ->
 formatRecord(Type) ->
     io_lib:format("#~p{}", [Type]).
 
+formatType('#ANY') ->
+    "any()";
 formatType(Type) ->
     io_lib:format("~p()", [Type]).
 

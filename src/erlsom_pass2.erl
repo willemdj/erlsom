@@ -226,7 +226,7 @@ translateType(Type = #typeInfo{elements = Elemts, attributes = Attrs,
                                anyAttr = AnyAttr, mixed = Mixed},
               Types, Info = #schemaInfo{}) ->
   AnyInfo = #anyInfo{prCont = "lax", ns = "##any"},
-  Any = [#elementInfo{alternatives = [#alternative{tag = "#any", type = "any",
+  Any = [#elementInfo{alternatives = [#alternative{tag = "#any", type = '#ANY',
                                                    real = true, min = 1, max = 1,
                                                    anyInfo = AnyInfo}],
                       min = 0, max = unbound}],
@@ -834,6 +834,9 @@ add_alternative_no_dups(Alt = #alt{tag = Tag}, List) ->
 
 list_to_type("##string") ->
   {'#PCDATA', 'char'};
+
+list_to_type('#ANY') ->
+  '#ANY';
 
 list_to_type(Type = {'#PCDATA', _}) ->
   Type;

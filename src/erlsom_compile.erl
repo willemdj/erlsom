@@ -481,7 +481,7 @@ transformTypes([#globalElementType{name=Name, type=undefined, simpleOrComplex=So
         transformTypes(Tail, Acc2#p1acc{path = [], tps = [Type2 | ResultSoFar2]});
       undefined ->
         AnyInfo = #anyInfo{prCont = "lax", ns = "##any"},
-        Element = #elementInfo{alternatives=[#alternative{tag="#any", type="any", real=true, anyInfo = AnyInfo}],
+        Element = #elementInfo{alternatives=[#alternative{tag="#any", type='#ANY', real=true, anyInfo = AnyInfo}],
                                min=1, max=1},
         ThisType = #typeInfo{typeName = erlsom_lib:makeElementName(Name, Prefix), global = true
                    ,         elements = [Element]
@@ -720,7 +720,7 @@ translateComplexTypeModel(#anyType{minOccurs=Min, maxOccurs = Max, namespace = N
    AnyInfo = #anyInfo{prCont = case Pc of undefined -> "strict"; _ -> Pc end,
                       ns = case Ns of undefined -> "##any"; _ -> Ns end,
                       tns = Tns},
-   Elements = [#elementInfo{alternatives=[#alternative{tag="#any", type="any", real=true, anyInfo = AnyInfo}],
+   Elements = [#elementInfo{alternatives=[#alternative{tag="#any", type='#ANY', real=true, anyInfo = AnyInfo}],
                             min= minMax(Min), max= minMax(Max)}],
    {#typeInfo{elements = Elements, seqOrAll = any}, Acc};
 %% -record(groupRefType, {ref, minOccurs, maxOccurs}).
@@ -818,7 +818,7 @@ translateElement(#anyType{minOccurs=Min, maxOccurs = Max, namespace = Ns, proces
    AnyInfo = #anyInfo{prCont = case Pc of undefined -> "strict"; _ -> Pc end,
                       ns = case Ns of undefined -> "##any"; _ -> Ns end,
                       tns = Tns},
-  Element = #elementInfo{alternatives=[#alternative{tag="#any", type="any", real=true, anyInfo = AnyInfo}], min=minMax(Min),
+  Element = #elementInfo{alternatives=[#alternative{tag="#any", type='#ANY', real=true, anyInfo = AnyInfo}], min=minMax(Min),
                          max=minMax(Max)},
   {Element, Acc};
 
@@ -887,7 +887,7 @@ translateAlternative(#groupRefType{ref=Ref, minOccurs=Min, maxOccurs=Max}, Acc =
 translateAlternative(#anyType{minOccurs=_Min, maxOccurs = _Max, namespace = Ns, processContents = Pc}, Acc) ->
    AnyInfo = #anyInfo{prCont = case Pc of undefined -> "strict"; _ -> Pc end,
                      ns = case Ns of undefined -> "##any"; _ -> Ns end},
-  {#alternative{tag="#any", type="any", real=true, anyInfo = AnyInfo}, Acc};
+  {#alternative{tag="#any", type='#ANY', real=true, anyInfo = AnyInfo}, Acc};
 translateAlternative(Sequence = #sequenceType{minOccurs=Min, maxOccurs=Max},
                      Acc = #p1acc{efd = Efd, nsp = Prefix, path = Path, seqCnt = Count}) ->
   Count2 = Count + 1,
