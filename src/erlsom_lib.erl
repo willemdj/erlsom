@@ -483,7 +483,6 @@ makeTypeRefAtom(Qname, Namespaces) ->
 makeTypeRef(undefined, _, _) ->
   %% the 'ur-type': any type (and any attribute).
   '#ANY';
->>>>>>> issue_81
 
 makeTypeRef(Qname = #qname{uri = NS, localPart = Local}, Namespaces, Strict) ->
   TypePrefix = case get(erlsom_typePrefix) of
