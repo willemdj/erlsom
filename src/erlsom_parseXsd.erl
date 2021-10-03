@@ -269,7 +269,7 @@ xsdModel(Namespaces) ->
              nr = 3},
 
 %% -record(simpleContentType, {annotation, model}).
-%% simpleContent - extension can contain attibutes, so we have to parse
+%% simpleContent - extension can contain attributes, so we have to parse
 %% one additional level.
        #type{nm = simpleContentType,
              anyAttr = AnyAttr,

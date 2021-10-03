@@ -1,6 +1,6 @@
 %%% translate XML to the output format used by XMERL.
 %%% The output is not complete: some fields in the XMERL output records
-%%% are not populated. But is it enough to use the XPATH fucntions (at
+%%% are not populated. But is it enough to use the XPATH functions (at
 %%% least for the examples that I tried).
 %%%
 %%% Note: this hasn't been tested properly. See it as an example of how
@@ -17,7 +17,7 @@
 
 -include_lib("erlsom/src/erlsom_sax.hrl").
 
-%% The record defintions below are copied from xmerl hrl files!
+%% The record definitions below are copied from xmerl hrl files!
 %% XML Element
 %% content = [#xmlElement()|#xmlText()|#xmlPI()|#xmlComment()|#xmlDecl()]
 -record(xmlElement,{

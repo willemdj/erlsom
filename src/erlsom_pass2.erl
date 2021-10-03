@@ -73,7 +73,7 @@ secondPass(IntermediateStruct,
   Types2 = pass3(Types1, Info),
   Types3 = pass4(Types2, Info),
   DocType = make_Document(GlobalElements, [], Info),
-  %% fiddle a bit more - replace refernces in the _document that point
+  %% fiddle a bit more - replace references in the _document that point
   %% to unknown types by {#PCDATA, ...}, assuming that they point to
   %% simple types that are no longer visible. Even if that assumption
   %% would be wrong, it wouldn't have worked otherwise either, so it won't
@@ -377,7 +377,7 @@ seqOrAll(all) -> all;
 seqOrAll(_) -> sequence.
 
 %% purpose of 'Count' is to make sure that we don't get into an infinite loop in case
-%% of circular refernces in attributeGroups
+%% of circular references in attributeGroups
 translateAttributes(_, _Acc, _Pos, _Info, 10) ->
   throw({error, "circular reference in attribute group?"});
 translateAttributes(undefined, _Acc, _Pos, _Info, _Count) ->
@@ -430,7 +430,7 @@ translateAlternatives([], Acc, _Types) ->
 %% -record(alternative, {tag, type, real, min, max}).
 %% Each Alternative is of the form {Tag, TypeReference, RealElement, min, max}.
 %% - Tag is generally the tag of the element. In case of a 'choice', the
-%%   combination of the Tag and the next event determines which altenative is
+%%   combination of the Tag and the next event determines which alternative is
 %%   selected. Tag can also be '#text', in which case we expect a 'character'
 %%   event.
 %% - TypeReference is either a reference to a Type (a TypeName), or a tuple

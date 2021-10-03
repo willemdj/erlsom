@@ -3,7 +3,7 @@
 set -x
 . ./vsn.mk
 
-echo tagging and packing release ${ERLSOM_VSN} 
+echo tagging and packing release ${ERLSOM_VSN}
 
 CVS_RSH=ssh
 Y=`echo ${ERLSOM_VSN} | sed 's/\./-/g'`
@@ -18,7 +18,7 @@ rm -rf erlsom-0.0.1 2> /dev/null
 
 cvs tag -F erlsom-${Y}
 
-rm -rf tmp 
+rm -rf tmp
 mkdir tmp
 
 cvs export -d tmp -r erlsom-$Y .
@@ -30,7 +30,7 @@ mv erlsom erlsom-${ERLSOM_VSN}
 tar cfz  erlsom-${ERLSOM_VSN}.tar.gz   erlsom-${ERLSOM_VSN}
 
 
-echo new release resides in `pwd`/erlsom-${ERLSOM_VSN}.tar.gz 
+echo new release resides in `pwd`/erlsom-${ERLSOM_VSN}.tar.gz
 
 
 

@@ -280,7 +280,7 @@ make_xsd(Schema) ->
   {ok, R} = erlsom:write(Schema, Model),
   erlsom_lib:prettyPrint(R).
 
-%% if no elements are declared explitly, all will be part of the XSD.
+%% if no elements are declared explicitly, all will be part of the XSD.
 exportElement(_Element, []) ->
   true;
 exportElement(Element, List) ->

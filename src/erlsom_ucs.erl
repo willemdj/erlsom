@@ -64,7 +64,7 @@ from_utf8(List) ->
 
 %% expand_utf8([Byte]) -> {[UnicodeChar], Tail, NumberOfBadBytes}
 %%  Expand UTF8 byte sequences to ISO 10646/Unicode
-%%  charactes. Any illegal bytes are removed and the number of
+%%  characters. Any illegal bytes are removed and the number of
 %%  bad bytes are returned.
 %%
 %% Modification (WdJ): Added an output parameter (Tail):
@@ -136,7 +136,7 @@ expand_utf8_1([], Acc, Bad) -> {lists:reverse(Acc), [], Bad}.
 
 %% from_utf16be(List) -> {[UnicodeChar], Tail, NumberOfBadBytes}
 %%  Expand UTF16 byte sequences to ISO 10646/Unicode
-%%  charactes. Any illegal bytes are removed and the number of
+%%  characters. Any illegal bytes are removed and the number of
 %%  bad bytes are returned.
 %%
 %% Modification (WdJ): Added an output parameter (Tail):

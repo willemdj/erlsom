@@ -22,7 +22,7 @@
 %%% Writes record definitions, to be used with Erlsom.
 %%% ====================================================================
 
-%%% Writes record defintions, taking a 'model' (from erlsom_compile) as
+%%% Writes record definitions, taking a 'model' (from erlsom_compile) as
 %%% input.
 
 -module(erlsom_writeHrl).

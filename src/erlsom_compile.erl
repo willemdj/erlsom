@@ -43,7 +43,7 @@
 %% - special treatment is necessary for choices where (some or all)
 %%   alternatives have the same type: otherwise it will not be possible
 %%   to recognise from the result which alternative was selected. For
-%%   the moment this is only implented for 'text' alternatives.
+%%   the moment this is only implemented for 'text' alternatives.
 
 %% Ideally it should also take care of:
 %% - attribute groups
@@ -81,7 +81,7 @@
    %% with multiple XSDs).
    imported = [],  %% a list of imported namespaces, to prevent
    %% getting into a loop when there are circular
-   %% refernces.
+   %% references.
    path = []}).    %% path
 
 
@@ -234,7 +234,7 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
   end,
   ImportedNs = [Uri || {Uri, _} <- AlreadyImported],
   %% Here we are introducing #ns{} records with no value for efd. They
-  %% will be removed later on... (clean_up fucntion, see below).
+  %% will be removed later on... (clean_up function, see below).
   ImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P} <- AlreadyImported],
   %ToBeImportedNsMapping = [#ns{prefix = P, uri = U} || {U, P, _} <- IncludeFiles],
   Acc = #p1acc{tns = TargetNs,
@@ -273,7 +273,7 @@ clean_up(Namespaces) ->
 %% -record(schemaType, {targetNamespace, elementFormDefault, elements}).
 transform(#schemaType{elements=Elements, imports=Impts},
           Acc = #p1acc{}) ->
-  %% transorm element and types etc.
+  %% transform element and types etc.
   %% in TransformedTypes the top-level types have to be recognisable somehow.
   Acc2 = processImports(Impts, Acc),
   transformTypes(Elements, Acc2).
@@ -534,7 +534,7 @@ transformTypes([#globalComplexTypeType{name=Name, model=Model, attributes=Attrib
 
 %%-record(globalSimpleTypeType, {name, annotation, model}).
 %% TODO: better would be to avoid getting the 'any' stuff in the
-%% translation of the XSD alltogether.
+%% translation of the XSD altogether.
 %% transformTypes([#globalSimpleTypeType{name=Name, model=undefined}| Tail],
 transformTypes([#globalSimpleTypeType{name=Name}| Tail],
                 Acc = #p1acc{tps = ResultSoFar, nsp = Prefix}) ->
@@ -777,7 +777,7 @@ findAnyAlternative(Alternatives) ->
       {true, AnyAlternative}
   end.
 
-%% for now only consider elements that are truely wildcards, because they seem
+%% for now only consider elements that are truly wildcards, because they seem
 %% to be the most common type and they are the easiest to deal with.
 isAny(#alt{tag = '#any', anyInfo = #anyInfo{prCont = "lax", ns = "##any"}}) ->
   true;

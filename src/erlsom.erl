@@ -375,7 +375,7 @@ write(Struct, Model, Options) ->
 %%           description of the events
 %%         - State - a term()
 %%
-%%         EventFun should return State, a term() that wil be passed back to
+%%         EventFun should return State, a term() that will be passed back to
 %%         the next invocation of EventFun.
 %%
 %%     Options - [Option]

@@ -327,7 +327,7 @@ translateType(String, true) ->
       {integer, negativeInteger};
     "float" ->
       float;
-    % no disctinction between double and float - both are mapped to
+    % no distinction between double and float - both are mapped to
     % erlang float, no chcecks on size will be performed
     "double" ->
       float;
@@ -468,7 +468,7 @@ makeTypeRefAtom(Qname, Namespaces) ->
   end.
 
 %% makeTypeRef creates a reference to a type. This can either be a type
-%% defined in the XSD (or an imorted XSD), or a predefined type (like
+%% defined in the XSD (or an imported XSD), or a predefined type (like
 %% xsd:string).
 %% For the predefined types special codes are returned ({'#PCDATA', ...}).
 %% input is a qname.
@@ -480,7 +480,7 @@ makeTypeRefAtom(Qname, Namespaces) ->
 
 %% TODO: should return an atom (or {'PCDATA', ...})?
 makeTypeRef(undefined, _, _) ->
-  %% the 'ur-type': any type (and any attibute).
+  %% the 'ur-type': any type (and any attribute).
    {'#PCDATA', 'char'};
 
 makeTypeRef(Qname = #qname{uri = NS, localPart = Local}, Namespaces, Strict) ->
@@ -571,7 +571,7 @@ makeTag(NameInXsd, #schemaInfo{elementFormDefault="qualified", targetNamespace=T
   end;
 
 makeTag(NameInXsd, _SchemaInfo) ->
-  %% defaultElementForm = unqualified, do not add the prefix (TODO: exept for global elements and types).
+  %% defaultElementForm = unqualified, do not add the prefix (TODO: except for global elements and types).
   NameInXsd.
 
 listLength(undefined) -> 0;
