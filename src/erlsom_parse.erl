@@ -807,7 +807,13 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
                   stateMachine(Event, NewState);
 
                 true ->
-                  case Type of
+                  TypeDef = case Type of 
+                            {'#PCDATA', _} ->
+                              Type;
+                            _ ->
+                              findType(RealElement2, Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping)
+                            end,
+                  case TypeDef of
                     {'#PCDATA', PCDataType} ->
                       %% debug("receive text events"),
                       %% push the current status, create a new level in the state machine
@@ -824,7 +830,6 @@ stateMachine(Event, State = #state{currentState = #cs{re = RemainingElements,
                       %% look for the type description
                       %% debug("Not text: a complex type"),
                       %% Look for xsi:type attribute
-                      TypeDef = findType(RealElement2, Type, Types, Attributes, TypeHierarchy, Namespaces, NamespaceMapping),
                       #type{els = Elements, tp = Tp, mxd = Mxd} = TypeDef,
                       case RealElement2 of
                         true -> NewMxd = Mxd;

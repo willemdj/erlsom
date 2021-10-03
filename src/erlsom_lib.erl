@@ -179,6 +179,7 @@ addTreeElement(Child, Parent, Tree) ->
 
 %% find out whether Ancestor is really an Ancestor of Element.
 isAncestor(Element, Element, _Tree) -> true; %% added because of problem reported by Stu
+isAncestor('#ANY', _Element, _Tree) -> true; %% issue 81
 isAncestor(Ancestor, Element, Tree) ->
   case lists:keysearch(Element, 1, Tree) of
     {value, {_, Ancestor}} -> true;
@@ -481,7 +482,8 @@ makeTypeRefAtom(Qname, Namespaces) ->
 %% TODO: should return an atom (or {'PCDATA', ...})?
 makeTypeRef(undefined, _, _) ->
   %% the 'ur-type': any type (and any attribute).
-   {'#PCDATA', 'char'};
+  '#ANY';
+>>>>>>> issue_81
 
 makeTypeRef(Qname = #qname{uri = NS, localPart = Local}, Namespaces, Strict) ->
   TypePrefix = case get(erlsom_typePrefix) of
@@ -584,9 +586,15 @@ findType(TypeReference, Types, Attributes, TypeHierarchy, Namespaces, NamespaceM
     case findXsiType(Attributes) of
       {value, XsiType} ->
         findDerivedType(TypeReference, XsiType, Types, TypeHierarchy, Namespaces, NamespaceMapping);
-      _ -> findType(TypeReference, Types)
+      _ -> 
+        findType(TypeReference, Types)
     end.
 
+%% If this is an anyType and no xsi:type attribute has been provided, assume that the value is a string.
+%% This is how it used to work in earlier versions (before issue 81), so for backwards compatibility
+%% this behaviour should continue to work. 
+findType('#ANY', _Types) ->
+  {'#PCDATA', char};
 findType(TypeReference, Types) ->
   case lists:keysearch(TypeReference, #type.nm, Types) of
     {value, Value} -> Value;
@@ -602,7 +610,7 @@ findXsiType([_| Tail]) ->
   findXsiType(Tail).
 
 findDerivedType(Type, XsiType, Types, TypeHierarchy, Namespaces, NamespaceMapping) ->
-  #qname{localPart = LocalName, mappedPrefix = MappedPrefix} =
+  #qname{localPart = LocalName, mappedPrefix = MappedPrefix, uri = TypeNS} =
     convertPCData(XsiType, qname, Namespaces, NamespaceMapping),
   XsiTypeMapped = list_to_atom(makeTypeName(LocalName, case MappedPrefix of undefined -> ""; "" -> ""; _ -> MappedPrefix ++ ":" end)),
   case isAncestor(Type, XsiTypeMapped, TypeHierarchy) of
@@ -613,7 +621,12 @@ findDerivedType(Type, XsiType, Types, TypeHierarchy, Namespaces, NamespaceMappin
         {value, Value} ->
           Value;
         _ ->
+          case TypeNS of
+            "http://www.w3.org/2001/XMLSchema" ->
+              {'#PCDATA', char};
+            _ ->
           throw({error, "Derived type not found: " ++ atom_to_list(Type)})
+      end
       end
   end.
 

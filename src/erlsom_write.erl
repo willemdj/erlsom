@@ -373,6 +373,12 @@ findAlternative(RecordType, Alternatives, #model{th = TypeHierarchy} = Model, Ab
             AnyAlternatives = Alternatives ++ erlsom_lib:documentAlternatives(Model),
             findAlternative(RecordType, AnyAlternatives, Model, Abstract);
           _ ->
+            %% see whether there is an "anyType" alternative
+            case lists:keysearch('#ANY', #alt.tp, Alternatives) of
+              {value, AnyAlternative} ->
+                %% return this alternative, but with the type set to the actual type
+                {AnyAlternative#alt{tp = RecordType}, Abstract};
+            _ ->
             %% see whether an ancestor in the type hierarchy is among the alternatives
             case erlsom_lib:getAncestor(RecordType, TypeHierarchy) of
               {value, Ancestor} ->
@@ -380,6 +386,7 @@ findAlternative(RecordType, Alternatives, #model{th = TypeHierarchy} = Model, Ab
               _ ->
                 throw({error, "Struct doesn't match model: recordtype not expected: " ++ atom_to_list(RecordType)})
             end
+        end
         end
   end.
 
@@ -633,10 +640,14 @@ printValue(CurrentValue, Alternatives, Namespaces,
         true ->
           case lists:keysearch({'#PCDATA', char}, #alt.tp, Alternatives) of
             {value, #alt{tag = Tag, rl = RealElement}} ->  %% Print Tags if RealElement
-              TextValue = erlsom_lib:xmlString(CurrentValue),
-              printElement(TextValue, Tag, RealElement, Namespaces, DeclaredNamespaces);
+              printElement(erlsom_lib:xmlString(CurrentValue), Tag, RealElement, Namespaces, DeclaredNamespaces);
             _Else ->
+              case lists:keysearch('#ANY', #alt.tp, Alternatives) of
+                {value, #alt{tag = Tag, rl = true}} ->  %% always a "real" element?
+                  printElement(erlsom_lib:xmlString(CurrentValue), Tag, true, Namespaces, DeclaredNamespaces);
+                _ ->
               throw({error, "Type of value (list) does not match model"++lists:flatten(io_lib:format("Value = --> ~p <-- Expected ~p",[CurrentValue,Alternatives]))})
+          end
           end
       end;
 

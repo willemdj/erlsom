@@ -193,7 +193,7 @@ from_alternative(#alt{tag = Tag, tp = Type, rl = Real, mn = _Min2, mx = _Max2},
   Field = case (Max > 1) of %% unbound > 1
             true ->
               case Type of
-                any ->
+                _ when Type == any; Type == '#ANY' ->
                   %% Note: this is not correct if MinOccurs > 0,
                   %% but that is rare, and it would be difficult
                   %% to figure out what to put in such a case.
@@ -307,6 +307,8 @@ default_value(bool, _, _) ->
   "true";
 default_value(any, _, _) ->
   "undefined";
+default_value('#ANY', _, _) ->
+  "\"could be anything\"";
 default_value(qname, _, _) ->
   "qname";
 default_value(integer, _, _) ->
