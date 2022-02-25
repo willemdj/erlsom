@@ -1058,7 +1058,7 @@ translateReference(Reference, Context, Tail, State) ->
       %% unfortunately this function accepts illegal values
       %% to do: replace by something that throws an error in case of
       %% an illegal value
-      {[httpd_util:hexlist_to_integer(Tail1)], Tail, State};
+      {[list_to_integer(Tail1, 16)], Tail, State};
     [$# | Tail1] -> %% dec number of char's code point
       case catch list_to_integer(Tail1) of
         {'EXIT', _} -> throw({error, "Malformed: Illegal character in reference"});
