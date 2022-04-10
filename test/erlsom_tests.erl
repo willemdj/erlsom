@@ -6,7 +6,7 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
--compile([export_all]).
+-compile([nowarn_export_all, export_all]).
 
 gexf_test_() ->
     {"Test XML/XSD in GEXF format.", {module, erlsom_gexf_tests}}.

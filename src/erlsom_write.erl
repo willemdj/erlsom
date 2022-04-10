@@ -606,7 +606,7 @@ processAnyNamespaces(Name, Uri, Namespaces, {NamespacesList, Counter} = Declared
       case lists:keysearch(Uri, #ns.uri, Namespaces) of
         {value, #ns{prefix = ModelPrefix}} ->
           ThePrefix = ModelPrefix;
-        _Else ->
+        _Else2 ->
           %% make up a prefix, using counter
           ThePrefix = "pre" ++ integer_to_list(Counter +1)
       end,
