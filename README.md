@@ -20,7 +20,7 @@ Erlsom is an Erlang library to parse (and generate) XML documents.
 
 Erlsom can be used in a couple of very different modes:
 
-- As a [SAX parser](#sax). This is a [more or less standardized model] (
+- As a [SAX parser](#sax). This is a [more or less standardized model](
   http://www.saxproject.org/apidoc/org/xml/sax/ContentHandler.html) for
   parsing XML. Every time the parser has processed a meaningful part of the
   XML document (such as a start tag), it will tell your application about
@@ -42,7 +42,7 @@ Erlsom can be used in a couple of very different modes:
   advantage over the SAX parser that it validates the XML document, and
   that you know exactly what the layout of the output will be. This makes
   it easy to access the elements that you need in a very direct way. (Look
-  [here] ( http://www.rpbourret.com/xml/XMLDataBinding.htm) for a general
+  [here](http://www.rpbourret.com/xml/XMLDataBinding.htm) for a general
   description of XML data binding.)
 
 For all modes the following applies:
@@ -219,7 +219,7 @@ BarValues = Result#foo_type.bar,
 AttrValue = Result#foo_type.attr,
 ```
 
-Nice and compact, as you see, but it may need more explanation. I will use a more complex example from the XML Schema  Primer ( [XML Schema Part 0: Primer Second Edition] (http://www.w3.org/TR/2004/REC-xmlschema-0-20041028/) ).
+Nice and compact, as you see, but it may need more explanation. I will use a more complex example from the XML Schema  Primer ([XML Schema Part 0: Primer Second Edition](http://www.w3.org/TR/2004/REC-xmlschema-0-20041028/)).
 
 ```xml
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
