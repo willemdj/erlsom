@@ -251,8 +251,16 @@ translateType(Type = #typeInfo{elements=Elemts, attributes=Attrs, extends = Base
           %% debug(BaseEls),
           %% debug(Attrs),
           %% debug(BaseAttrs),
+          % In the case of extensions with xsd:simpleContent the '#text' element is duplicated causing
+          % generated type records failing to compile. Here we filter the duplicates out.
+          DropDupText = fun
+            DropDupText([#elementInfo{alternatives = [#alternative{tag = "#text"}]} = Head | Tail], false) -> [Head | DropDupText(Tail, true)];
+            DropDupText([#elementInfo{alternatives = [#alternative{tag = "#text"}]} | Tail], true) -> DropDupText(Tail, true);
+            DropDupText([#elementInfo{} = Head | Tail], Found) -> [Head | DropDupText(Tail, Found)];
+            DropDupText([], _Found) -> []
+          end,
           NewAnyAttr = if BaseAnyAttr == undefined -> AnyAttr; true -> BaseAnyAttr end,
-          translateType(Type#typeInfo{elements = BaseEls ++ Elemts, %% TODO: will never be 'undefined'?
+          translateType(Type#typeInfo{elements = DropDupText(BaseEls ++ Elemts, false), %% TODO: will never be 'undefined'?
                                       attributes = mergeAttrs(BaseAttrs, Attrs),
                                       anyAttr = NewAnyAttr,
                                       mixed = case Mixed of undefined -> Mixed2; _ -> Mixed end,

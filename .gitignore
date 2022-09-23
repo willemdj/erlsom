@@ -6,3 +6,6 @@ include.mk
 .rebar
 .eunit
 .test
+_build/
+erlsom.plt
+rebar.lock

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://my.uri"
+	xmlns="http://my.uri"
+	xmlns:tns="http://my.uri"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified"
+	blockDefault="#all"
+	version="0.2">
+	<xsd:complexType name="AttributedString">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="a" type="xsd:string"/>
+				<xsd:anyAttribute namespace="##other" processContents="lax"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="EncodedString">
+		<xsd:simpleContent>
+			<xsd:extension base="tns:AttributedString">
+				<xsd:attribute name="b" type="xsd:string"/>
+				<xsd:attribute name="EncodingType" type="xsd:anyURI"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="KeyIdentifierType">
+		<xsd:simpleContent>
+			<xsd:extension base="tns:EncodedString">
+				<xsd:attribute name="ValueType" type="xsd:anyURI"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+    <xsd:element name="test" type="KeyIdentifierType"/>
+</xsd:schema>

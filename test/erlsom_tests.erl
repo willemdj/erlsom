@@ -5,7 +5,7 @@
 %% ------------------------------------------------------------------
 
 -include_lib("eunit/include/eunit.hrl").
-
+-include("src/erlsom_parse.hrl").
 -compile([nowarn_export_all, export_all]).
 
 gexf_test_() ->
@@ -18,10 +18,29 @@ all_test_() ->
                        [])}.
 
 extension_test_() ->
-    {"Test XSD type extensions.",
-     verify_stability_(["extension", "extension.xsd"],
-                       ["extension", "extension.xml"],
-                       [])}.
+    [{"Test XSD type extensions.",
+      verify_stability_(["extension", "extension.xsd"],
+                        ["extension", "extension.xml"],
+                        [])},
+     {"Test simpleContent extension stable",
+      verify_stability_(["extension", "simpleContentExtension.xsd"],
+                        ["extension", "simpleContentExtension.xml"],
+                        [])},
+     {"Test simpleContent #text not duplicated", fun () ->
+        {ok, #model{tps = Types}} = compile_xsd(["extension", "simpleContentExtension.xsd"], []),
+        ok = lists:foreach(fun (Type = #type{els = Els}) ->
+            IsTextEl = fun
+                (#el{alts = [#alt{tag = '#text'}]}) -> true;
+                (_) -> false
+            end,
+            % No duplicate entries for the #text.
+            % Type bellow is only used to get more informative failure.
+            case {Type, lists:filter(IsTextEl, Els)} of
+                {_, []} -> ok;
+                {_, [_]} -> ok
+            end
+        end, Types)
+      end}].
 
 %% @doc
 %% compile the XSD schema file with the given relative path, example:
