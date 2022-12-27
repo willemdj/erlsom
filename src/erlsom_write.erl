@@ -55,6 +55,8 @@ write(Struct, Model = #model{tps = Types}, Options) ->
           {ok, unicode:characters_to_list(ResultWithThisElement)};
         chardata ->
           {ok, ResultWithThisElement};
+        charlist ->
+          {ok, ResultWithThisElement};
         binary ->
           {ok, unicode:characters_to_binary(ResultWithThisElement)}
       end;
