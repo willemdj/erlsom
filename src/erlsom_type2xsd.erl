@@ -237,8 +237,8 @@ translateType({type, _, union, Alternatives}, Tns) ->
   end;
 
 translateType({type, _, list, [Element]}, Tns) ->
-  TranslatedElement = translateType(Element, Tns),
-  {TranslatedElement, "0", "unbounded"};
+  {Type, _, _} = translateType(Element, Tns),
+  {Type, "0", "unbounded"};
 translateType({type, _, record, [{atom, _, RecordType}]}, Tns) ->
   {qname(atom_to_list(RecordType), Tns),
     undefined, undefined};
