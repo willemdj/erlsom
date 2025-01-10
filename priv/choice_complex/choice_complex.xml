@@ -1,0 +1,5 @@
+<ns:L1 xmlns:ns="http://example.com">
+  <E_MAIL>
+    <TEXT>text</TEXT>
+  </E_MAIL>
+</ns:L1>

@@ -784,24 +784,21 @@ isAny(#alt{tag = '#any', anyInfo = #anyInfo{prCont = "lax", ns = "##any"}}) ->
 isAny(_) ->
   false.
 
-%% TODO: seqCnt should be passed from one element to the next, but not down into the
-%% tree (it should be reset to 0) (the first sequence-in-sequnce should always have nr. 1).
-%% -record(localElementType, {name, type, ref, minOccurs, maxOccurs, simpleOrComplex}).
 translateSequence([LocalElement = #localElementType{} |Tail], ElementsSoFar, Acc) ->
-  {Element, Acc2} = translateLocalElement(LocalElement, Acc),
-  translateSequence(Tail, [Element | ElementsSoFar], Acc2);
+  {Element, Acc2} = translateLocalElement(LocalElement, Acc#p1acc{seqCnt = 0}),
+  translateSequence(Tail, [Element | ElementsSoFar], Acc2#p1acc{seqCnt = Acc#p1acc.seqCnt});
 translateSequence([ChoiceElement = #choiceType{} |Tail], ElementsSoFar, Acc) ->
-  {Element, Acc2} = translateElement(ChoiceElement, Acc),
-  translateSequence(Tail, [Element | ElementsSoFar], Acc2);
+  {Element, Acc2} = translateElement(ChoiceElement, Acc#p1acc{seqCnt = 0}),
+  translateSequence(Tail, [Element | ElementsSoFar], Acc2#p1acc{seqCnt = Acc#p1acc.seqCnt});
 translateSequence([AnyElement = #anyType{} |Tail], ElementsSoFar, Acc) ->
-  {Element, Acc2} = translateElement(AnyElement, Acc),
-  translateSequence(Tail, [Element | ElementsSoFar], Acc2);
+  {Element, Acc2} = translateElement(AnyElement, Acc#p1acc{seqCnt = 0}),
+  translateSequence(Tail, [Element | ElementsSoFar], Acc2#p1acc{seqCnt = Acc#p1acc.seqCnt});
 translateSequence([GroupElement = #groupRefType{} |Tail], ElementsSoFar, Acc) ->
-  {Element, Acc2} = translateElement(GroupElement, Acc),
-  translateSequence(Tail, [Element | ElementsSoFar], Acc2);
+  {Element, Acc2} = translateElement(GroupElement, Acc#p1acc{seqCnt = 0}),
+  translateSequence(Tail, [Element | ElementsSoFar], Acc2#p1acc{seqCnt = Acc#p1acc.seqCnt});
 translateSequence([SequenceElement = #sequenceType{} | Tail], ElementsSoFar, Acc) ->
-  {Element, Acc2} = translateSequenceInSequence(SequenceElement, Acc),
-  translateSequence(Tail, [Element | ElementsSoFar], Acc2);
+  {Element, Acc2} = translateSequenceInSequence(SequenceElement, Acc#p1acc{seqCnt = 0}),
+  translateSequence(Tail, [Element | ElementsSoFar], Acc2#p1acc{seqCnt = Acc#p1acc.seqCnt});
 
 translateSequence(undefined, ElementsSoFar, Acc) ->
   {lists:reverse(ElementsSoFar), Acc};
