@@ -797,8 +797,8 @@ translateSequence([GroupElement = #groupRefType{} |Tail], ElementsSoFar, Acc) ->
   {Element, Acc2} = translateElement(GroupElement, Acc#p1acc{seqCnt = 0}),
   translateSequence(Tail, [Element | ElementsSoFar], Acc2#p1acc{seqCnt = Acc#p1acc.seqCnt});
 translateSequence([SequenceElement = #sequenceType{} | Tail], ElementsSoFar, Acc) ->
-  {Element, Acc2} = translateSequenceInSequence(SequenceElement, Acc#p1acc{seqCnt = 0}),
-  translateSequence(Tail, [Element | ElementsSoFar], Acc2#p1acc{seqCnt = Acc#p1acc.seqCnt});
+  {Element, Acc2} = translateSequenceInSequence(SequenceElement, Acc),
+  translateSequence(Tail, [Element | ElementsSoFar], Acc2);
 
 translateSequence(undefined, ElementsSoFar, Acc) ->
   {lists:reverse(ElementsSoFar), Acc};
