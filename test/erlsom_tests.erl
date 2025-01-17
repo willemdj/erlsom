@@ -151,3 +151,9 @@ xsi_type_no_prefix_read_test() ->
     ?assertMatch({'ExtType', _, "base", "ext"}, Parsed).
 
 
+choice_complex_test() ->
+    {ok, Xsd} = file:read_file(priv_path(["choice_complex", "choice_complex.xsd"])),
+    {ok, Xml} = file:read_file(priv_path(["choice_complex", "choice_complex.xml"])),
+    {ok, Model} = erlsom:compile(Xsd),
+    {ok, _Data, _} = erlsom:scan(Xml, Model).
+

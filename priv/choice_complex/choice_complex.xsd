@@ -1,0 +1,24 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   xmlns="http://example.com"
+	   targetNamespace="http://example.com" elementFormDefault="unqualified"
+	   attributeFormDefault="unqualified">
+  <xs:element name="L1">
+    <xs:complexType>
+      <xs:choice>	
+	<xs:sequence>
+	  <xs:element name="E_MAIL" minOccurs="0" maxOccurs="unbounded">
+	    <xs:complexType>
+	      <xs:sequence>
+		<xs:element name="TEXT" type="xs:string" />
+	      </xs:sequence>
+	    </xs:complexType>
+	  </xs:element>
+	</xs:sequence>
+
+	<xs:sequence>
+          <xs:element name="FLAG" type="xs:boolean" fixed="true" minOccurs="0" />
+	</xs:sequence>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
