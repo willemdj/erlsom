@@ -934,7 +934,7 @@ translateQuasiAlternative(#localElementType{name=Name, type=undefined, ref=undef
          Types = [ThisType | ResultSoFar],
          Acc3 = Acc2#p1acc{tps = Types}
    end,
-   {#alternative{tag=erlsom_lib:makeTag(Name, Prefix, Efd), type=TypeRef, real = true}, Acc3#p1acc{path=Path}};
+   {#alternative{tag=erlsom_lib:makeTag(Name, Prefix, Form2), type=TypeRef, real = true}, Acc3#p1acc{path=Path}};
 translateQuasiAlternative(#localElementType{name=Name, type=Type, ref=undefined, simpleOrComplex=undefined, form = Form},
                           Acc = #p1acc{efd = Efd, nsp = Prefix, nss = Nss, strict=Strict}) ->
    Form2 = case Form of undefined -> Efd; _ -> Form end,
