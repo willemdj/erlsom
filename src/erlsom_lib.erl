@@ -648,21 +648,33 @@ autodetect(Input) ->
       binary_to_list(Input)
   end.
 
+%% return the first 100 bytes, or the whole document if it is shorter 
+%% than or equal to 100 bytes.
+get_100_bytes(Xml, _CFun, CState)  when byte_size(Xml) > 99 ->
+  {Xml, CState};
+get_100_bytes(Xml, CFun, CState) ->
+  case CFun(<<>>, CState) of
+    {<<>>, NewState} ->
+      {Xml, NewState};
+    {Chunk, NewState} ->
+      get_100_bytes(<<Xml/binary, Chunk/binary>>, CFun, NewState)
+  end. 
 
 %% CFun = {ContinuationFunction, ContinuationState} (or undefined)
 detectEncoding(Xml, _CFun, CState) when is_list(Xml) ->
   {list, Xml, CState};
 detectEncoding(Xml, CFun, CState) when is_binary(Xml) ->
-  case Xml of
-    <<>> ->
-      case CFun(Xml, CState) of
-        {<<>>, _} ->
+  case byte_size(Xml) > 99 of
+    true ->
+      {detectEncoding(Xml), Xml, CState};
+    false ->
+      {Chunk, NewCState} = get_100_bytes(Xml, CFun, CState),
+      case Chunk of 
+        <<>> ->
           throw({error, "empty document"});
-        {Xml2, State2} ->
-          {detectEncoding(Xml2), Xml2, State2}
-      end;
-    _ ->
-      {detectEncoding(Xml), Xml, CState}
+        _ -> 
+          {detectEncoding(Chunk), Chunk, NewCState}
+      end
   end.
 
 %%------------------------------------------------------------------------------
