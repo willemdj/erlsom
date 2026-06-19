@@ -140,10 +140,13 @@ compile_xsd(Xsd) ->
   compile_xsd(Xsd, []).
 
 compile_xsd(Xsd, Options) ->
-  case catch erlsom_compile:compile(Xsd, Options) of
+  try erlsom_compile:compile(Xsd, Options) of
     {error, Message} -> {error, Message};
-    {'EXIT', Message} -> throw({'EXIT', Message});
     Result -> Result
+  catch
+    throw:Message -> throw({'EXIT', Message});
+    error:Message -> throw({'EXIT', Message});
+    exit:Message -> throw({'EXIT', Message})
   end.
 
 compile_xsd_file(Xsd) ->
@@ -242,12 +245,15 @@ scan(Xml, #model{value_fun = ValFun} = Model, Options) ->
   %%{T ++ Data, S#state{continuationState = {F, CS2}}}.
 
 scan2(Xml, State, Options) ->
-  case catch erlsom_sax:parseDocument(Xml, State,
-                                      fun erlsom_parse:xml2StructCallback/2,
-                                      Options) of
+  try erlsom_sax:parseDocument(Xml, State,
+                               fun erlsom_parse:xml2StructCallback/2,
+                               Options) of
     {error, Message} -> {error, Message};
-    {'EXIT', Message} -> throw({'EXIT', Message});
     {ok, Structure, Tail} -> {ok, Structure, Tail}
+  catch
+    throw:Message -> throw({'EXIT', Message});
+    error:Message -> throw({'EXIT', Message});
+    exit:Message -> throw({'EXIT', Message})
   end.
 
 
