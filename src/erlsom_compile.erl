@@ -247,22 +247,28 @@ compile_parsed_xsd(ParsedXsd, Prefix, Namespaces, IncludeFun, IncludeDirs, Inclu
            nsp = Nsp,
            nss = Nss ++ ImportedNsMapping, %  ++ ToBeImportedNsMapping
                imported = ImportedNs},
-  case catch transform(ParsedXsd, Acc) of
+  try transform(ParsedXsd, Acc) of
     {error, Message} -> {error, Message};
-    {'EXIT', Message} -> throw({'EXIT', Message});
     IntermediateResult ->
-      case catch erlsom_pass2:secondPass(IntermediateResult#p1acc.tps,
-                     #schemaInfo{targetNamespace = IntermediateResult#p1acc.tns,
-                             namespaces = clean_up(IntermediateResult#p1acc.nss),
-                             atts = IntermediateResult#p1acc.atts,
-                             attGrps = IntermediateResult#p1acc.attGrps,
-                                                     strict = Strict,
-                                                     include_any_attrs = IncludeAnyAttribs,
-                                                     value_fun = ValueFun}) of
-     {error, Message} -> {error, Message};
-         {'EXIT', Message} -> throw({'EXIT', Message});
-     FinalResult -> {ok, FinalResult}
+      try erlsom_pass2:secondPass(IntermediateResult#p1acc.tps,
+                                  #schemaInfo{targetNamespace = IntermediateResult#p1acc.tns,
+                                              namespaces = clean_up(IntermediateResult#p1acc.nss),
+                                              atts = IntermediateResult#p1acc.atts,
+                                              attGrps = IntermediateResult#p1acc.attGrps,
+                                              strict = Strict,
+                                              include_any_attrs = IncludeAnyAttribs,
+                                              value_fun = ValueFun}) of
+        {error, Message} -> {error, Message};
+        FinalResult -> {ok, FinalResult}
+      catch
+        throw:Message -> throw({'EXIT', Message});
+        error:Message -> throw({'EXIT', Message});
+        exit:Message -> throw({'EXIT', Message})
       end
+  catch
+    throw:Message -> throw({'EXIT', Message});
+    error:Message -> throw({'EXIT', Message});
+    exit:Message -> throw({'EXIT', Message})
   end.
 
 clean_up(Namespaces) ->

@@ -1060,10 +1060,11 @@ translateReference(Reference, Context, Tail, State) ->
       %% an illegal value
       {[list_to_integer(Tail1, 16)], Tail, State};
     [$# | Tail1] -> %% dec number of char's code point
-      case catch list_to_integer(Tail1) of
-        {'EXIT', _} -> throw({error, "Malformed: Illegal character in reference"});
-          %% to do: check on legal character.
-          Other -> {[Other], Tail, State}
+      try list_to_integer(Tail1) of
+        %% to do: check on legal character.
+        Other -> {[Other], Tail, State}
+      catch
+        _:_ -> throw({error, "Malformed: Illegal character in reference"})
       end;
     _ ->
       translateReferenceNonCharacter(Reference, Context, Tail, State)
