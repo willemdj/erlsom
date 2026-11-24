@@ -157,3 +157,13 @@ choice_complex_test() ->
     {ok, Model} = erlsom:compile(Xsd),
     {ok, _Data, _} = erlsom:scan(Xml, Model).
 
+
+%%
+%%  A mixed type keeps its mixed content when the element using it is a
+%%  repeating alternative of a choice (maxOccurs > 1 on the element itself).
+%%
+mixed_repeated_element_test() ->
+    {ok, Xsd} = file:read_file(priv_path(["mixed_repeated", "mixed_repeated.xsd"])),
+    {ok, Xml} = file:read_file(priv_path(["mixed_repeated", "mixed_repeated.xml"])),
+    {ok, Model} = erlsom:compile(Xsd),
+    ?assertMatch({ok, _Data, _}, erlsom:scan(Xml, Model)).
