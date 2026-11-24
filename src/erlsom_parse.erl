@@ -577,7 +577,8 @@ stateMachine(Event, State = #state{currentState = #altState{name=Name, type=Type
                   NewState = State#state{currentState = #cs{re = TypeDef#type.els,
                                                             sf = 0,
                                                             er = NewRecord,
-                                                            rl = Real},
+                                                            rl = Real,
+                                                            mxd = TypeDef#type.mxd},
                   resultSoFar = [State#state.currentState | State#state.resultSoFar]},
                   if %%{
                     Real ->
